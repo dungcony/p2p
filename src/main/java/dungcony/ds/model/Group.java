@@ -12,23 +12,38 @@ public class Group {
     public Group() {
     }
 
+    /**
+     * Tạo group mới với id tự sinh và tên hiển thị.
+     */
     public Group(String name) {
         this.groupId = UUID.randomUUID().toString();
         this.name = name == null || name.isBlank() ? "Group" : name.trim();
     }
 
+    /**
+     * Lấy id duy nhất của nhóm.
+     */
     public String getGroupId() {
         return groupId;
     }
 
+    /**
+     * Lấy tên hiển thị của nhóm.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Lấy danh sách thành viên hiện có trong nhóm.
+     */
     public Set<PeerInfo> getMembers() {
         return members;
     }
 
+    /**
+     * Thêm một peer vào nhóm nếu peer hợp lệ.
+     */
     public void addMember(PeerInfo peerInfo) {
         if (peerInfo != null) {
             members.add(peerInfo);

@@ -66,19 +66,32 @@ public class BottomPanel extends RoundedPanel {
     private void addFriend(ActionEvent e) {
         String name = nameField.getTextField().getText();
         String address = ipField.getTextField().getText();
+        System.out.println("[INFO] AddFriend requested. name=" + name + ", address=" + address);
 
         if (name == null || name.isBlank()) {
+            System.out.println("[WARN] AddFriend rejected: empty name.");
             Dialog.showMessageDialog(null, "Please enter name of your friend", "Empty input fields", Dialog.ERROR_MESSAGE);
             return;
         }
 
         if (!isValidPeerAddress(address)) {
+            System.out.println("[WARN] AddFriend rejected: invalid address=" + address);
             Dialog.showMessageDialog(null, "Please provide valid IP address or host:port", "Invalid address", Dialog.ERROR_MESSAGE);
+            return;
+        }
+        if (App.peerNode != null && App.peerNode.isSelfAddress(address)) {
+            System.out.println("[WARN] AddFriend rejected: address points to local peer=" + address);
+            Dialog.showMessageDialog(null, "You cannot add your own peer address.", "Invalid peer", Dialog.WARNING_MESSAGE);
             return;
         }
 
         if (App.peerNode != null) {
-            App.peerNode.addKnownPeer(name, address);
+            if (App.peerNode.addKnownPeer(name, address) == null) {
+                Dialog.showMessageDialog(null, "Peer was not added.", "Add Friend Failed", Dialog.WARNING_MESSAGE);
+                return;
+            }
+        } else {
+            System.out.println("[WARN] AddFriend skipped because App.peerNode is null.");
         }
 
         nameField.getTextField().setText("");
@@ -88,17 +101,27 @@ public class BottomPanel extends RoundedPanel {
 
     private boolean connectFriend(boolean isFromAddFriend) {
         String address = ipField.getTextField().getText();
+        System.out.println("[INFO] ConnectFriend requested. address=" + address
+                + ", fromAddFriend=" + isFromAddFriend);
         if (!isValidPeerAddress(address)) {
+            System.out.println("[WARN] ConnectFriend rejected: invalid address=" + address);
             Dialog.showMessageDialog(null, "Please provide valid IP address or host:port", "Invalid address", Dialog.ERROR_MESSAGE);
+            return false;
+        }
+        if (App.peerNode != null && App.peerNode.isSelfAddress(address)) {
+            System.out.println("[WARN] ConnectFriend rejected: address points to local peer=" + address);
+            Dialog.showMessageDialog(null, "You cannot connect to your own peer address.", "Invalid peer", Dialog.WARNING_MESSAGE);
             return false;
         }
 
         boolean online = App.peerNode != null && App.peerNode.checkUserIsOnline(address);
         if (!online) {
+            System.out.println("[WARN] ConnectFriend failed heartbeat. address=" + address);
             Dialog.showMessageDialog(null, "Peer did not respond to heartbeat.", "Offline peer", Dialog.WARNING_MESSAGE);
             return false;
         }
 
+        System.out.println("[INFO] ConnectFriend succeeded. address=" + address);
         if (!isFromAddFriend) {
             Dialog.showConfirmDialog(null, "Peer is online. You can add it to your friend list.", "Peer connected", Dialog.CLOSED_OPTION, Dialog.INFORMATION_MESSAGE);
         }

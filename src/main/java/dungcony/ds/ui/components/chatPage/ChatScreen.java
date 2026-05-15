@@ -17,6 +17,7 @@ public class ChatScreen extends JPanel implements MessageListener {
     private ChatHistory chatHistory;
     private SendMessageBox sendMessageBox;
     private ChatHeader chatHeader;
+    private JLabel emptyStateLabel;
     private final List<Message> messages;
     private ChatPage parentChatPage;
 
@@ -36,13 +37,16 @@ public class ChatScreen extends JPanel implements MessageListener {
         chatHeader.getBackButton().addActionListener(e -> goToChatListPage());
         chatHistory = new ChatHistory();
         sendMessageBox = new SendMessageBox(this);
+        emptyStateLabel = new JLabel("Select a peer to start chatting", SwingConstants.CENTER);
+        emptyStateLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        emptyStateLabel.setForeground(ColorPalette.SECONDARY_TEXT);
     }
 
     private void setupLayout() {
         setLayout(new BorderLayout());
         add(chatHeader, BorderLayout.NORTH);
-        add(chatHistory, BorderLayout.CENTER);
-        add(sendMessageBox, BorderLayout.SOUTH);
+        add(emptyStateLabel, BorderLayout.CENTER);
+        sendMessageBox.setVisible(false);
     }
 
     private void renderAllMessages() {
@@ -66,6 +70,7 @@ public class ChatScreen extends JPanel implements MessageListener {
         chatHeader.setUserName(userName);
         messages.clear();
         chatHistory.clearMessages();
+        showChatControls(true);
     }
 
     public void setMobileMode(boolean isMobile) {
@@ -88,6 +93,7 @@ public class ChatScreen extends JPanel implements MessageListener {
 
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
+        showChatControls(ipAddress != null && !ipAddress.isBlank());
     }
 
     @Override
@@ -105,5 +111,23 @@ public class ChatScreen extends JPanel implements MessageListener {
 
     public void setUserStatus(boolean isOnline) {
         chatHeader.setStatus(isOnline);
+    }
+
+    private void showChatControls(boolean hasSelectedPeer) {
+        remove(emptyStateLabel);
+        remove(chatHistory);
+        remove(sendMessageBox);
+
+        if (hasSelectedPeer) {
+            add(chatHistory, BorderLayout.CENTER);
+            add(sendMessageBox, BorderLayout.SOUTH);
+            sendMessageBox.setVisible(true);
+        } else {
+            add(emptyStateLabel, BorderLayout.CENTER);
+            sendMessageBox.setVisible(false);
+        }
+
+        revalidate();
+        repaint();
     }
 }

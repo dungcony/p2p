@@ -322,6 +322,7 @@ public class ChatPage extends JPanel {
     /** Xử lý khi chọn một cuộc chat từ ChatList */
     public void onChatSelected(String username, String ipAddress) {
         try {
+            System.out.println("[INFO] UI chat selected. user=" + username + ", peer=" + ipAddress);
             chatScreen.setSelectedUser(username);
             chatScreen.setIpAddress(ipAddress);
             chatScreen.setMessages(App.peerNode == null ? java.util.Collections.emptyList() : App.peerNode.getMessagesWithPeer(ipAddress));
@@ -330,6 +331,7 @@ public class ChatPage extends JPanel {
                 new SwingWorker<Boolean, Void>() {
                     @Override
                     protected Boolean doInBackground() {
+                        System.out.println("[DEBUG] Checking selected peer status in background: " + ipAddress);
                         return App.peerNode.checkUserIsOnline(ipAddress);
                     }
 

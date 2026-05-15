@@ -111,7 +111,16 @@ class SendMessageBox extends JPanel {
 
             if (!messageText.isBlank()) {
                 String ip = parentScreen.getIpAddress();
-                System.out.println("[INFO] Message : " + messageText);
+                if (ip == null || ip.isBlank()) {
+                    System.out.println("[WARN] UI send ignored because no peer is selected.");
+                    return;
+                }
+                if (App.peerNode != null && App.peerNode.isSelfAddress(ip)) {
+                    System.out.println("[WARN] UI send ignored because selected peer is local peer: " + ip);
+                    return;
+                }
+                System.out.println("[INFO] UI send message requested. to=" + ip
+                        + ", length=" + messageText.length());
 
                 // Clear the field immediately for better UX
                 messageField.setText("");
@@ -127,6 +136,8 @@ class SendMessageBox extends JPanel {
                         try {
                             if (App.peerNode != null) {
                                 App.peerNode.sendMessage(messageText, ip);
+                            } else {
+                                System.out.println("[WARN] Cannot send message because App.peerNode is null.");
                             }
                         } catch (Exception ex) {
                             System.out.println("[ERROR] Failed to send message in background\nError Message: " + ex.getMessage());
@@ -151,6 +162,9 @@ class SendMessageBox extends JPanel {
                         }
                     }
                 }.execute();
+            }
+            else {
+                System.out.println("[DEBUG] Ignored blank message submit.");
             }
         } catch (Exception e) {
             System.out.println("[ERROR] Failed to send message\nError Message: " + e.getMessage());

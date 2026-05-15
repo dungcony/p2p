@@ -15,17 +15,26 @@ public class TCPServer {
     private volatile boolean running;
     private ServerSocket serverSocket;
 
+    /**
+     * Khởi tạo TCPServer với port lắng nghe và MessageReceiver để xử lý message đến.
+     */
     public TCPServer(int port, MessageReceiver receiver) {
         this.port = port;
         this.receiver = receiver;
     }
 
+    /**
+     * Mở ServerSocket, accept nhiều kết nối và giao từng kết nối cho ConnectionHandler.
+     */
     public void listen() {
         running = true;
         try (ServerSocket openedSocket = new ServerSocket(port)) {
             serverSocket = openedSocket;
+            System.out.println("[INFO] TCPServer listening on port " + port);
             while (running) {
                 Socket socket = openedSocket.accept();
+                System.out.println("[DEBUG] TCPServer accepted connection from "
+                        + socket.getRemoteSocketAddress());
                 connectionPool.submit(new ConnectionHandler(socket, receiver));
             }
         } catch (IOException e) {
@@ -37,9 +46,13 @@ public class TCPServer {
         }
     }
 
+    /**
+     * Dừng server và đóng connection pool để peer thoát sạch.
+     */
     public void stop() {
         running = false;
         connectionPool.shutdownNow();
+        System.out.println("[INFO] TCPServer stopping on port " + port);
         if (serverSocket != null) {
             try {
                 serverSocket.close();

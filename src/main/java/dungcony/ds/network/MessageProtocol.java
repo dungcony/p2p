@@ -7,11 +7,25 @@ import dungcony.ds.model.Message;
 public class MessageProtocol {
     private final Gson gson = new GsonBuilder().create();
 
+    /**
+     * Chuyển Message thành chuỗi JSON để gửi qua TCP socket.
+     */
     public String serialize(Message message) {
-        return gson.toJson(message);
+        String payload = gson.toJson(message);
+        System.out.println("[TRACE] Serialized message id="
+                + (message == null ? "null" : message.getId())
+                + ", bytes=" + payload.length());
+        return payload;
     }
 
+    /**
+     * Chuyển chuỗi JSON nhận qua TCP socket thành đối tượng Message.
+     */
     public Message deserialize(String payload) {
-        return gson.fromJson(payload, Message.class);
+        Message message = gson.fromJson(payload, Message.class);
+        System.out.println("[TRACE] Deserialized message id="
+                + (message == null ? "null" : message.getId())
+                + ", type=" + (message == null ? "null" : message.getType()));
+        return message;
     }
 }

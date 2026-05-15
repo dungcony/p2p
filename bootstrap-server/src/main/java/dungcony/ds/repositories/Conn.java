@@ -1,5 +1,8 @@
 package dungcony.ds.repositories;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,14 +11,17 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Conn {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Conn.class);
     private final String jdbcUrl;
 
     public Conn(Path databasePath) {
         ensureParentDirectory(databasePath);
         this.jdbcUrl = "jdbc:sqlite:" + databasePath.toAbsolutePath();
+        LOGGER.info("Bootstrap database connection configured. url={}", jdbcUrl);
     }
 
     public Connection getConnection() throws SQLException {
+        LOGGER.debug("Opening SQLite connection. url={}", jdbcUrl);
         return DriverManager.getConnection(jdbcUrl);
     }
 
@@ -30,6 +36,7 @@ public class Conn {
         }
         try {
             Files.createDirectories(parent);
+            LOGGER.debug("Ensured database directory exists: {}", parent);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to create database directory: " + parent, e);
         }

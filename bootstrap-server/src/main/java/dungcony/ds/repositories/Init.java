@@ -1,10 +1,14 @@
 package dungcony.ds.repositories;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Init {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Init.class);
     private final Conn conn;
 
     public Init(Conn conn) {
@@ -12,11 +16,12 @@ public class Init {
     }
 
     /**
-     * Tao schema SQLite cho cac bang bootstrap-server can quan ly.
+     * Tao cac bang neu file database moi hoac chua co schema.
      */
     public void initializeSchema() {
         try (Connection connection = conn.getConnection();
              Statement statement = connection.createStatement()) {
+            LOGGER.info("Initializing bootstrap database schema if missing. url={}", conn.getJdbcUrl());
             statement.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS users (
                         user_id TEXT PRIMARY KEY,
@@ -65,8 +70,9 @@ public class Init {
                         delivered INTEGER NOT NULL DEFAULT 0
                     )
                     """);
-            System.out.println("[INFO] Bootstrap SQLite schema ready. url=" + conn.getJdbcUrl());
+            LOGGER.info("Bootstrap SQLite schema is ready.");
         } catch (SQLException e) {
+            LOGGER.error("Failed to initialize bootstrap database schema.", e);
             throw new IllegalStateException("Failed to initialize bootstrap database", e);
         }
     }

@@ -1,4 +1,4 @@
-package dungcony.ds.bootstrap;
+package dungcony.ds.models;
 
 public class HeartbeatMonitor implements Runnable {
     private final PeerRegistry registry;

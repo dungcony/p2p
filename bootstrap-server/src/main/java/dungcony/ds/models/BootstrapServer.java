@@ -1,7 +1,12 @@
-package dungcony.ds.bootstrap;
+package dungcony.ds.models;
 
 import com.google.gson.Gson;
-import dungcony.ds.model.PeerInfo;
+import dungcony.ds.config.Config;
+import dungcony.ds.entities.GroupEntity;
+import dungcony.ds.entities.GroupMemberEntity;
+import dungcony.ds.entities.OfflineMessageEntity;
+import dungcony.ds.repositories.Conn;
+import dungcony.ds.repositories.Init;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,7 +20,7 @@ import java.util.Locale;
 
 public class BootstrapServer {
     private final int port;
-    private final PeerRegistry registry = new PeerRegistry();
+    private final PeerRegistry registry;
     private final Gson gson = new Gson();
     private volatile boolean running;
 
@@ -23,7 +28,17 @@ public class BootstrapServer {
      * Khởi tạo tracker lắng nghe trên port được truyền vào.
      */
     public BootstrapServer(int port) {
+        this(port, Config.load().getDatabasePath());
+    }
+
+    /**
+     * Khởi tạo tracker với port và đường dẫn SQLite database.
+     */
+    public BootstrapServer(int port, java.nio.file.Path databasePath) {
         this.port = port;
+        Conn conn = new Conn(databasePath);
+        new Init(conn).initializeSchema();
+        this.registry = new PeerRegistry(conn);
     }
 
     /**
@@ -31,7 +46,8 @@ public class BootstrapServer {
      */
     public static void main(String[] args) {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 9000;
-        new BootstrapServer(port).start();
+        Config config = Config.load();
+        new BootstrapServer(port, config.getDatabasePath()).start();
     }
 
     /**
@@ -87,10 +103,44 @@ public class BootstrapServer {
                 case "JOIN" -> {
                     PeerInfo peerInfo = gson.fromJson(payload, PeerInfo.class);
                     registry.join(peerInfo);
+                    String receiverId = peerInfo == null ? "" : peerInfo.getId();
+                    Collection<OfflineMessageEntity> offlineMessages = registry.drainOfflineMessages(receiverId);
                     System.out.println("[INFO] Bootstrap JOIN peer="
                             + (peerInfo == null ? "null" : peerInfo.addressKey())
                             + ", totalPeers=" + registry.list().size());
-                    writer.println(gson.toJson(registry.list()));
+                    writer.println(gson.toJson(new JoinResponse(registry.list(), offlineMessages)));
+                    return;
+                }
+                case "STORE_OFFLINE" -> {
+                    OfflineMessageEntity message = gson.fromJson(payload, OfflineMessageEntity.class);
+                    registry.storeOfflineMessage(message);
+                    writer.println("OK");
+                    return;
+                }
+                case "CREATE_GROUP" -> {
+                    GroupEntity groupEntity = gson.fromJson(payload, GroupEntity.class);
+                    registry.createGroup(groupEntity);
+                    writer.println("OK");
+                    return;
+                }
+                case "LIST_GROUPS" -> {
+                    writer.println(gson.toJson(registry.listGroups()));
+                    return;
+                }
+                case "ADD_GROUP_MEMBER" -> {
+                    GroupMemberEntity memberEntity = gson.fromJson(payload, GroupMemberEntity.class);
+                    registry.addGroupMember(memberEntity);
+                    writer.println("OK");
+                    return;
+                }
+                case "REMOVE_GROUP_MEMBER" -> {
+                    GroupMemberEntity memberEntity = gson.fromJson(payload, GroupMemberEntity.class);
+                    registry.removeGroupMember(memberEntity.getGroupId(), memberEntity.getUserId());
+                    writer.println("OK");
+                    return;
+                }
+                case "LIST_GROUP_MEMBERS" -> {
+                    writer.println(gson.toJson(registry.listGroupMembers(payload.trim())));
                     return;
                 }
                 case "LEAVE" -> {

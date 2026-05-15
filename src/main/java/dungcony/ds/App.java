@@ -1,17 +1,35 @@
 package dungcony.ds;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class App {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+import dungcony.ds.peer.PeerNode;
+import dungcony.ds.ui.LoginDialog;
+import dungcony.ds.ui.Main;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+import javax.swing.SwingUtilities;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+public class App {
+    public static PeerNode peerNode;
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            LoginDialog loginDialog = new LoginDialog();
+            loginDialog.setVisible(true);
+            if (!loginDialog.isConfirmed()) {
+                return;
+            }
+
+            peerNode = new PeerNode(loginDialog.getPeerName(), loginDialog.getPeerPort());
+            peerNode.start();
+
+            Main mainWindow = new Main();
+            mainWindow.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    peerNode.stop();
+                }
+            });
+            mainWindow.setVisible(true);
+        });
     }
 }

@@ -80,11 +80,3 @@ Hệ thống gồm nhiều **peer**, mỗi peer đóng vai trò:
 ### Hệ thống cần có các thành phần chính
 - *Peer node:* gửi và nhận tin nhắn
 - *Bootstrap/Tracker server (đơn giản):* hỗ trợ khám phá pe
-
-## 5. Sản phẩm cần nộp
-### Mã nguồn và hướng dẫn chạy
-## báo cáo gồm
-    - Kiến trúc hệ thống
-    - Giao thức đổi thông điệp
-    - Cơ chế peer discovery
-    - xử lý lỗi và thử nghiệm hệ thống

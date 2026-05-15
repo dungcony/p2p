@@ -1,0 +1,154 @@
+package dungcony.ds.model;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
+
+public class Message {
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
+            .withZone(ZoneId.systemDefault());
+
+    private String id;
+    private MessageType type;
+    private String senderId;
+    private String senderHost;
+    private int senderPort;
+    private String receiverId;
+    private String receiverHost;
+    private int receiverPort;
+    private String groupId;
+    private String content;
+    private long timestamp;
+    private transient boolean fromCurrentUser;
+
+    public Message() {
+    }
+
+    public Message(String senderHost, String content, boolean fromCurrentUser) {
+        this.id = UUID.randomUUID().toString();
+        this.type = MessageType.CHAT;
+        this.senderHost = senderHost == null ? "" : senderHost.trim();
+        this.content = content == null ? "" : content;
+        this.timestamp = Instant.now().toEpochMilli();
+        this.fromCurrentUser = fromCurrentUser;
+    }
+
+    public static Message chat(PeerInfo sender, PeerInfo receiver, String content) {
+        Message message = new Message();
+        message.id = UUID.randomUUID().toString();
+        message.type = MessageType.CHAT;
+        message.senderId = sender.getId();
+        message.senderHost = sender.getHost();
+        message.senderPort = sender.getPort();
+        message.receiverId = receiver.getId();
+        message.receiverHost = receiver.getHost();
+        message.receiverPort = receiver.getPort();
+        message.content = content == null ? "" : content;
+        message.timestamp = Instant.now().toEpochMilli();
+        message.fromCurrentUser = true;
+        return message;
+    }
+
+    public static Message groupChat(PeerInfo sender, String groupId, String content) {
+        Message message = new Message();
+        message.id = UUID.randomUUID().toString();
+        message.type = MessageType.GROUP_CHAT;
+        message.senderId = sender.getId();
+        message.senderHost = sender.getHost();
+        message.senderPort = sender.getPort();
+        message.groupId = groupId;
+        message.content = content == null ? "" : content;
+        message.timestamp = Instant.now().toEpochMilli();
+        message.fromCurrentUser = true;
+        return message;
+    }
+
+    public static Message ack(Message source, PeerInfo sender) {
+        Message message = new Message();
+        message.id = source.getId();
+        message.type = MessageType.ACK;
+        message.senderId = sender.getId();
+        message.senderHost = sender.getHost();
+        message.senderPort = sender.getPort();
+        message.receiverId = source.getSenderId();
+        message.receiverHost = source.getSenderHost();
+        message.receiverPort = source.getSenderPort();
+        message.timestamp = Instant.now().toEpochMilli();
+        return message;
+    }
+
+    public static Message heartbeat(PeerInfo sender) {
+        Message message = new Message();
+        message.id = UUID.randomUUID().toString();
+        message.type = MessageType.HEARTBEAT;
+        message.senderId = sender.getId();
+        message.senderHost = sender.getHost();
+        message.senderPort = sender.getPort();
+        message.timestamp = Instant.now().toEpochMilli();
+        return message;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public MessageType getType() {
+        return type;
+    }
+
+    public String getSenderId() {
+        return senderId;
+    }
+
+    public String getSenderHost() {
+        return senderHost;
+    }
+
+    public int getSenderPort() {
+        return senderPort;
+    }
+
+    public String getSenderIp() {
+        if (senderPort > 0) {
+            return senderHost + ":" + senderPort;
+        }
+        return senderHost;
+    }
+
+    public String getReceiverId() {
+        return receiverId;
+    }
+
+    public String getReceiverHost() {
+        return receiverHost;
+    }
+
+    public int getReceiverPort() {
+        return receiverPort;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public boolean isFromCurrentUser() {
+        return fromCurrentUser;
+    }
+
+    public void setFromCurrentUser(boolean fromCurrentUser) {
+        this.fromCurrentUser = fromCurrentUser;
+    }
+
+    public String getFormattedTime() {
+        return TIME_FORMATTER.format(Instant.ofEpochMilli(timestamp));
+    }
+}

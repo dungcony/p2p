@@ -1,0 +1,257 @@
+package dungcony.ds.ui.components.addFriendPage;
+
+import dungcony.ds.App;
+import dungcony.ds.ui.components.Button;
+import dungcony.ds.ui.components.RoundedPanel;
+import dungcony.ds.ui.utils.ColorPalette;
+import org.kordamp.ikonli.fontawesome.FontAwesome;
+import org.kordamp.ikonli.swing.FontIcon;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
+
+
+/** Panel hiển thị địa chỉ IP và nút sao chép */
+class IPAddressPanel extends RoundedPanel {
+    /** Nhãn hiển thị địa chỉ IP */
+    private JLabel ipAddressLabel;
+    /** Nhãn tiêu đề */
+    private JLabel titleLabel;
+    /** Nút sao chép */
+    private Button copyButton;
+    /** Địa chỉ IP */
+    private String ipAddress;
+    
+    public IPAddressPanel() {
+        super(10, ColorPalette.BACKGROUND);
+        try {
+            setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+            setLayout(new FlowLayout(FlowLayout.CENTER, 15, 5));
+            
+            // Lấy địa chỉ IP từ hệ thống
+            ipAddress = getWifiIPAddress();
+            
+            // Nhãn tiêu đề
+            titleLabel = new JLabel("Your IP Address:");
+            titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            titleLabel.setForeground(ColorPalette.SECONDARY_TEXT);
+            
+            // Nhãn địa chỉ IP
+            ipAddressLabel = new JLabel(ipAddress);
+            ipAddressLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+            ipAddressLabel.setForeground(ColorPalette.PRIMARY);
+            
+            // Nút sao chép
+            copyButton = new Button(FontIcon.of(FontAwesome.COPY, 15));
+            copyButton.setToolTipText("Copy IP Address");
+            
+            // Sự kiện click nút sao chép
+            copyButton.addActionListener(e -> {
+                try {
+                    copyIPAddressToClipboard();
+                } catch (Exception ex) {
+                    System.out.println("[ERROR] Failed to copy IP address to clipboard\nError Message: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            });
+            
+            // Thêm các component
+            add(titleLabel);
+            add(ipAddressLabel);
+            add(copyButton);
+        } catch (Exception e) {
+            System.out.println("[ERROR] Failed to initialize IPAddressPanel\nError Message: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Lấy địa chỉ IP WiFi
+     * @return Chuỗi địa chỉ IP
+     */
+    private String getWifiIPAddress() {
+        if (App.peerNode != null) {
+            return App.peerNode.getLocalPeer().addressKey();
+        }
+        try {
+            // Các tên giao diện WiFi phổ biến
+            Set<String> wifiInterfaceIdentifiers = new HashSet<>(Arrays.asList(
+                // Windows naming patterns
+                "wi-fi", "wireless", "wlan", 
+                // Linux naming patterns
+                "wlp", "wlo", "wlx", "wls", "ath", "wifi",
+                // macOS naming patterns
+                "en", "airport",
+                // Generic patterns
+                "wireless"
+            ));
+            
+            // Phương pháp 1: Tìm giao diện khới động, không là loopback
+            // and match common wireless naming patterns
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = networkInterfaces.nextElement();
+                
+                // Bỏ qua giao diện tắt, loopback, ảo
+                if (!networkInterface.isUp() || networkInterface.isLoopback() || 
+                    networkInterface.isVirtual() || !networkInterface.supportsMulticast()) {
+                    continue;
+                }
+                
+                String interfaceName = networkInterface.getName().toLowerCase();
+                String displayName = networkInterface.getDisplayName().toLowerCase();
+                
+                // Kiểm tra giao diện có phải WiFi không
+                boolean isWifi = false;
+                for (String pattern : wifiInterfaceIdentifiers) {
+                    if (interfaceName.contains(pattern) || displayName.contains(pattern)) {
+                        isWifi = true;
+                        break;
+                    }
+                }
+                
+                // For Linux, sometimes the interface is simply named "wlan0" or similar
+                if (!isWifi && (interfaceName.matches("wlan\\d+") || displayName.matches("wlan\\d+"))) {
+                    isWifi = true;
+                }
+                
+                if (isWifi) {
+                    // Lấy tất cả địa chỉ IP
+                    Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+                    
+                    // Tìm địa chỉ IPv4
+                    while (inetAddresses.hasMoreElements()) {
+                        InetAddress address = inetAddresses.nextElement();
+                        
+                        // Kiểm tra IPv4 và không phải loopback
+                        if (!address.isLoopbackAddress() && address instanceof Inet4Address) {
+                            return address.getHostAddress();
+                        }
+                    }
+                }
+            }
+            
+            // Phương pháp 2: Tìm giao diện hoạt động
+            // by checking only active, non-loopback interfaces
+            networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = networkInterfaces.nextElement();
+                
+                // Bỏ qua giao diện tắt hoặc loopback
+                if (!networkInterface.isUp() || networkInterface.isLoopback()) {
+                    continue;
+                }
+                
+                // Bỏ qua giao diện ảo
+                if (networkInterface.isVirtual() || networkInterface.isPointToPoint()) {
+                    continue;
+                }
+                
+                // Lấy tất cả địa chỉ IP
+                Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+                while (inetAddresses.hasMoreElements()) {
+                    InetAddress address = inetAddresses.nextElement();
+                    
+                    // Kiểm tra IPv4, không phải loopback, link local hay multicast
+                    if (address instanceof Inet4Address && !address.isLoopbackAddress() 
+                        && !address.isLinkLocalAddress() && !address.isMulticastAddress()) {
+                        // Found a good candidate
+                        String ipAddress = address.getHostAddress();
+                        // Tránh trả về địa chỉ docker/VM
+                        if (!(ipAddress.startsWith("192.168.") || ipAddress.startsWith("172.") || ipAddress.startsWith("10."))) {
+                            return ipAddress;
+                        } else {
+                            // Store this as a backup in case we don't find a better address
+                            ipAddress = address.getHostAddress();
+                            return ipAddress;
+                        }
+                    }
+                }
+            }
+            
+            // Dự phòng: sử dụng localhost
+            InetAddress localHost = InetAddress.getLocalHost();
+            return localHost.getHostAddress();
+            
+        } catch (Exception e) {
+            System.out.println("[ERROR] Failed to retrieve Wi-Fi IP address\nError Message: " + e.getMessage());
+            e.printStackTrace();
+            return "Error retrieving IP address";
+        }
+    }
+
+    
+    /**
+     * Sao chép địa chỉ IP vào clipboard
+     */
+    private void copyIPAddressToClipboard() {
+        try {
+            StringSelection stringSelection = new StringSelection(ipAddress);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(stringSelection, null);
+
+            // Phản hồi trực quan
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    // Đổi màu nhấp nháy
+                    ipAddressLabel.setForeground(ColorPalette.ACCENT);
+
+                    // Trả lại màu sau 1 giây
+                    Timer timer = new Timer(1000, evt -> {
+                        try {
+                            ipAddressLabel.setForeground(ColorPalette.PRIMARY);
+                        } catch (Exception ex) {
+                            System.out.println("[ERROR] Failed to reset IP address label color\nError Message: " + ex.getMessage());
+                            ex.printStackTrace();
+                        }
+                    });
+                    timer.setRepeats(false);
+                    timer.start();
+                } catch (Exception ex) {
+                    System.out.println("[ERROR] Failed to provide visual feedback\nError Message: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            System.out.println("[ERROR] Failed to copy IP address to clipboard\nError Message: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Cập nhật địa chỉ IP hiển thị
+     * @param newIpAddress địa chỉ IP mới
+     */
+    public void updateIPAddress(String newIpAddress) {
+        try {
+            this.ipAddress = newIpAddress;
+            this.ipAddressLabel.setText(newIpAddress);
+        } catch (Exception e) {
+            System.out.println("[ERROR] Failed to update IP address\nError Message: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Lấy địa chỉ IP hiện tại
+     * @return địa chỉ IP hiện tại
+     */
+    public String getIpAddress() {
+        try {
+            return this.ipAddress;
+        } catch (Exception e) {
+            System.out.println("[ERROR] Failed to retrieve IP address\nError Message: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+}

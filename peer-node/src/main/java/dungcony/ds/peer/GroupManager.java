@@ -1,7 +1,7 @@
 package dungcony.ds.peer;
 
 import dungcony.ds.model.Group;
-import dungcony.ds.model.PeerInfo;
+import dungcony.ds.entities.PeerInfo;
 
 import java.util.Collection;
 import java.util.Collections;

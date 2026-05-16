@@ -1,5 +1,8 @@
 package dungcony.ds.model;
 
+import dungcony.ds.entities.PeerInfo;
+import dungcony.ds.enums.MessageType;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -101,6 +104,28 @@ public class Message {
         message.senderHost = sender.getHost();
         message.senderPort = sender.getPort();
         message.timestamp = Instant.now().toEpochMilli();
+        return message;
+    }
+
+    /**
+     * Phục hồi message từ local JSON store để UI hiển thị lại lịch sử chat.
+     */
+    public static Message restore(String id, MessageType type, String senderId, String senderHost, int senderPort,
+                                  String receiverId, String receiverHost, int receiverPort, String groupId,
+                                  String content, long timestamp, boolean fromCurrentUser) {
+        Message message = new Message();
+        message.id = id;
+        message.type = type;
+        message.senderId = senderId;
+        message.senderHost = senderHost;
+        message.senderPort = senderPort;
+        message.receiverId = receiverId;
+        message.receiverHost = receiverHost;
+        message.receiverPort = receiverPort;
+        message.groupId = groupId;
+        message.content = content == null ? "" : content;
+        message.timestamp = timestamp;
+        message.fromCurrentUser = fromCurrentUser;
         return message;
     }
 

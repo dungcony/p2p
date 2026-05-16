@@ -1,8 +1,8 @@
 package dungcony.ds.network;
 
 import dungcony.ds.model.Message;
-import dungcony.ds.model.MessageType;
-import dungcony.ds.model.PeerInfo;
+import dungcony.ds.enums.MessageType;
+import dungcony.ds.entities.PeerInfo;
 
 import java.io.BufferedReader;
 import java.io.IOException;

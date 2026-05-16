@@ -1,9 +1,7 @@
-package dungcony.ds.network;
+package dungcony.ds.model;
 
 import com.google.gson.Gson;
-import dungcony.ds.model.JoinResponse;
-import dungcony.ds.model.OfflineMessage;
-import dungcony.ds.model.PeerInfo;
+import dungcony.ds.entities.PeerInfo;
 
 import java.io.BufferedReader;
 import java.io.IOException;

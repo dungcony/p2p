@@ -32,8 +32,8 @@ public class LoginDialog extends JDialog {
 
         JPanel form = new JPanel(new GridLayout(3, 2, 8, 8));
         form.setBorder(BorderFactory.createEmptyBorder(16, 16, 0, 16));
-        form.add(new JLabel("Peer ID"));
-        form.add(idField);
+//        form.add(new JLabel("Peer ID"));
+//        form.add(idField);
         form.add(new JLabel("Peer name"));
         form.add(nameField);
         form.add(new JLabel("Listen port"));

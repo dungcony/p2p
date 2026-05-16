@@ -1,4 +1,4 @@
-package dungcony.ds.peer;
+package dungcony.ds.interfaces;
 
 import dungcony.ds.model.Message;
 

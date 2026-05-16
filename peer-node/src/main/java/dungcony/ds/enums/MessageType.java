@@ -1,4 +1,4 @@
-package dungcony.ds.model;
+package dungcony.ds.enums;
 
 public enum MessageType {
     CHAT,

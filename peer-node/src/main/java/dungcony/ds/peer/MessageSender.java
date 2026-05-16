@@ -2,7 +2,7 @@ package dungcony.ds.peer;
 
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
-import dungcony.ds.model.PeerInfo;
+import dungcony.ds.entities.PeerInfo;
 import dungcony.ds.network.TCPClient;
 
 public class MessageSender {

@@ -2,7 +2,7 @@ package dungcony.ds.ui.components.chatPage;
 
 import dungcony.ds.App;
 import dungcony.ds.model.Message;
-import dungcony.ds.peer.MessageListener;
+import dungcony.ds.interfaces.MessageListener;
 import dungcony.ds.ui.pages.ChatPage;
 import dungcony.ds.ui.utils.ColorPalette;
 

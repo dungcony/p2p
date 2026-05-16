@@ -1,13 +1,16 @@
 package dungcony.ds.peer;
 
+import dungcony.ds.interfaces.MessageListener;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.JoinResponse;
 import dungcony.ds.model.Message;
+import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.OfflineMessage;
-import dungcony.ds.model.PeerInfo;
-import dungcony.ds.network.BootstrapClient;
+import dungcony.ds.entities.PeerInfo;
+import dungcony.ds.model.BootstrapClient;
 import dungcony.ds.network.TCPClient;
 import dungcony.ds.network.TCPServer;
+import dungcony.ds.repositories.LocalMessageRepo;
 
 import javax.swing.SwingUtilities;
 import java.io.IOException;
@@ -36,6 +39,7 @@ public class PeerNode {
     private final MessageSender messageSender;
     private final TCPServer tcpServer;
     private final BootstrapClient bootstrapClient;
+    private final LocalMessageRepo localMessageRepo;
 
     /**
      * Khởi tạo một peer cục bộ với tên định danh và port lắng nghe do người dùng nhập.
@@ -55,6 +59,7 @@ public class PeerNode {
         this.bootstrapClient = bootstrapHost == null || bootstrapHost.isBlank()
                 ? null
                 : new BootstrapClient(bootstrapHost, bootstrapPort);
+        this.localMessageRepo = new LocalMessageRepo(localPeer.getId());
         System.out.println("[INFO] PeerNode initialized: id=" + localPeer.getId()
                 + ", name=" + localPeer.getName()
                 + ", address=" + localPeer.addressKey()
@@ -186,12 +191,17 @@ public class PeerNode {
         receiver.setOnline(sent);
         if (sent) {
             addMessage(receiver.addressKey(), message);
+            saveLocalMessage(receiver, message);
             notifyMessage(message);
             System.out.println("[INFO] CHAT message delivered and stored. id=" + message.getId());
         } else {
             System.out.println("[WARN] CHAT message failed after retries. id=" + message.getId()
                     + ", to=" + receiver.addressKey());
-            storeOfflineIfPossible(message);
+            if (storeOfflineIfPossible(message)) {
+                addMessage(receiver.addressKey(), message);
+                saveLocalMessage(receiver, message);
+                notifyMessage(message);
+            }
         }
         notifyPeersChanged();
         return sent;
@@ -225,6 +235,12 @@ public class PeerNode {
     public List<Message> getMessagesWithPeer(String hostAndMaybePort) {
         PeerInfo peerInfo = resolvePeer(hostAndMaybePort);
         String key = peerInfo == null ? hostAndMaybePort : peerInfo.addressKey();
+        if (peerInfo != null && !messageHistory.containsKey(key)) {
+            List<Message> localMessages = localMessageRepo.findByConversationPeerId(peerInfo.getId());
+            if (!localMessages.isEmpty()) {
+                messageHistory.put(key, Collections.synchronizedList(new ArrayList<>(localMessages)));
+            }
+        }
         return new ArrayList<>(messageHistory.getOrDefault(key, Collections.emptyList()));
     }
 
@@ -294,6 +310,7 @@ public class PeerNode {
         PeerInfo sender = mergeSenderFromKnownPeers(message);
         peers.put(sender.addressKey(), sender);
         addMessage(sender.addressKey(), message);
+        saveLocalMessage(sender, message);
         System.out.println("[INFO] Inbound " + message.getType() + " message stored. id=" + message.getId()
                 + ", from=" + sender.addressKey());
         notifyPeersChanged();
@@ -393,14 +410,15 @@ public class PeerNode {
     /**
      * Luu tin offline len bootstrap-server de receiver nhan lai khi JOIN.
      */
-    private void storeOfflineIfPossible(Message message) {
+    private boolean storeOfflineIfPossible(Message message) {
         if (bootstrapClient == null) {
             System.out.println("[WARN] Cannot store offline message because bootstrap is disabled. messageId="
                     + message.getId());
-            return;
+            return false;
         }
         boolean stored = bootstrapClient.storeOffline(OfflineMessage.fromMessage(message));
         System.out.println("[INFO] Offline fallback stored=" + stored + ", messageId=" + message.getId());
+        return stored;
     }
 
     /**
@@ -409,13 +427,26 @@ public class PeerNode {
     private void handleOfflineMessages(JoinResponse joinResponse) {
         for (OfflineMessage offlineMessage : joinResponse.getOfflineMessages()) {
             PeerInfo sender = findKnownPeerById(offlineMessage.getSenderId());
+            PeerInfo conversationPeer = sender == null
+                    ? new PeerInfo(offlineMessage.getSenderId(), offlineMessage.getSenderId(), "", 0, false)
+                    : sender;
             String historyKey = sender == null ? offlineMessage.getSenderId() : sender.addressKey();
-            Message message = new Message(
-                    sender == null ? offlineMessage.getSenderId() : sender.getHost(),
+            Message message = Message.restore(
+                    offlineMessage.getMessageId(),
+                    MessageType.CHAT,
+                    offlineMessage.getSenderId(),
+                    sender == null ? "" : sender.getHost(),
+                    sender == null ? 0 : sender.getPort(),
+                    localPeer.getId(),
+                    localPeer.getHost(),
+                    localPeer.getPort(),
+                    offlineMessage.getGroupId(),
                     offlineMessage.getContent(),
+                    offlineMessage.getCreatedAt(),
                     false
             );
             addMessage(historyKey, message);
+            saveLocalMessage(conversationPeer, message);
             notifyMessage(message);
             System.out.println("[INFO] Offline message loaded. messageId=" + offlineMessage.getMessageId()
                     + ", senderId=" + offlineMessage.getSenderId()
@@ -446,6 +477,13 @@ public class PeerNode {
         PeerInfo existing = peers.get(key);
         String displayName = existing == null ? message.getSenderId() : existing.getName();
         return new PeerInfo(message.getSenderId(), displayName, message.getSenderHost(), message.getSenderPort());
+    }
+
+    /**
+     * Luu message vao SQLite local cua peer hien tai theo peer doi thoai.
+     */
+    private void saveLocalMessage(PeerInfo conversationPeer, Message message) {
+        localMessageRepo.save(conversationPeer, message);
     }
 
     /**

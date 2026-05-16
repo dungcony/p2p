@@ -1,7 +1,7 @@
 package dungcony.ds.peer;
 
 import dungcony.ds.model.Message;
-import dungcony.ds.model.MessageType;
+import dungcony.ds.enums.MessageType;
 
 public class MessageReceiver {
     private final PeerNode peerNode;

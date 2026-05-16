@@ -1,6 +1,5 @@
 package dungcony.ds.model;
 
-import dungcony.ds.entities.PeerInfo;
 import dungcony.ds.enums.MessageType;
 
 import java.time.Instant;

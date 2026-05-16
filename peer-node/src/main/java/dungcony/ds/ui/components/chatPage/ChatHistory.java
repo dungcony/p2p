@@ -1,8 +1,8 @@
 package dungcony.ds.ui.components.chatPage;
 
+import dungcony.ds.model.Message;
 import dungcony.ds.ui.components.ModernScrollBarUI;
 import dungcony.ds.ui.utils.ColorPalette;
-import dungcony.ds.model.Message;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -67,29 +67,29 @@ public class ChatHistory extends JPanel {
         try {
             // Xóa tin nhắn cũ
             messagesPanel.removeAll();
-            
+
             // Thêm tất cả tin nhắn
             for (int i = 0; i < messages.size(); i++) {
                 MessageBubble bubble = new MessageBubble(messages.get(i));
-                
+
                 // Căn chỉnh bong bóng
                 bubble.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-                
+
                 // Khoảng cách giữa các tin nhắn
                 if (i > 0) {
                     messagesPanel.add(Box.createVerticalStrut(8));
                 }
-                
+
                 messagesPanel.add(bubble);
             }
-            
+
             // Đẩy tin nhắn lên trên
             messagesPanel.add(Box.createVerticalGlue());
-            
+
             // Cập nhật giao diện
             messagesPanel.revalidate();
             messagesPanel.repaint();
-            
+
             // Tự động cuộn xuống đáy
             SwingUtilities.invokeLater(() -> {
                 try {
@@ -111,7 +111,7 @@ public class ChatHistory extends JPanel {
         try {
             MessageBubble bubble = new MessageBubble(message);
             bubble.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-            
+
             // Khoảng cách giữa các tin nhắn
             if (messagesPanel.getComponentCount() > 0) {
                 // Xóa glue nếu có
@@ -121,11 +121,11 @@ public class ChatHistory extends JPanel {
                 }
                 messagesPanel.add(Box.createVerticalStrut(8));
             }
-            
+
             messagesPanel.add(bubble);
             // Thêm glue ở cuối
             messagesPanel.add(Box.createVerticalGlue());
-            
+
             messagesPanel.revalidate();
             messagesPanel.repaint();
 

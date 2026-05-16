@@ -1,4 +1,4 @@
-package dungcony.ds.entities;
+package dungcony.ds.model;
 
 import java.util.Objects;
 

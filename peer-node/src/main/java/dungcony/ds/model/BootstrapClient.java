@@ -1,8 +1,10 @@
 package dungcony.ds.model;
 
 import com.google.gson.Gson;
+import dungcony.ds.dtos.GroupMemberPayload;
+import dungcony.ds.dtos.GroupPayload;
+import dungcony.ds.dtos.JoinResponse;
 import dungcony.ds.dtos.OfflineMessage;
-import dungcony.ds.entities.PeerInfo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -50,7 +52,7 @@ public class BootstrapClient {
         String response = request("JOIN", peerInfo);
         if (response == null || response.isBlank()) {
             System.out.println("[WARN] Bootstrap JOIN returned empty response.");
-            return new JoinResponse();
+            return JoinResponse.empty();
         }
         try {
             JoinResponse joinResponse = gson.fromJson(response, JoinResponse.class);
@@ -60,7 +62,7 @@ public class BootstrapClient {
             return joinResponse;
         } catch (RuntimeException e) {
             System.out.println("[ERROR] Failed to parse Bootstrap JOIN response: " + e.getMessage());
-            return new JoinResponse();
+            return JoinResponse.empty();
         }
     }
 
@@ -71,8 +73,8 @@ public class BootstrapClient {
         String response = request("STORE_OFFLINE", message);
         boolean success = "OK".equalsIgnoreCase(response);
         System.out.println("[INFO] Bootstrap STORE_OFFLINE result=" + success
-                + ", messageId=" + message.getMessageId()
-                + ", receiverId=" + message.getReceiverId());
+                + ", messageId=" + message.messageId()
+                + ", receiverId=" + message.receiverId());
         return success;
     }
 
@@ -184,51 +186,4 @@ public class BootstrapClient {
         }
     }
 
-    public static class GroupPayload {
-        private String groupId;
-        private String name;
-        private String createdBy;
-        private long createdAt;
-
-        public GroupPayload() {
-        }
-
-        public GroupPayload(String groupId, String name, String createdBy, long createdAt) {
-            this.groupId = groupId;
-            this.name = name;
-            this.createdBy = createdBy;
-            this.createdAt = createdAt;
-        }
-
-        public String getGroupId() {
-            return groupId;
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
-
-    public static class GroupMemberPayload {
-        private String groupId;
-        private String userId;
-        private long joinedAt;
-
-        public GroupMemberPayload() {
-        }
-
-        public GroupMemberPayload(String groupId, String userId, long joinedAt) {
-            this.groupId = groupId;
-            this.userId = userId;
-            this.joinedAt = joinedAt;
-        }
-
-        public String getGroupId() {
-            return groupId;
-        }
-
-        public String getUserId() {
-            return userId;
-        }
-    }
 }

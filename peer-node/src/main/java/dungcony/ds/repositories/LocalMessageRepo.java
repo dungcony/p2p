@@ -3,9 +3,9 @@ package dungcony.ds.repositories;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import dungcony.ds.dtos.MessageRecord;
 import dungcony.ds.model.Message;
-import dungcony.ds.enums.MessageType;
-import dungcony.ds.entities.PeerInfo;
+import dungcony.ds.model.PeerInfo;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -69,7 +69,7 @@ public class LocalMessageRepo {
         List<MessageRecord> records = readAllRecords();
         MessageRecord newRecord = MessageRecord.from(conversationPeer, message);
         Optional<MessageRecord> existingRecord = records.stream()
-                .filter(record -> newRecord.messageId.equals(record.messageId))
+                .filter(record -> newRecord.getMessageId().equals(record.getMessageId()))
                 .findFirst();
 
         if (existingRecord.isPresent()) {
@@ -80,7 +80,7 @@ public class LocalMessageRepo {
             System.out.println("[DEBUG] Local JSON message appended. messageId=" + message.getId());
         }
 
-        records.sort(Comparator.comparingLong(record -> record.timestamp));
+        records.sort(Comparator.comparingLong(MessageRecord::getTimestamp));
         writeAllRecords(records);
         System.out.println("[INFO] Local message saved. conversationPeerId=" + conversationPeer.getId()
                 + ", messageId=" + message.getId());
@@ -96,14 +96,14 @@ public class LocalMessageRepo {
         }
 
         for (MessageRecord record : readAllRecords()) {
-            if (!conversationPeerId.equals(record.conversationPeerId)) {
+            if (!conversationPeerId.equals(record.getConversationPeerId())) {
                 continue;
             }
             try {
                 messages.add(record.toMessage());
             } catch (IllegalArgumentException e) {
                 System.out.println("[WARN] Ignored invalid local message record. messageId="
-                        + record.messageId + ", error=" + e.getMessage());
+                        + record.getMessageId() + ", error=" + e.getMessage());
             }
         }
 
@@ -144,64 +144,4 @@ public class LocalMessageRepo {
         }
     }
 
-    private static class MessageRecord {
-        private String messageId;
-        private String conversationPeerId;
-        private String conversationPeerName;
-        private String conversationPeerKey;
-        private String senderId;
-        private String senderHost;
-        private int senderPort;
-        private String receiverId;
-        private String receiverHost;
-        private int receiverPort;
-        private String groupId;
-        private String messageType;
-        private String content;
-        private long timestamp;
-        private boolean fromCurrentUser;
-
-        /**
-         * Chuyen Message runtime thanh record phang de ghi JSON.
-         */
-        private static MessageRecord from(PeerInfo conversationPeer, Message message) {
-            MessageRecord record = new MessageRecord();
-            record.messageId = message.getId();
-            record.conversationPeerId = conversationPeer.getId();
-            record.conversationPeerName = conversationPeer.getName();
-            record.conversationPeerKey = conversationPeer.addressKey();
-            record.senderId = message.getSenderId();
-            record.senderHost = message.getSenderHost();
-            record.senderPort = message.getSenderPort();
-            record.receiverId = message.getReceiverId();
-            record.receiverHost = message.getReceiverHost();
-            record.receiverPort = message.getReceiverPort();
-            record.groupId = message.getGroupId();
-            record.messageType = message.getType().name();
-            record.content = message.getContent();
-            record.timestamp = message.getTimestamp();
-            record.fromCurrentUser = message.isFromCurrentUser();
-            return record;
-        }
-
-        /**
-         * Phuc hoi Message runtime tu record JSON.
-         */
-        private Message toMessage() {
-            return Message.restore(
-                    messageId,
-                    MessageType.valueOf(messageType),
-                    senderId,
-                    senderHost,
-                    senderPort,
-                    receiverId,
-                    receiverHost,
-                    receiverPort,
-                    groupId,
-                    content,
-                    timestamp,
-                    fromCurrentUser
-            );
-        }
-    }
 }

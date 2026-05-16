@@ -2,7 +2,7 @@ package dungcony.ds.ui.components.chatPage;
 
 import dungcony.ds.App;
 import dungcony.ds.model.Message;
-import dungcony.ds.entities.PeerInfo;
+import dungcony.ds.model.PeerInfo;
 import dungcony.ds.ui.components.ChatProfile;
 import dungcony.ds.ui.components.ModernScrollBarUI;
 import dungcony.ds.ui.pages.ChatPage;

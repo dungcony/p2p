@@ -1,7 +1,7 @@
 package dungcony.ds.ui.pages;
 
 import dungcony.ds.App;
-import dungcony.ds.entities.PeerInfo;
+import dungcony.ds.model.PeerInfo;
 import dungcony.ds.ui.components.addFriendPage.HeadingPanel;
 import dungcony.ds.ui.components.scannerPage.FoundDevices;
 import dungcony.ds.ui.components.scannerPage.ScanButton;

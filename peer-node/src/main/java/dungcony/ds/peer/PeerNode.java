@@ -105,9 +105,6 @@ public class PeerNode {
         tcpServer.stop();
     }
 
-    /**
-     * Trả về thông tin định danh, host và port của peer hiện tại.
-     */
     public PeerInfo getLocalPeer() {
         return localPeer;
     }
@@ -319,7 +316,7 @@ public class PeerNode {
     /**
      * Xử lý tin nhắn đến từ network: cập nhật peer, lưu lịch sử và notify UI.
      */
-    void onInboundMessage(Message message) {
+    public void onInboundMessage(Message message) {
         PeerInfo sender = mergeSenderFromKnownPeers(message);
         peers.put(sender.addressKey(), sender);
         addMessage(sender.addressKey(), message);
@@ -333,13 +330,15 @@ public class PeerNode {
     /**
      * Đánh dấu peer gửi heartbeat/JOIN là online trong danh sách peer đã biết.
      */
-    void markPeerOnline(Message message) {
+    public void markPeerOnline(Message message) {
         PeerInfo sender = mergeSenderFromKnownPeers(message);
         peers.put(sender.addressKey(), sender);
         System.out.println("[DEBUG] Marked peer online from " + message.getType()
                 + ": " + sender.addressKey());
         notifyPeersChanged();
     }
+
+
 
     /**
      * Lưu tin nhắn vào lịch sử theo key của peer đối thoại.
@@ -552,7 +551,7 @@ public class PeerNode {
     }
 
     /**
-     * Luu message vao SQLite local cua peer hien tai theo peer doi thoai.
+     * Luu message vao messages.json cua profile hien tai theo peer doi thoai.
      */
     private void saveLocalMessage(PeerInfo conversationPeer, Message message) {
         localMessageRepo.save(conversationPeer, message);

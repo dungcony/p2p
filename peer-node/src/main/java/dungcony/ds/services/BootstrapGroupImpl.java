@@ -41,6 +41,28 @@ public class BootstrapGroupImpl implements BootstrapGroupService {
     }
 
     @Override
+    public void addMembersToGroup(String groupId, Collection<PeerInfo> members) {
+        if (bootstrapClient == null) {
+            System.out.println("[WARN] Không thể thêm thành viên nhóm lên bootstrap vì bootstrap đang tắt. groupId="
+                    + groupId);
+            return;
+        }
+        int added = 0;
+        if (members != null) {
+            for (PeerInfo member : members) {
+                if (member == null || member.getId() == null || member.getId().isBlank()) {
+                    continue;
+                }
+                if (bootstrapClient.addGroupMember(groupId, member.getId())) {
+                    added++;
+                }
+            }
+        }
+        System.out.println("[INFO] Đã đồng bộ thêm thành viên nhóm lên bootstrap. groupId=" + groupId
+                + ", sốThànhViênThêm=" + added);
+    }
+
+    @Override
     public List<Group> fetchJoinedGroups(Collection<PeerInfo> knownPeers) {
         List<Group> joinedGroups = new ArrayList<>();
         if (bootstrapClient == null) {

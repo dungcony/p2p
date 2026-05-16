@@ -60,6 +60,26 @@ public class GroupManager {
     }
 
     /**
+     * Them thanh vien vao group da ton tai va luu lai local cache.
+     */
+    public Group addMembers(String groupId, Collection<PeerInfo> members) {
+        Group group = groups.get(groupId);
+        if (group == null) {
+            System.out.println("[WARN] Không thể thêm thành viên vì không tìm thấy groupId=" + groupId);
+            return null;
+        }
+        int before = group.getMembers().size();
+        if (members != null) {
+            members.forEach(group::addMember);
+        }
+        int added = group.getMembers().size() - before;
+        saveGroup(group);
+        System.out.println("[INFO] Đã thêm thành viên vào nhóm local. groupId=" + groupId
+                + ", sốThànhViênThêm=" + added);
+        return group;
+    }
+
+    /**
      * Tao hoac cap nhat group local khi nhan duoc GROUP_CHAT truc tiep tu peer khac.
      */
     public Group ensureLocalGroup(String groupId, String name, Collection<PeerInfo> members) {

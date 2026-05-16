@@ -82,7 +82,7 @@ public class ChatScreen extends JPanel implements MessageListener {
         this.ipAddress = null;
         this.selectedUser = groupName;
         chatHeader.setUserName(groupName);
-        chatHeader.setStatus(true);
+        chatHeader.setGroupStatus();
         messages.clear();
         chatHistory.clearMessages();
         showChatControls(true);

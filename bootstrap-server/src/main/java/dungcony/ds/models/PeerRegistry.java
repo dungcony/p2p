@@ -121,6 +121,12 @@ public class PeerRegistry {
      * Them peer/user vao group.
      */
     public void addGroupMember(GroupMemberEntity memberEntity) {
+        if (memberEntity == null || memberEntity.getUserId() == null || memberEntity.getUserId().isBlank()) {
+            System.out.println("[WARN] Bỏ qua thêm thành viên nhóm vì userId rỗng.");
+            return;
+        }
+        long now = System.currentTimeMillis();
+        userRepo.upsert(new UserEntity(memberEntity.getUserId(), memberEntity.getUserId(), now, now));
         groupMemberRepo.add(memberEntity);
     }
 

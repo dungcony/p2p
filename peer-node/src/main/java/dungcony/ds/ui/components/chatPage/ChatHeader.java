@@ -91,14 +91,27 @@ public class ChatHeader extends JPanel {
     public void setStatus(boolean isOnline) {
         try {
             if (isOnline) {
-                statusLabel.setText("Trực tuyến");
-                statusLabel.setForeground(ColorPalette.PRIMARY);
+                statusLabel.setText("● Trực tuyến");
+                statusLabel.setForeground(ColorPalette.ACCENT);
                 return;
             }
-            statusLabel.setText("Ngoại tuyến");
-            statusLabel.setForeground(ColorPalette.SECONDARY_TEXT);
+            statusLabel.setText("● Ngoại tuyến");
+            statusLabel.setForeground(ColorPalette.ERROR);
         } catch (Exception e) {
             System.out.println("[ERROR] Không thể cập nhật trạng thái\nChi tiết lỗi: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Hien thi header khi dang mo group chat.
+     */
+    public void setGroupStatus() {
+        try {
+            statusLabel.setText("Nhóm");
+            statusLabel.setForeground(ColorPalette.PRIMARY);
+        } catch (Exception e) {
+            System.out.println("[ERROR] Không thể cập nhật trạng thái nhóm\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -126,10 +139,10 @@ public class ChatHeader extends JPanel {
             panel.add(userNameLabel, gbc);
 
             statusLabel = new JLabel(
-                isOnline? "Trực tuyến": "Ngoại tuyến"
+                isOnline ? "● Trực tuyến" : "● Ngoại tuyến"
             );
             statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            statusLabel.setForeground(ColorPalette.SECONDARY_TEXT);
+            statusLabel.setForeground(isOnline ? ColorPalette.ACCENT : ColorPalette.ERROR);
             gbc.gridy = 1;
             gbc.insets = new Insets(0, 0, 0, 0);
             panel.add(statusLabel, gbc);

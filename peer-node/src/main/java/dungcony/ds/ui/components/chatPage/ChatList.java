@@ -8,15 +8,22 @@ import dungcony.ds.ui.components.ChatProfile;
 import dungcony.ds.ui.components.ModernScrollBarUI;
 import dungcony.ds.ui.pages.ChatPage;
 import dungcony.ds.ui.utils.ColorPalette;
+import org.kordamp.ikonli.fontawesome.FontAwesome;
+import org.kordamp.ikonli.swing.FontIcon;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ChatList extends JPanel {
+    private static final Color ONLINE_COLOR = new Color(46, 125, 50);
+    private static final Color OFFLINE_COLOR = new Color(211, 47, 47);
+
     private JPanel devicesContainer;
     private JScrollPane scrollPane;
     private JButton createGroupButton;
@@ -86,8 +93,8 @@ public class ChatList extends JPanel {
         });
     }
 
-    private void addProfile(String userName, String lastMessage, String messageTime, String peerKey) {
-        JPanel deviceInfoPanel = createDeviceInfoPanel(userName, lastMessage, messageTime);
+    private void addProfile(String userName, String lastMessage, String messageTime, String peerKey, Boolean online) {
+        JPanel deviceInfoPanel = createDeviceInfoPanel(userName, lastMessage, messageTime, online);
         ChatProfile chatProfile = new ChatProfile(10, deviceInfoPanel, ColorPalette.BACKGROUND);
         chatProfile.setBackground(ColorPalette.BACKGROUND);
 
@@ -119,10 +126,10 @@ public class ChatList extends JPanel {
         if (message != null) {
             lastMessage = message.isFromCurrentUser() ? "Bạn: " + message.getContent() : message.getContent();
             lastTime = message.getFormattedTime();
-        } else if (peerInfo.isOnline()) {
-            lastMessage = "Trực tuyến";
+        } else {
+            lastMessage = peerInfo.isOnline() ? "Trực tuyến" : "Ngoại tuyến";
         }
-        addProfile(peerInfo.getName(), lastMessage, lastTime, peerKey);
+        addProfile(peerInfo.getName(), lastMessage, lastTime, peerKey, peerInfo.isOnline());
     }
 
     /**
@@ -135,9 +142,12 @@ public class ChatList extends JPanel {
             lastMessage = message.isFromCurrentUser() ? "Bạn: " + message.getContent() : message.getContent();
             lastTime = message.getFormattedTime();
         }
-        JPanel deviceInfoPanel = createDeviceInfoPanel("[Nhóm] " + group.getName(), lastMessage, lastTime);
+        JPanel deviceInfoPanel = createDeviceInfoPanel("[Nhóm] " + group.getName(), lastMessage, lastTime, null);
         ChatProfile chatProfile = new ChatProfile(10, deviceInfoPanel, ColorPalette.BACKGROUND);
         chatProfile.setBackground(ColorPalette.BACKGROUND);
+
+        JButton addMemberButton = createAddMemberButton(group);
+        chatProfile.add(addMemberButton, BorderLayout.EAST);
 
         MouseAdapter selector = new MouseAdapter() {
             @Override
@@ -156,16 +166,39 @@ public class ChatList extends JPanel {
         devicesContainer.add(chatProfile);
     }
 
-    private JPanel createDeviceInfoPanel(String userName, String lastMessage, String messageTime) {
+    private JButton createAddMemberButton(Group group) {
+        JButton button = new JButton();
+        button.setIcon(FontIcon.of(FontAwesome.USER_PLUS, 14, ColorPalette.PRIMARY));
+        button.setToolTipText("Thêm peer vào nhóm");
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+        button.setContentAreaFilled(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.addActionListener(event -> openAddMembersDialog(group));
+        return button;
+    }
+
+    private JPanel createDeviceInfoPanel(String userName, String lastMessage, String messageTime, Boolean online) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(ColorPalette.PANEL_BACKGROUND);
 
         GridBagConstraints gbc = new GridBagConstraints();
 
+        if (online != null) {
+            JLabel statusDot = new JLabel("●");
+            statusDot.setForeground(online ? ONLINE_COLOR : OFFLINE_COLOR);
+            statusDot.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.anchor = GridBagConstraints.WEST;
+            gbc.insets = new Insets(0, 0, 2, 6);
+            panel.add(statusDot, gbc);
+        }
+
         JLabel nameLabel = new JLabel(userName);
         nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         nameLabel.setForeground(ColorPalette.TEXT);
-        gbc.gridx = 0;
+        gbc.gridx = online == null ? 0 : 1;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(0, 0, 2, 0);
@@ -175,12 +208,13 @@ public class ChatList extends JPanel {
         messageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         messageLabel.setForeground(ColorPalette.SECONDARY_TEXT);
         gbc.gridy = 1;
+        gbc.gridx = online == null ? 0 : 1;
         gbc.insets = new Insets(0, 0, 0, 0);
         panel.add(messageLabel, gbc);
 
         JLabel lastMessageTime = new JLabel(messageTime);
         lastMessageTime.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        gbc.gridx = 1;
+        gbc.gridx = online == null ? 1 : 2;
         gbc.gridy = 0;
         gbc.gridheight = 2;
         gbc.anchor = GridBagConstraints.EAST;
@@ -228,13 +262,42 @@ public class ChatList extends JPanel {
         }.execute();
     }
 
+    private void openAddMembersDialog(Group group) {
+        if (App.peerNode == null || group == null) {
+            return;
+        }
+        new SwingWorker<List<PeerInfo>, Void>() {
+            @Override
+            protected List<PeerInfo> doInBackground() {
+                return loadGroupCandidatesWithFreshStatus(group);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    showAddMembersDialog(group, get());
+                } catch (Exception e) {
+                    System.out.println("[ERROR] Không thể mở hộp thoại thêm peer vào nhóm: " + e.getMessage());
+                }
+            }
+        }.execute();
+    }
+
     /**
      * Lay danh sach peer co uid va refresh online/offline truoc khi hien dialog.
      */
     private List<PeerInfo> loadGroupCandidatesWithFreshStatus() {
+        return loadGroupCandidatesWithFreshStatus(null);
+    }
+
+    private List<PeerInfo> loadGroupCandidatesWithFreshStatus(Group excludedGroup) {
         List<PeerInfo> groupCandidates = new ArrayList<>();
+        Set<String> existingMemberIds = collectMemberIds(excludedGroup);
         boolean bootstrapAvailable = App.peerNode.isBootstrapAvailable();
         for (PeerInfo peerInfo : App.peerNode.getChatListPeers()) {
+            if (existingMemberIds.contains(peerInfo.getId())) {
+                continue;
+            }
             if (peerInfo.getId() != null && !peerInfo.getId().isBlank()) {
                 if (!bootstrapAvailable) {
                     App.peerNode.checkUserIsOnline(peerInfo.addressKey());
@@ -245,17 +308,25 @@ public class ChatList extends JPanel {
         return groupCandidates;
     }
 
+    private Set<String> collectMemberIds(Group group) {
+        Set<String> ids = new HashSet<>();
+        if (group != null) {
+            for (PeerInfo member : group.getMembers()) {
+                if (member != null && member.getId() != null) {
+                    ids.add(member.getId());
+                }
+            }
+        }
+        return ids;
+    }
+
     /**
      * Hien dialog tao group sau khi trang thai peer da duoc refresh.
      */
     private void showCreateGroupDialog(List<PeerInfo> groupCandidates) {
-        if (groupCandidates.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Không có peer nào để tạo nhóm.", "Tạo nhóm",
-                    JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
         JTextField groupNameField = new JTextField("Nhóm mới");
+        JTextField peerIdField = new JTextField();
+        peerIdField.setToolTipText("Nhập peerId, có thể nhập nhiều id cách nhau bằng dấu phẩy hoặc xuống dòng");
         JList<PeerInfo> peerList = new JList<>(groupCandidates.toArray(new PeerInfo[0]));
         peerList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         peerList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
@@ -263,7 +334,7 @@ public class ChatList extends JPanel {
             JLabel label = new JLabel(value.getName() + " (" + status + ", " + value.getId() + ")");
             label.setOpaque(true);
             label.setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
-            label.setForeground(isSelected ? list.getSelectionForeground() : list.getForeground());
+            label.setForeground(isSelected ? list.getSelectionForeground() : value.isOnline() ? ONLINE_COLOR : OFFLINE_COLOR);
             label.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
             return label;
         });
@@ -271,15 +342,27 @@ public class ChatList extends JPanel {
         JPanel panel = new JPanel(new BorderLayout(0, 8));
         panel.add(groupNameField, BorderLayout.NORTH);
         panel.add(new JScrollPane(peerList), BorderLayout.CENTER);
+        panel.add(createManualPeerIdPanel(peerIdField), BorderLayout.SOUTH);
 
         int choice = JOptionPane.showConfirmDialog(this, panel, "Tạo nhóm",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (choice != JOptionPane.OK_OPTION || peerList.getSelectedValuesList().isEmpty()) {
+        if (choice != JOptionPane.OK_OPTION) {
             return;
         }
 
-        List<PeerInfo> selectedPeers = peerList.getSelectedValuesList();
         boolean bootstrapAvailable = App.peerNode.isBootstrapAvailable();
+        List<PeerInfo> selectedPeers = mergeSelectedAndManualPeers(
+                peerList.getSelectedValuesList(),
+                peerIdField.getText(),
+                groupCandidates,
+                Set.of(),
+                bootstrapAvailable
+        );
+        if (selectedPeers == null || selectedPeers.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn peer hoặc nhập peerId.", "Tạo nhóm",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         if (!bootstrapAvailable && !validateDirectGroupMembers(selectedPeers)) {
             return;
         }
@@ -290,12 +373,146 @@ public class ChatList extends JPanel {
         renderFriends();
     }
 
+    private void showAddMembersDialog(Group group, List<PeerInfo> groupCandidates) {
+        JTextField peerIdField = new JTextField();
+        peerIdField.setToolTipText("Nhập peerId, có thể nhập nhiều id cách nhau bằng dấu phẩy hoặc xuống dòng");
+        JList<PeerInfo> peerList = new JList<>(groupCandidates.toArray(new PeerInfo[0]));
+        peerList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        peerList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
+            String status = value.isOnline() ? "trực tuyến" : "ngoại tuyến";
+            JLabel label = new JLabel(value.getName() + " (" + status + ", " + value.getId() + ")");
+            label.setOpaque(true);
+            label.setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
+            label.setForeground(isSelected ? list.getSelectionForeground() : value.isOnline() ? ONLINE_COLOR : OFFLINE_COLOR);
+            label.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
+            return label;
+        });
+
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        panel.add(new JScrollPane(peerList), BorderLayout.CENTER);
+        panel.add(createManualPeerIdPanel(peerIdField), BorderLayout.SOUTH);
+
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                panel,
+                "Thêm peer vào nhóm " + group.getName(),
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+        if (choice != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        boolean bootstrapAvailable = App.peerNode.isBootstrapAvailable();
+        Set<String> existingMemberIds = collectMemberIds(group);
+        List<PeerInfo> selectedPeers = mergeSelectedAndManualPeers(
+                peerList.getSelectedValuesList(),
+                peerIdField.getText(),
+                groupCandidates,
+                existingMemberIds,
+                bootstrapAvailable
+        );
+        if (selectedPeers == null || selectedPeers.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn peer hoặc nhập peerId.", "Thêm peer",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (!bootstrapAvailable && !validateDirectGroupMembers(selectedPeers)) {
+            return;
+        }
+
+        App.peerNode.addMembersToGroup(group.getGroupId(), selectedPeers);
+        System.out.println("[INFO] UI đã thêm peer vào nhóm. groupId=" + group.getGroupId()
+                + ", sốPeerThêm=" + selectedPeers.size());
+        renderFriends();
+    }
+
+    private JPanel createManualPeerIdPanel(JTextField peerIdField) {
+        JPanel panel = new JPanel(new BorderLayout(0, 4));
+        JLabel label = new JLabel("Nhập peerId thủ công");
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        label.setForeground(ColorPalette.SECONDARY_TEXT);
+        panel.add(label, BorderLayout.NORTH);
+        panel.add(peerIdField, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private List<PeerInfo> mergeSelectedAndManualPeers(List<PeerInfo> selectedPeers,
+                                                       String manualPeerIds,
+                                                       List<PeerInfo> candidates,
+                                                       Set<String> excludedIds,
+                                                       boolean bootstrapAvailable) {
+        List<PeerInfo> result = new ArrayList<>();
+        Set<String> addedIds = new HashSet<>();
+        for (PeerInfo selectedPeer : selectedPeers) {
+            if (selectedPeer == null || selectedPeer.getId() == null || selectedPeer.getId().isBlank()) {
+                continue;
+            }
+            if (excludedIds.contains(selectedPeer.getId()) || !addedIds.add(selectedPeer.getId())) {
+                continue;
+            }
+            result.add(selectedPeer);
+        }
+
+        for (String peerId : parsePeerIds(manualPeerIds)) {
+            if (excludedIds.contains(peerId) || !addedIds.add(peerId)) {
+                continue;
+            }
+            PeerInfo knownPeer = findPeerById(candidates, peerId);
+            if (knownPeer != null) {
+                result.add(knownPeer);
+                continue;
+            }
+            if (!bootstrapAvailable) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Không tìm thấy peer này: " + peerId,
+                        "Không tìm thấy peer",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return null;
+            }
+            result.add(new PeerInfo(peerId, peerId, "", 0, false));
+        }
+        return result;
+    }
+
+    private List<String> parsePeerIds(String text) {
+        List<String> peerIds = new ArrayList<>();
+        if (text == null || text.isBlank()) {
+            return peerIds;
+        }
+        for (String token : text.split("[,;\\r\\n\\t ]+")) {
+            String peerId = token.trim();
+            if (!peerId.isBlank()) {
+                peerIds.add(peerId);
+            }
+        }
+        return peerIds;
+    }
+
+    private PeerInfo findPeerById(List<PeerInfo> peers, String peerId) {
+        if (peerId == null || peers == null) {
+            return null;
+        }
+        for (PeerInfo peerInfo : peers) {
+            if (peerInfo != null && peerId.equals(peerInfo.getId())) {
+                return peerInfo;
+            }
+        }
+        return null;
+    }
+
     /**
      * Khi bootstrap-server tat, group chi duoc tao voi peer dang TCP reachable.
      */
     private boolean validateDirectGroupMembers(List<PeerInfo> selectedPeers) {
         List<String> offlinePeers = new ArrayList<>();
         for (PeerInfo peerInfo : selectedPeers) {
+            if (peerInfo.getHost() == null || peerInfo.getHost().isBlank() || peerInfo.getPort() <= 0) {
+                offlinePeers.add(peerInfo.getName() + " (" + peerInfo.getId() + ")");
+                continue;
+            }
             boolean online = App.peerNode.checkUserIsOnline(peerInfo.addressKey());
             if (!online) {
                 offlinePeers.add(peerInfo.getName() + " (" + peerInfo.addressKey() + ")");
@@ -304,9 +521,9 @@ public class ChatList extends JPanel {
         if (!offlinePeers.isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Bootstrap server đang tắt. Các peer sau đang ngoại tuyến nên không thể thêm:\n"
+                    "Không tìm thấy peer này hoặc peer không phản hồi ACK:\n"
                             + String.join("\n", offlinePeers),
-                    "Peer ngoại tuyến",
+                    "Không tìm thấy peer",
                     JOptionPane.WARNING_MESSAGE
             );
             System.out.println("[WARN] Đã chặn tạo nhóm vì bootstrap không khả dụng và có peer ngoại tuyến: "

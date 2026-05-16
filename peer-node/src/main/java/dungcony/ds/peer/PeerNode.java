@@ -46,6 +46,7 @@ public class PeerNode {
     private final PeerPresenceService peerPresenceService;
     private final LanDiscoveryService lanDiscoveryService;
     private final BootstrapSyncService bootstrapSyncService;
+    private final BootstrapGroupService bootstrapGroupService;
     private final GroupManager groupManager;
     private final MessageSender messageSender;
     private final TCPServer tcpServer;
@@ -98,6 +99,7 @@ public class PeerNode {
                 this::notifyPeersChanged
         );
         BootstrapGroupService bootstrapGroupService = new BootstrapGroupImpl(bootstrapClient, localPeer);
+        this.bootstrapGroupService = bootstrapGroupService;
         this.groupManager = new GroupManager(new LocalGroupRepo(dataDir), bootstrapGroupService::publishGroup);
         this.lanDiscoveryService = new LanDiscoveryImpl(localPeer, messageSender, peerDirectoryService);
         this.bootstrapSyncService = bootstrapClient == null ? null : new BootstrapSyncImpl(
@@ -287,6 +289,18 @@ public class PeerNode {
     public Group createGroup(String name, Collection<PeerInfo> members) {
         Group group = groupManager.createGroup(name, members);
         notifyPeersChanged();
+        return group;
+    }
+
+    /**
+     * Them peer vao group hien co, luu local va dong bo len bootstrap neu co.
+     */
+    public Group addMembersToGroup(String groupId, Collection<PeerInfo> members) {
+        Group group = groupManager.addMembers(groupId, members);
+        if (group != null) {
+            bootstrapGroupService.addMembersToGroup(groupId, members);
+            notifyPeersChanged();
+        }
         return group;
     }
 

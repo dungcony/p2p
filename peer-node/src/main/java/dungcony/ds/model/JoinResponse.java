@@ -1,5 +1,6 @@
 package dungcony.ds.model;
 
+import dungcony.ds.dtos.OfflineMessage;
 import dungcony.ds.entities.PeerInfo;
 
 import java.util.Collection;

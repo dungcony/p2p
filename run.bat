@@ -3,4 +3,12 @@ setlocal
 
 rem Always run Maven from the project root where pom.xml is located.
 cd /d "%~dp0"
-mvn -pl peer-node exec:java -Dexec.mainClass="dungcony.ds.App"
+set "EXEC_ARGS=%*"
+
+if "%EXEC_ARGS%"=="" (
+    echo [INFO] No peer args supplied. Using default data root: peer-node\src\main\resources\data
+) else (
+    echo [INFO] Peer args: %EXEC_ARGS%
+)
+
+mvn -pl peer-node exec:java -Dexec.mainClass="dungcony.ds.App" "-Dexec.args=%EXEC_ARGS%"

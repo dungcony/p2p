@@ -2,14 +2,46 @@ package dungcony.ds.peer;
 
 import dungcony.ds.model.Group;
 import dungcony.ds.entities.PeerInfo;
+import dungcony.ds.repositories.LocalGroupRepo;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public class GroupManager {
     private final Map<String, Group> groups = new ConcurrentHashMap<>();
+    private final LocalGroupRepo localGroupRepo;
+    private final Consumer<Group> groupCreatedPublisher;
+
+    /**
+     * Khoi tao GroupManager khong persist, giu tuong thich voi cac luong cu.
+     */
+    public GroupManager() {
+        this(null, null);
+    }
+
+    /**
+     * Khoi tao GroupManager co local repo de load/save groups.json cua profile.
+     */
+    public GroupManager(LocalGroupRepo localGroupRepo) {
+        this(localGroupRepo, null);
+    }
+
+    /**
+     * Khoi tao GroupManager co local repo va publisher de dong bo group moi len bootstrap.
+     */
+    public GroupManager(LocalGroupRepo localGroupRepo, Consumer<Group> groupCreatedPublisher) {
+        this.localGroupRepo = localGroupRepo;
+        this.groupCreatedPublisher = groupCreatedPublisher;
+        if (localGroupRepo != null) {
+            for (Group group : localGroupRepo.findAll()) {
+                groups.put(group.getGroupId(), group);
+            }
+            System.out.println("[INFO] GroupManager loaded local groups. count=" + groups.size());
+        }
+    }
 
     /**
      * Tạo nhóm mới và thêm danh sách thành viên ban đầu nếu có.
@@ -20,6 +52,8 @@ public class GroupManager {
             members.forEach(group::addMember);
         }
         groups.put(group.getGroupId(), group);
+        saveGroup(group);
+        publishGroup(group);
         System.out.println("[INFO] Created group id=" + group.getGroupId()
                 + ", name=" + group.getName() + ", members=" + group.getMembers().size());
         return group;
@@ -37,5 +71,39 @@ public class GroupManager {
      */
     public Collection<Group> getAllGroups() {
         return Collections.unmodifiableCollection(groups.values());
+    }
+
+    /**
+     * Thay the local group cache bang danh sach group bootstrap tra ve.
+     */
+    public void replaceAll(Collection<Group> authoritativeGroups) {
+        groups.clear();
+        if (authoritativeGroups != null) {
+            for (Group group : authoritativeGroups) {
+                groups.put(group.getGroupId(), group);
+            }
+        }
+        if (localGroupRepo != null) {
+            localGroupRepo.saveAll(groups.values());
+        }
+        System.out.println("[INFO] GroupManager replaced groups from bootstrap. count=" + groups.size());
+    }
+
+    /**
+     * Luu group moi/cap nhat xuong groups.json neu local repo duoc cau hinh.
+     */
+    private void saveGroup(Group group) {
+        if (localGroupRepo != null) {
+            localGroupRepo.save(group);
+        }
+    }
+
+    /**
+     * Publish group moi len bootstrap neu PeerNode cau hinh publisher.
+     */
+    private void publishGroup(Group group) {
+        if (groupCreatedPublisher != null) {
+            groupCreatedPublisher.accept(group);
+        }
     }
 }

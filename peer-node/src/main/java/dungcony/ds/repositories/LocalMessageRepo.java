@@ -28,10 +28,17 @@ public class LocalMessageRepo {
      * Khoi tao local JSON store rieng cho peerId hien tai.
      */
     public LocalMessageRepo(String peerId) {
-        String safePeerId = peerId == null || peerId.isBlank()
-                ? "peer-local"
-                : peerId.replaceAll("[^a-zA-Z0-9._-]", "_");
-        this.messageFilePath = Path.of("peer-node", "src", "main", "resources", "data", "messages", safePeerId + ".json");
+        this(Path.of("peer-node", "src", "main", "resources", "data"));
+    }
+
+    /**
+     * Khoi tao local JSON store trong dataDir rieng cua instance hien tai.
+     */
+    public LocalMessageRepo(Path dataDir) {
+        Path resolvedDataDir = dataDir == null
+                ? Path.of("peer-node", "src", "main", "resources", "data")
+                : dataDir.normalize();
+        this.messageFilePath = resolvedDataDir.resolve("messages.json");
         initializeStorage();
     }
 

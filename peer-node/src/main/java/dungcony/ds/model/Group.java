@@ -3,6 +3,7 @@ package dungcony.ds.model;
 import dungcony.ds.entities.PeerInfo;
 
 import java.util.LinkedHashSet;
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,29 +24,29 @@ public class Group {
     }
 
     /**
-     * Lấy id duy nhất của nhóm.
+     * Phuc hoi group co san tu bootstrap/local cache voi groupId da ton tai.
      */
+    public Group(String groupId, String name, Collection<PeerInfo> members) {
+        this.groupId = groupId == null || groupId.isBlank() ? UUID.randomUUID().toString() : groupId;
+        this.name = name == null || name.isBlank() ? "Group" : name.trim();
+        if (members != null) {
+            members.forEach(this::addMember);
+        }
+    }
+
     public String getGroupId() {
         return groupId;
     }
 
-    /**
-     * Lấy tên hiển thị của nhóm.
-     */
+
     public String getName() {
         return name;
     }
 
-    /**
-     * Lấy danh sách thành viên hiện có trong nhóm.
-     */
     public Set<PeerInfo> getMembers() {
         return members;
     }
 
-    /**
-     * Thêm một peer vào nhóm nếu peer hợp lệ.
-     */
     public void addMember(PeerInfo peerInfo) {
         if (peerInfo != null) {
             members.add(peerInfo);

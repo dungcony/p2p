@@ -1,6 +1,7 @@
 package dungcony.ds.model;
 
 import com.google.gson.Gson;
+import dungcony.ds.dtos.OfflineMessage;
 import dungcony.ds.entities.PeerInfo;
 
 import java.io.BufferedReader;
@@ -10,8 +11,10 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 public class BootstrapClient {
     private static final int CONNECT_TIMEOUT_MS = 3000;
@@ -74,6 +77,64 @@ public class BootstrapClient {
     }
 
     /**
+     * Tao/cap nhat group metadata tren bootstrap-server.
+     */
+    public boolean createGroup(Group group, String createdBy) {
+        GroupPayload payload = new GroupPayload(
+                group.getGroupId(),
+                group.getName(),
+                createdBy,
+                System.currentTimeMillis()
+        );
+        String response = request("CREATE_GROUP", payload);
+        boolean success = "OK".equalsIgnoreCase(response);
+        System.out.println("[INFO] Bootstrap CREATE_GROUP result=" + success
+                + ", groupId=" + group.getGroupId() + ", response=" + response);
+        return success;
+    }
+
+    /**
+     * Them user/peer vao group tren bootstrap-server.
+     */
+    public boolean addGroupMember(String groupId, String userId) {
+        GroupMemberPayload payload = new GroupMemberPayload(groupId, userId, System.currentTimeMillis());
+        String response = request("ADD_GROUP_MEMBER", payload);
+        boolean success = "OK".equalsIgnoreCase(response);
+        System.out.println("[INFO] Bootstrap ADD_GROUP_MEMBER result=" + success
+                + ", groupId=" + groupId + ", userId=" + userId);
+        return success;
+    }
+
+    /**
+     * Lay danh sach group metadata tu bootstrap-server.
+     */
+    public Collection<GroupPayload> listGroups() {
+        String response = requestRaw("LIST_GROUPS", "");
+        if (response == null || response.isBlank()) {
+            return Collections.emptyList();
+        }
+        GroupPayload[] groups = gson.fromJson(response, GroupPayload[].class);
+        List<GroupPayload> result = groups == null ? Collections.emptyList() : Arrays.asList(groups);
+        System.out.println("[INFO] Bootstrap LIST_GROUPS count=" + result.size());
+        return result;
+    }
+
+    /**
+     * Lay danh sach member user_id cua mot group tu bootstrap-server.
+     */
+    public Collection<GroupMemberPayload> listGroupMembers(String groupId) {
+        String response = requestRaw("LIST_GROUP_MEMBERS", groupId);
+        if (response == null || response.isBlank()) {
+            return Collections.emptyList();
+        }
+        GroupMemberPayload[] members = gson.fromJson(response, GroupMemberPayload[].class);
+        List<GroupMemberPayload> result = members == null ? Collections.emptyList() : Arrays.asList(members);
+        System.out.println("[INFO] Bootstrap LIST_GROUP_MEMBERS groupId=" + groupId
+                + ", count=" + result.size());
+        return result;
+    }
+
+    /**
      * Gui LEAVE de bootstrap-server xoa dia chi online cua peer hien tai.
      */
     public void leave(String peerKey) {
@@ -120,6 +181,54 @@ public class BootstrapClient {
             System.out.println("[WARN] Bootstrap request failed. command=" + command
                     + ", address=" + host + ":" + port + ", error=" + e.getMessage());
             return null;
+        }
+    }
+
+    public static class GroupPayload {
+        private String groupId;
+        private String name;
+        private String createdBy;
+        private long createdAt;
+
+        public GroupPayload() {
+        }
+
+        public GroupPayload(String groupId, String name, String createdBy, long createdAt) {
+            this.groupId = groupId;
+            this.name = name;
+            this.createdBy = createdBy;
+            this.createdAt = createdAt;
+        }
+
+        public String getGroupId() {
+            return groupId;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    public static class GroupMemberPayload {
+        private String groupId;
+        private String userId;
+        private long joinedAt;
+
+        public GroupMemberPayload() {
+        }
+
+        public GroupMemberPayload(String groupId, String userId, long joinedAt) {
+            this.groupId = groupId;
+            this.userId = userId;
+            this.joinedAt = joinedAt;
+        }
+
+        public String getGroupId() {
+            return groupId;
+        }
+
+        public String getUserId() {
+            return userId;
         }
     }
 }

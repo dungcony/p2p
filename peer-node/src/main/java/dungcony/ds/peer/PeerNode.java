@@ -1,15 +1,17 @@
 package dungcony.ds.peer;
 
 import dungcony.ds.interfaces.MessageListener;
+import dungcony.ds.mapper.Mes;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.JoinResponse;
 import dungcony.ds.model.Message;
 import dungcony.ds.enums.MessageType;
-import dungcony.ds.model.OfflineMessage;
+import dungcony.ds.dtos.OfflineMessage;
 import dungcony.ds.entities.PeerInfo;
 import dungcony.ds.model.BootstrapClient;
 import dungcony.ds.network.TCPClient;
 import dungcony.ds.network.TCPServer;
+import dungcony.ds.repositories.LocalGroupRepo;
 import dungcony.ds.repositories.LocalMessageRepo;
 
 import javax.swing.SwingUtilities;
@@ -18,6 +20,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,7 +38,7 @@ public class PeerNode {
     private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<>();
     private final List<MessageListener> messageListeners = new CopyOnWriteArrayList<>();
     private final List<Runnable> peerChangeListeners = new CopyOnWriteArrayList<>();
-    private final GroupManager groupManager = new GroupManager();
+    private final GroupManager groupManager;
     private final MessageSender messageSender;
     private final TCPServer tcpServer;
     private final BootstrapClient bootstrapClient;
@@ -45,13 +48,21 @@ public class PeerNode {
      * Khởi tạo một peer cục bộ với tên định danh và port lắng nghe do người dùng nhập.
      */
     public PeerNode(String peerId, int port) {
-        this(peerId, peerId, port, null, 0);
+        this(peerId, peerId, port, null, 0, Path.of("peer-node", "src", "main", "resources", "data"));
     }
 
     /**
      * Khởi tạo peer với id ổn định, tên hiển thị, port lắng nghe và bootstrap-server.
      */
     public PeerNode(String peerId, String peerName, int port, String bootstrapHost, int bootstrapPort) {
+        this(peerId, peerName, port, bootstrapHost, bootstrapPort,
+                Path.of("peer-node", "src", "main", "resources", "data"));
+    }
+
+    /**
+     * Khởi tạo peer với dataDir riêng để test nhiều instance trên cùng một máy.
+     */
+    public PeerNode(String peerId, String peerName, int port, String bootstrapHost, int bootstrapPort, Path dataDir) {
         this.localPeer = new PeerInfo(peerId, peerName, resolveLocalHost(), port);
         TCPClient tcpClient = new TCPClient();
         this.messageSender = new MessageSender(tcpClient);
@@ -59,11 +70,13 @@ public class PeerNode {
         this.bootstrapClient = bootstrapHost == null || bootstrapHost.isBlank()
                 ? null
                 : new BootstrapClient(bootstrapHost, bootstrapPort);
-        this.localMessageRepo = new LocalMessageRepo(localPeer.getId());
+        this.localMessageRepo = new LocalMessageRepo(dataDir);
+        this.groupManager = new GroupManager(new LocalGroupRepo(dataDir), this::publishGroupToBootstrap);
         System.out.println("[INFO] PeerNode initialized: id=" + localPeer.getId()
                 + ", name=" + localPeer.getName()
                 + ", address=" + localPeer.addressKey()
-                + ", bootstrap=" + (bootstrapClient == null ? "disabled" : bootstrapHost + ":" + bootstrapPort));
+                + ", bootstrap=" + (bootstrapClient == null ? "disabled" : bootstrapHost + ":" + bootstrapPort)
+                + ", dataDir=" + dataDir.toAbsolutePath());
     }
 
     /**
@@ -402,9 +415,68 @@ public class PeerNode {
                     + ", address=" + peerInfo.addressKey());
         }
         handleOfflineMessages(joinResponse);
+        syncGroupsFromBootstrap();
         notifyPeersChanged();
         System.out.println("[INFO] Bootstrap sync completed. addedPeers=" + added
                 + ", knownPeers=" + peers.size());
+    }
+
+    /**
+     * Publish group moi len bootstrap de cac member khac load duoc group khi JOIN.
+     */
+    private void publishGroupToBootstrap(Group group) {
+        if (bootstrapClient == null) {
+            System.out.println("[WARN] Cannot publish group because bootstrap is disabled. groupId="
+                    + group.getGroupId());
+            return;
+        }
+        boolean created = bootstrapClient.createGroup(group, localPeer.getId());
+        if (!created) {
+            System.out.println("[WARN] Bootstrap CREATE_GROUP failed. groupId=" + group.getGroupId());
+            return;
+        }
+        bootstrapClient.addGroupMember(group.getGroupId(), localPeer.getId());
+        for (PeerInfo member : group.getMembers()) {
+            bootstrapClient.addGroupMember(group.getGroupId(), member.getId());
+        }
+        System.out.println("[INFO] Group published to bootstrap. groupId=" + group.getGroupId()
+                + ", members=" + group.getMembers().size());
+    }
+
+    /**
+     * Load group membership tu bootstrap va cache lai vao groups.json cua profile hien tai.
+     */
+    private void syncGroupsFromBootstrap() {
+        if (bootstrapClient == null) {
+            return;
+        }
+
+        List<Group> joinedGroups = new ArrayList<>();
+        for (BootstrapClient.GroupPayload groupPayload : bootstrapClient.listGroups()) {
+            Collection<BootstrapClient.GroupMemberPayload> memberPayloads =
+                    bootstrapClient.listGroupMembers(groupPayload.getGroupId());
+            boolean localPeerIsMember = memberPayloads.stream()
+                    .anyMatch(member -> localPeer.getId().equals(member.getUserId()));
+            if (!localPeerIsMember) {
+                continue;
+            }
+
+            List<PeerInfo> members = new ArrayList<>();
+            for (BootstrapClient.GroupMemberPayload memberPayload : memberPayloads) {
+                if (localPeer.getId().equals(memberPayload.getUserId())) {
+                    members.add(localPeer);
+                    continue;
+                }
+                PeerInfo knownPeer = findKnownPeerById(memberPayload.getUserId());
+                members.add(knownPeer == null
+                        ? new PeerInfo(memberPayload.getUserId(), memberPayload.getUserId(), "", 0, false)
+                        : knownPeer);
+            }
+            joinedGroups.add(new Group(groupPayload.getGroupId(), groupPayload.getName(), members));
+        }
+
+        groupManager.replaceAll(joinedGroups);
+        System.out.println("[INFO] Bootstrap group sync completed. joinedGroups=" + joinedGroups.size());
     }
 
     /**
@@ -416,7 +488,7 @@ public class PeerNode {
                     + message.getId());
             return false;
         }
-        boolean stored = bootstrapClient.storeOffline(OfflineMessage.fromMessage(message));
+        boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
         System.out.println("[INFO] Offline fallback stored=" + stored + ", messageId=" + message.getId());
         return stored;
     }

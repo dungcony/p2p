@@ -129,44 +129,26 @@ public class Message {
         return message;
     }
 
-    /**
-     * Lấy id duy nhất của message, dùng để so khớp với ACK.
-     */
     public String getId() {
         return id;
     }
 
-    /**
-     * Lấy loại message như CHAT, GROUP_CHAT, ACK hoặc HEARTBEAT.
-     */
     public MessageType getType() {
         return type;
     }
 
-    /**
-     * Lấy id của peer gửi.
-     */
     public String getSenderId() {
         return senderId;
     }
 
-    /**
-     * Lấy host/IP của peer gửi.
-     */
     public String getSenderHost() {
         return senderHost;
     }
 
-    /**
-     * Lấy port của peer gửi.
-     */
     public int getSenderPort() {
         return senderPort;
     }
 
-    /**
-     * Lấy địa chỉ peer gửi theo dạng host:port để khớp với key trong UI/history.
-     */
     public String getSenderIp() {
         if (senderPort > 0) {
             return senderHost + ":" + senderPort;
@@ -174,65 +156,38 @@ public class Message {
         return senderHost;
     }
 
-    /**
-     * Lấy id của peer nhận.
-     */
     public String getReceiverId() {
         return receiverId;
     }
 
-    /**
-     * Lấy host/IP của peer nhận.
-     */
     public String getReceiverHost() {
         return receiverHost;
     }
 
-    /**
-     * Lấy port của peer nhận.
-     */
     public int getReceiverPort() {
         return receiverPort;
     }
 
-    /**
-     * Lấy id nhóm nếu message là GROUP_CHAT.
-     */
     public String getGroupId() {
         return groupId;
     }
 
-    /**
-     * Lấy nội dung text của tin nhắn.
-     */
     public String getContent() {
         return content;
     }
 
-    /**
-     * Lấy timestamp dạng epoch milliseconds.
-     */
     public long getTimestamp() {
         return timestamp;
     }
 
-    /**
-     * Cho biết message đang hiển thị ở phía người gửi hiện tại hay peer khác.
-     */
     public boolean isFromCurrentUser() {
         return fromCurrentUser;
     }
 
-    /**
-     * Đặt hướng hiển thị của message trong UI sau khi deserialize từ network.
-     */
     public void setFromCurrentUser(boolean fromCurrentUser) {
         this.fromCurrentUser = fromCurrentUser;
     }
 
-    /**
-     * Format timestamp thành giờ/phút để hiển thị trong bong bóng chat.
-     */
     public String getFormattedTime() {
         return TIME_FORMATTER.format(Instant.ofEpochMilli(timestamp));
     }

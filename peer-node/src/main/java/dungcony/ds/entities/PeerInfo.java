@@ -94,7 +94,7 @@ public class PeerInfo {
     }
 
     /**
-     * So sánh peer theo host và port vì đây là địa chỉ kết nối thật.
+     * So sánh peer ưu tiên theo id ổn định, fallback về host/port khi chưa có id.
      */
     @Override
     public boolean equals(Object object) {
@@ -104,14 +104,20 @@ public class PeerInfo {
         if (!(object instanceof PeerInfo peerInfo)) {
             return false;
         }
+        if (id != null && !id.isBlank() && peerInfo.id != null && !peerInfo.id.isBlank()) {
+            return Objects.equals(id, peerInfo.id);
+        }
         return port == peerInfo.port && Objects.equals(host, peerInfo.host);
     }
 
     /**
-     * Tạo hash tương ứng với equals theo host và port.
+     * Tạo hash tương ứng với equals theo id hoặc host/port.
      */
     @Override
     public int hashCode() {
+        if (id != null && !id.isBlank()) {
+            return Objects.hash(id);
+        }
         return Objects.hash(host, port);
     }
 }

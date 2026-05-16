@@ -13,17 +13,17 @@ public class HeartbeatMonitor implements Runnable {
      */
     @Override
     public void run() {
-        System.out.println("[INFO] HeartbeatMonitor started.");
+        System.out.println("[INFO] HeartbeatMonitor đã khởi động.");
         while (running) {
             try {
                 Thread.sleep(10_000);
-                System.out.println("[TRACE] HeartbeatMonitor tick. Registry size=" + registry.list().size());
+                System.out.println("[TRACE] HeartbeatMonitor tick. kíchThướcRegistry=" + registry.list().size());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 running = false;
             }
         }
-        System.out.println("[INFO] HeartbeatMonitor stopped.");
+        System.out.println("[INFO] HeartbeatMonitor đã dừng.");
     }
 
     /**
@@ -31,7 +31,7 @@ public class HeartbeatMonitor implements Runnable {
      */
     public void stop() {
         running = false;
-        System.out.println("[INFO] HeartbeatMonitor stop requested.");
+        System.out.println("[INFO] Đã yêu cầu dừng HeartbeatMonitor.");
     }
 
     /**

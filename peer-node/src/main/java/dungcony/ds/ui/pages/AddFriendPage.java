@@ -36,7 +36,7 @@ public class AddFriendPage extends JPanel {
             contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
             // Initialize components with proper constraints
-            topPanel = new HeadingPanel("Start direct chat");
+            topPanel = new HeadingPanel("Bắt đầu chat trực tiếp");
             topPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
 
             centerPanel = new CenterPanel();

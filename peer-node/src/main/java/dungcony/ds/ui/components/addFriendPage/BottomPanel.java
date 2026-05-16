@@ -21,8 +21,8 @@ public class BottomPanel extends RoundedPanel {
     public BottomPanel() {
         super(15, ColorPalette.BACKGROUND);
 
-        nameField = new InputField("Name", 50);
-        ipField = new InputField("IP Address or host:port", 50);
+        nameField = new InputField("Tên", 50);
+        ipField = new InputField("Địa chỉ IP hoặc host:port", 50);
 
         checkConnectionButton = new ModernButton("Chat", ColorPalette.PRIMARY, ColorPalette.SECONDARY);
         checkConnectionButton.setPreferredSize(new Dimension(140, 40));
@@ -56,36 +56,36 @@ public class BottomPanel extends RoundedPanel {
     private boolean connectAndOpenChat() {
         String name = nameField.getTextField().getText();
         String address = ipField.getTextField().getText();
-        System.out.println("[INFO] Direct chat requested. name=" + name + ", address=" + address);
+        System.out.println("[INFO] Yêu cầu chat trực tiếp. tên=" + name + ", địaChỉ=" + address);
 
         if (!isValidPeerAddress(address)) {
-            System.out.println("[WARN] Direct chat rejected: invalid address=" + address);
-            Dialog.showMessageDialog(null, "Please provide valid IP address or host:port", "Invalid address", Dialog.ERROR_MESSAGE);
+            System.out.println("[WARN] Từ chối chat trực tiếp: địa chỉ không hợp lệ=" + address);
+            Dialog.showMessageDialog(null, "Vui lòng nhập địa chỉ IP hoặc host:port hợp lệ", "Địa chỉ không hợp lệ", Dialog.ERROR_MESSAGE);
             return false;
         }
         if (App.peerNode != null && App.peerNode.isSelfAddress(address)) {
-            System.out.println("[WARN] Direct chat rejected: address points to local peer=" + address);
-            Dialog.showMessageDialog(null, "You cannot connect to your own peer address.", "Invalid peer", Dialog.WARNING_MESSAGE);
+            System.out.println("[WARN] Từ chối chat trực tiếp: địa chỉ trỏ về peer hiện tại=" + address);
+            Dialog.showMessageDialog(null, "Bạn không thể kết nối tới chính peer hiện tại.", "Peer không hợp lệ", Dialog.WARNING_MESSAGE);
             return false;
         }
 
         boolean online = App.peerNode != null && App.peerNode.checkUserIsOnline(address);
         if (!online) {
-            System.out.println("[WARN] Direct chat failed heartbeat. address=" + address);
-            Dialog.showMessageDialog(null, "Peer did not respond to heartbeat.", "Offline peer", Dialog.WARNING_MESSAGE);
+            System.out.println("[WARN] Chat trực tiếp thất bại heartbeat. địa chỉ=" + address);
+            Dialog.showMessageDialog(null, "Peer không phản hồi heartbeat.", "Peer ngoại tuyến", Dialog.WARNING_MESSAGE);
             return false;
         }
 
         String displayName = name == null || name.isBlank() ? address.trim() : name.trim();
         PeerInfo peerInfo = App.peerNode.addKnownPeer(displayName, address);
         if (peerInfo == null) {
-            Dialog.showMessageDialog(null, "Peer was not opened.", "Chat Failed", Dialog.WARNING_MESSAGE);
+            Dialog.showMessageDialog(null, "Không thể mở cuộc chat với peer.", "Mở chat thất bại", Dialog.WARNING_MESSAGE);
             return false;
         }
         openChat(peerInfo);
         nameField.getTextField().setText("");
         ipField.getTextField().setText("");
-        System.out.println("[INFO] Direct chat opened. peer=" + peerInfo.addressKey());
+        System.out.println("[INFO] Đã mở chat trực tiếp. peer=" + peerInfo.addressKey());
         return true;
     }
 

@@ -53,7 +53,7 @@ public class MainPage extends JPanel {
             routerManager.addRoute("addFriend", new AddFriendPage());
             routerManager.addRoute("scanner", new ScannerPage());
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to add the route in main page\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thêm route trong trang chính\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }

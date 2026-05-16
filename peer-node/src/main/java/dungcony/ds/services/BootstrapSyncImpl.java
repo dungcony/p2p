@@ -54,11 +54,11 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
      */
     @Override
     public void registerAndJoinBootstrap() {
-        System.out.println("[INFO] Registering local peer with bootstrap. peerId=" + localPeer.getId()
-                + ", name=" + localPeer.getName());
+        System.out.println("[INFO] Đang đăng ký peer local với bootstrap. peerId=" + localPeer.getId()
+                + ", tên=" + localPeer.getName());
         boolean registered = bootstrapClient.register(localPeer);
         if (!registered) {
-            System.out.println("[WARN] Bootstrap REGISTER failed. Peer still runs in direct TCP mode.");
+            System.out.println("[WARN] Bootstrap REGISTER thất bại. Peer vẫn chạy ở chế độ TCP trực tiếp.");
             return;
         }
 
@@ -67,7 +67,7 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
         syncGroupsFromBootstrap();
         handleOfflineMessages(joinResponse);
         peerChangeNotifier.run();
-        System.out.println("[INFO] Bootstrap sync completed. addedPeers=" + added
+        System.out.println("[INFO] Đồng bộ bootstrap xong. peerThêm=" + added
                 + ", knownPeers=" + peerDirectoryService.size());
     }
 
@@ -76,16 +76,17 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
      */
     @Override
     public void refreshFromBootstrap() {
-        Collection<PeerInfo> onlinePeers = bootstrapClient.listOrNull();
-        if (onlinePeers == null) {
-            System.out.println("[WARN] Bootstrap refresh skipped because tracker is unavailable. "
-                    + "Keeping current local peer state.");
+        JoinResponse joinResponse = bootstrapClient.joinOrNull(localPeer);
+        if (joinResponse == null) {
+            System.out.println("[WARN] Bỏ qua refresh bootstrap vì tracker không khả dụng. "
+                    + "Giữ nguyên trạng thái peer local hiện tại.");
             return;
         }
-        int onlineCount = peerDirectoryService.syncOnlinePeers(onlinePeers);
+        int onlineCount = peerDirectoryService.syncOnlinePeers(joinResponse.getOnlinePeers());
         syncGroupsFromBootstrap();
+        handleOfflineMessages(joinResponse);
         peerChangeNotifier.run();
-        System.out.println("[INFO] Bootstrap refresh completed. onlinePeers=" + onlineCount
+        System.out.println("[INFO] Refresh bootstrap xong. peerTrựcTuyến=" + onlineCount
                 + ", knownPeers=" + peerDirectoryService.size());
     }
 
@@ -95,7 +96,7 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
     private void syncGroupsFromBootstrap() {
         List<Group> joinedGroups = bootstrapGroupService.fetchJoinedGroups(peerDirectoryService.list());
         groupManager.replaceAll(joinedGroups);
-        System.out.println("[INFO] Bootstrap group sync completed. joinedGroups=" + joinedGroups.size());
+        System.out.println("[INFO] Đồng bộ nhóm bootstrap xong. nhómĐãThamGia=" + joinedGroups.size());
     }
 
     /**
@@ -129,7 +130,7 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
             );
             messageHistoryService.addAndSave(historyKey, conversationPeer, message);
             messageNotifier.accept(message);
-            System.out.println("[INFO] Offline message loaded. messageId=" + offlineMessage.messageId()
+            System.out.println("[INFO] Đã nạp tin offline. messageId=" + offlineMessage.messageId()
                     + ", senderId=" + offlineMessage.senderId()
                     + ", historyKey=" + historyKey);
         }

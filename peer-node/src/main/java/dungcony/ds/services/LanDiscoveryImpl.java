@@ -32,12 +32,12 @@ public class LanDiscoveryImpl implements LanDiscoveryService {
         String localHost = localPeer.getHost();
         int lastDot = localHost.lastIndexOf('.');
         if (lastDot < 0) {
-            System.out.println("[WARN] Cannot discover peers. Local host is not an IPv4 LAN address: " + localHost);
+            System.out.println("[WARN] Không thể khám phá peer. Host local không phải địa chỉ IPv4 LAN: " + localHost);
             return discovered;
         }
 
         String prefix = localHost.substring(0, lastDot + 1);
-        System.out.println("[INFO] Starting LAN discovery on subnet " + prefix + "0/24 using port " + localPeer.getPort());
+        System.out.println("[INFO] Đang khởi động khám phá LAN trên subnet " + prefix + "0/24 bằng cổng " + localPeer.getPort());
         List<Thread> probes = new ArrayList<>();
         for (int i = 1; i <= 254; i++) {
             String host = prefix + i;
@@ -58,7 +58,7 @@ public class LanDiscoveryImpl implements LanDiscoveryService {
                 break;
             }
         }
-        System.out.println("[INFO] LAN discovery completed. Found peers=" + discovered.size());
+        System.out.println("[INFO] Quét LAN xong. sốPeerTìmThấy=" + discovered.size());
         return discovered;
     }
 
@@ -69,7 +69,7 @@ public class LanDiscoveryImpl implements LanDiscoveryService {
         PeerInfo peerInfo = new PeerInfo(host, host, host, localPeer.getPort());
         if (messageSender.send(peerInfo, Message.heartbeat(localPeer))) {
             peerDirectoryService.put(peerInfo);
-            System.out.println("[INFO] Discovered peer " + peerInfo.addressKey());
+            System.out.println("[INFO] Đã phát hiện peer " + peerInfo.addressKey());
             synchronized (discovered) {
                 discovered.add(peerInfo);
             }

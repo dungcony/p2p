@@ -22,32 +22,32 @@ public class TCPClient {
      */
     public boolean send(PeerInfo peerInfo, Message message) {
         try (Socket socket = new Socket()) {
-            System.out.println("[DEBUG] TCP connect start: " + peerInfo.addressKey()
+            System.out.println("[DEBUG] Bắt đầu kết nối TCP: " + peerInfo.addressKey()
                     + ", messageId=" + message.getId());
             socket.connect(new InetSocketAddress(peerInfo.getHost(), peerInfo.getPort()), CONNECT_TIMEOUT_MS);
             socket.setSoTimeout(READ_TIMEOUT_MS);
-            System.out.println("[DEBUG] TCP connected: " + peerInfo.addressKey());
+            System.out.println("[DEBUG] TCP đã kết nối: " + peerInfo.addressKey());
 
             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
 
             writer.println(protocol.serialize(message));
-            System.out.println("[DEBUG] TCP payload sent. messageId=" + message.getId());
+            System.out.println("[DEBUG] Đã gửi payload TCP. messageId=" + message.getId());
             String response = reader.readLine();
             if (response == null || response.isBlank()) {
-                System.out.println("[WARN] TCP response empty. peer=" + peerInfo.addressKey()
+                System.out.println("[WARN] Phản hồi TCP rỗng. peer=" + peerInfo.addressKey()
                         + ", messageId=" + message.getId());
                 return false;
             }
 
             Message ack = protocol.deserialize(response);
             boolean validAck = ack != null && ack.getType() == MessageType.ACK && message.getId().equals(ack.getId());
-            System.out.println("[DEBUG] TCP response received. peer=" + peerInfo.addressKey()
+            System.out.println("[DEBUG] Đã nhận phản hồi TCP. peer=" + peerInfo.addressKey()
                     + ", messageId=" + message.getId() + ", validAck=" + validAck);
             return validAck;
         } catch (IOException e) {
-            System.out.println("[WARN] TCP send failed. peer=" + peerInfo.addressKey()
-                    + ", messageId=" + message.getId() + ", error=" + e.getMessage());
+            System.out.println("[WARN] Gửi TCP thất bại. peer=" + peerInfo.addressKey()
+                    + ", messageId=" + message.getId() + ", lỗi=" + e.getMessage());
             return false;
         }
     }

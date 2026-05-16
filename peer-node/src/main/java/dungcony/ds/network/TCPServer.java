@@ -30,16 +30,16 @@ public class TCPServer {
         running = true;
         try (ServerSocket openedSocket = new ServerSocket(port)) {
             serverSocket = openedSocket;
-            System.out.println("[INFO] TCPServer listening on port " + port);
+            System.out.println("[INFO] TCPServer đang lắng nghe trên cổng " + port);
             while (running) {
                 Socket socket = openedSocket.accept();
-                System.out.println("[DEBUG] TCPServer accepted connection from "
+                System.out.println("[DEBUG] TCPServer đã nhận kết nối từ "
                         + socket.getRemoteSocketAddress());
                 connectionPool.submit(new ConnectionHandler(socket, receiver));
             }
         } catch (IOException e) {
             if (running) {
-                System.out.println("[ERROR] TCP server stopped: " + e.getMessage());
+                System.out.println("[ERROR] TCP server đã dừng: " + e.getMessage());
             }
         } finally {
             running = false;
@@ -52,7 +52,7 @@ public class TCPServer {
     public void stop() {
         running = false;
         connectionPool.shutdownNow();
-        System.out.println("[INFO] TCPServer stopping on port " + port);
+        System.out.println("[INFO] TCPServer đang dừng trên cổng " + port);
         if (serverSocket != null) {
             try {
                 serverSocket.close();

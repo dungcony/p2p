@@ -21,7 +21,7 @@ public class ChatHistory extends JPanel {
             initializeComponents();
             setupLayout();
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize ChatHistory\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo lịch sử chat\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -47,7 +47,7 @@ public class ChatHistory extends JPanel {
             scrollPane.getVerticalScrollBar().setBackground(ColorPalette.BACKGROUND);
             scrollPane.getVerticalScrollBar().setUI(new ModernScrollBarUI());
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize components\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -57,7 +57,7 @@ public class ChatHistory extends JPanel {
             setLayout(new BorderLayout());
             add(scrollPane, BorderLayout.CENTER);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to set up the layout\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -96,12 +96,12 @@ public class ChatHistory extends JPanel {
                     JScrollBar vertical = scrollPane.getVerticalScrollBar();
                     vertical.setValue(vertical.getMaximum());
                 } catch (Exception ex) {
-                    System.out.println("[ERROR] Failed to auto-scroll to bottom\nError Message: " + ex.getMessage());
+                    System.out.println("[ERROR] Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
                     ex.printStackTrace();
                 }
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to render all messages\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể hiển thị tất cả tin nhắn\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -135,12 +135,12 @@ public class ChatHistory extends JPanel {
                     JScrollBar vertical = scrollPane.getVerticalScrollBar();
                     vertical.setValue(vertical.getMaximum());
                 } catch (Exception ex) {
-                    System.out.println("[ERROR] Failed to auto-scroll to bottom\nError Message: " + ex.getMessage());
+                    System.out.println("[ERROR] Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
                     ex.printStackTrace();
                 }
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to render message\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể hiển thị tin nhắn\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -151,7 +151,7 @@ public class ChatHistory extends JPanel {
             messagesPanel.revalidate();
             messagesPanel.repaint();
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to clear messages\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể xóa danh sách tin nhắn\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }

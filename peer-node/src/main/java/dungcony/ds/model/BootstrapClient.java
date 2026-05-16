@@ -40,7 +40,7 @@ public class BootstrapClient {
     public boolean register(PeerInfo peerInfo) {
         String response = request("REGISTER", peerInfo);
         boolean success = "OK".equalsIgnoreCase(response);
-        System.out.println("[INFO] Bootstrap REGISTER result=" + success
+        System.out.println("[INFO] Kết quả Bootstrap REGISTER=" + success
                 + ", peerId=" + peerInfo.getId() + ", response=" + response);
         return success;
     }
@@ -49,20 +49,28 @@ public class BootstrapClient {
      * Gui JOIN de danh dau peer online va nhan danh sach peer dang online.
      */
     public JoinResponse join(PeerInfo peerInfo) {
+        JoinResponse joinResponse = joinOrNull(peerInfo);
+        return joinResponse == null ? JoinResponse.empty() : joinResponse;
+    }
+
+    /**
+     * Gui JOIN va tra ve null neu bootstrap khong phan hoi hop le.
+     */
+    public JoinResponse joinOrNull(PeerInfo peerInfo) {
         String response = request("JOIN", peerInfo);
         if (response == null || response.isBlank()) {
-            System.out.println("[WARN] Bootstrap JOIN returned empty response.");
-            return JoinResponse.empty();
+            System.out.println("[WARN] Bootstrap JOIN trả response rỗng.");
+            return null;
         }
         try {
             JoinResponse joinResponse = gson.fromJson(response, JoinResponse.class);
-            System.out.println("[INFO] Bootstrap JOIN received peers="
+            System.out.println("[INFO] Bootstrap JOIN nhận sốPeer="
                     + joinResponse.getOnlinePeers().size()
-                    + ", offlineMessages=" + joinResponse.getOfflineMessages().size());
+                    + ", tinOffline=" + joinResponse.getOfflineMessages().size());
             return joinResponse;
         } catch (RuntimeException e) {
-            System.out.println("[ERROR] Failed to parse Bootstrap JOIN response: " + e.getMessage());
-            return JoinResponse.empty();
+            System.out.println("[ERROR] Không thể parse Bootstrap JOIN response: " + e.getMessage());
+            return null;
         }
     }
 
@@ -72,7 +80,7 @@ public class BootstrapClient {
     public boolean storeOffline(OfflineMessage message) {
         String response = request("STORE_OFFLINE", message);
         boolean success = "OK".equalsIgnoreCase(response);
-        System.out.println("[INFO] Bootstrap STORE_OFFLINE result=" + success
+        System.out.println("[INFO] Kết quả Bootstrap STORE_OFFLINE=" + success
                 + ", messageId=" + message.messageId()
                 + ", receiverId=" + message.receiverId());
         return success;
@@ -90,7 +98,7 @@ public class BootstrapClient {
         );
         String response = request("CREATE_GROUP", payload);
         boolean success = "OK".equalsIgnoreCase(response);
-        System.out.println("[INFO] Bootstrap CREATE_GROUP result=" + success
+        System.out.println("[INFO] Kết quả Bootstrap CREATE_GROUP=" + success
                 + ", groupId=" + group.getGroupId() + ", response=" + response);
         return success;
     }
@@ -102,7 +110,7 @@ public class BootstrapClient {
         GroupMemberPayload payload = new GroupMemberPayload(groupId, userId, System.currentTimeMillis());
         String response = request("ADD_GROUP_MEMBER", payload);
         boolean success = "OK".equalsIgnoreCase(response);
-        System.out.println("[INFO] Bootstrap ADD_GROUP_MEMBER result=" + success
+        System.out.println("[INFO] Kết quả Bootstrap ADD_GROUP_MEMBER=" + success
                 + ", groupId=" + groupId + ", userId=" + userId);
         return success;
     }
@@ -117,7 +125,7 @@ public class BootstrapClient {
         }
         GroupPayload[] groups = gson.fromJson(response, GroupPayload[].class);
         List<GroupPayload> result = groups == null ? Collections.emptyList() : Arrays.asList(groups);
-        System.out.println("[INFO] Bootstrap LIST_GROUPS count=" + result.size());
+        System.out.println("[INFO] Bootstrap LIST_GROUPS sốLượng=" + result.size());
         return result;
     }
 
@@ -132,7 +140,7 @@ public class BootstrapClient {
         GroupMemberPayload[] members = gson.fromJson(response, GroupMemberPayload[].class);
         List<GroupMemberPayload> result = members == null ? Collections.emptyList() : Arrays.asList(members);
         System.out.println("[INFO] Bootstrap LIST_GROUP_MEMBERS groupId=" + groupId
-                + ", count=" + result.size());
+                + ", sốLượng=" + result.size());
         return result;
     }
 
@@ -180,7 +188,7 @@ public class BootstrapClient {
     private String requestRaw(String command, String payload) {
         String line = payload == null || payload.isBlank() ? command : command + " " + payload;
         try (Socket socket = new Socket()) {
-            System.out.println("[DEBUG] Bootstrap connect start " + host + ":" + port + ", command=" + command);
+            System.out.println("[DEBUG] Bắt đầu kết nối bootstrap " + host + ":" + port + ", command=" + command);
             socket.connect(new InetSocketAddress(host, port), CONNECT_TIMEOUT_MS);
             socket.setSoTimeout(READ_TIMEOUT_MS);
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
@@ -191,8 +199,8 @@ public class BootstrapClient {
                 return response;
             }
         } catch (IOException e) {
-            System.out.println("[WARN] Bootstrap request failed. command=" + command
-                    + ", address=" + host + ":" + port + ", error=" + e.getMessage());
+            System.out.println("[WARN] Request bootstrap thất bại. command=" + command
+                    + ", địaChỉ=" + host + ":" + port + ", lỗi=" + e.getMessage());
             return null;
         }
     }

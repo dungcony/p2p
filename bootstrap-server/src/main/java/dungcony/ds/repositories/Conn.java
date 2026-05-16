@@ -18,11 +18,11 @@ public class Conn {
     public Conn(Path databasePath) {
         ensureParentDirectory(databasePath);
         this.jdbcUrl = "jdbc:sqlite:" + databasePath.toAbsolutePath();
-        LOGGER.info("Bootstrap database connection configured. url={}", jdbcUrl);
+        LOGGER.info("Đã cấu hình kết nối database bootstrap. url={}", jdbcUrl);
     }
 
     public Connection getConnection() throws SQLException {
-        LOGGER.debug("Opening SQLite connection. url={}", jdbcUrl);
+        LOGGER.debug("Đang mở kết nối SQLite. url={}", jdbcUrl);
         return DriverManager.getConnection(jdbcUrl);
     }
 
@@ -37,9 +37,9 @@ public class Conn {
         }
         try {
             Files.createDirectories(parent);
-            LOGGER.debug("Ensured database directory exists: {}", parent);
+            LOGGER.debug("Đã đảm bảo thư mục database tồn tại: {}", parent);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to create database directory: " + parent, e);
+            throw new IllegalStateException("Không thể tạo thư mục database: " + parent, e);
         }
     }
 

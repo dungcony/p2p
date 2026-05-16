@@ -21,24 +21,13 @@ public class Init {
     public void initializeSchema() {
         try (Connection connection = conn.getConnection();
              Statement statement = connection.createStatement()) {
-            LOGGER.info("Initializing bootstrap database schema if missing. url={}", conn.getJdbcUrl());
+            LOGGER.info("Đang khởi tạo schema bootstrap nếu còn thiếu. url={}", conn.getJdbcUrl());
             statement.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS users (
                         user_id TEXT PRIMARY KEY,
                         display_name TEXT NOT NULL,
                         created_at INTEGER NOT NULL,
                         updated_at INTEGER NOT NULL
-                    )
-                    """);
-            statement.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS peers_online (
-                        peer_key TEXT PRIMARY KEY,
-                        user_id TEXT NOT NULL,
-                        host TEXT NOT NULL,
-                        port INTEGER NOT NULL,
-                        online INTEGER NOT NULL,
-                        last_seen INTEGER NOT NULL,
-                        FOREIGN KEY(user_id) REFERENCES users(user_id)
                     )
                     """);
             statement.executeUpdate("""
@@ -70,10 +59,10 @@ public class Init {
                         delivered INTEGER NOT NULL DEFAULT 0
                     )
                     """);
-            LOGGER.info("Bootstrap SQLite schema is ready.");
+            LOGGER.info("Schema SQLite bootstrap đã sẵn sàng.");
         } catch (SQLException e) {
-            LOGGER.error("Failed to initialize bootstrap database schema.", e);
-            throw new IllegalStateException("Failed to initialize bootstrap database", e);
+            LOGGER.error("Không thể khởi tạo schema database bootstrap.", e);
+            throw new IllegalStateException("Không thể khởi tạo database bootstrap", e);
         }
     }
 }

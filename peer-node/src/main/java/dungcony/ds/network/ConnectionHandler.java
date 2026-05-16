@@ -32,28 +32,28 @@ public class ConnectionHandler implements Runnable {
              BufferedReader reader = new BufferedReader(new InputStreamReader(acceptedSocket.getInputStream(), StandardCharsets.UTF_8));
              PrintWriter writer = new PrintWriter(acceptedSocket.getOutputStream(), true, StandardCharsets.UTF_8)) {
 
-            System.out.println("[DEBUG] Handling TCP connection from "
+            System.out.println("[DEBUG] Đang xử lý kết nối TCP từ "
                     + acceptedSocket.getRemoteSocketAddress());
             String payload = reader.readLine();
             if (payload == null || payload.isBlank()) {
-                System.out.println("[WARN] Empty TCP payload from "
+                System.out.println("[WARN] Payload TCP rỗng từ "
                         + acceptedSocket.getRemoteSocketAddress());
                 return;
             }
 
             Message incoming = protocol.deserialize(payload);
-            System.out.println("[DEBUG] Incoming payload deserialized. messageId="
+            System.out.println("[DEBUG] Đã deserialize payload đến. messageId="
                     + (incoming == null ? "null" : incoming.getId()));
             Message response = receiver.receive(incoming);
             if (response != null) {
                 writer.println(protocol.serialize(response));
-                System.out.println("[DEBUG] Response sent. messageId=" + response.getId()
+                System.out.println("[DEBUG] Đã gửi phản hồi. messageId=" + response.getId()
                         + ", type=" + response.getType());
             } else {
-                System.out.println("[WARN] Receiver returned null response.");
+                System.out.println("[WARN] Receiver trả về phản hồi null.");
             }
         } catch (IOException e) {
-            System.out.println("[WARN] Failed to handle incoming connection: " + e.getMessage());
+            System.out.println("[WARN] Không thể xử lý kết nối đến: " + e.getMessage());
         }
     }
 }

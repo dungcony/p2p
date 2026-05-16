@@ -27,7 +27,7 @@ public class ScannerPage extends JPanel {
     private FoundDevices foundDevices;
     
     public ScannerPage() throws InterruptedException {
-        headingPanel = new HeadingPanel("Scan for nearby friends");
+        headingPanel = new HeadingPanel("Quét peer gần đây");
         scanButton = new ScanButton();
         foundDevices = new FoundDevices();
         
@@ -71,7 +71,7 @@ public class ScannerPage extends JPanel {
     }
     
     private void scanNearbyUsers() throws InterruptedException {
-        System.out.println("[INFO] UI scan nearby peers requested.");
+        System.out.println("[INFO] UI yêu cầu quét peer gần đây.");
         // Hiển thị loading ngay lập tức
         foundDevices.setLoadingPanel();
         
@@ -79,7 +79,7 @@ public class ScannerPage extends JPanel {
             @Override
             protected String[] doInBackground() throws Exception {
                 if (App.peerNode == null) {
-                    System.out.println("[WARN] Scan skipped because App.peerNode is null.");
+                    System.out.println("[WARN] Bỏ qua quét vì App.peerNode đang null.");
                     return new String[0];
                 }
                 return App.peerNode.discoverPeersOnLocalNetwork().stream()
@@ -91,7 +91,7 @@ public class ScannerPage extends JPanel {
             protected void done() {
                 try {
                     String[] foundDevicesList = get();
-                    System.out.println("[INFO] UI scan completed. found=" + foundDevicesList.length);
+                    System.out.println("[INFO] UI quét xong. tìm thấy=" + foundDevicesList.length);
                     foundDevices.setFoundDevices(foundDevicesList);
                 } catch (Exception e) {
                     e.printStackTrace();

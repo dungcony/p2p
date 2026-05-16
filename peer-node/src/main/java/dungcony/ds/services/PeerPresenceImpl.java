@@ -33,11 +33,11 @@ public class PeerPresenceImpl implements PeerPresenceService {
     public boolean checkUserIsOnline(String hostAndMaybePort) {
         PeerInfo peerInfo = peerDirectoryService.resolvePeer(hostAndMaybePort);
         if (peerInfo == null) {
-            System.out.println("[WARN] Cannot check online status. Peer address is empty.");
+            System.out.println("[WARN] Không thể kiểm tra trạng thái online. Địa chỉ peer rỗng.");
             return false;
         }
         if (peerDirectoryService.isSelfPeer(peerInfo)) {
-            System.out.println("[WARN] Refusing online check for local peer: " + peerInfo.addressKey());
+            System.out.println("[WARN] Từ chối kiểm tra online với peer local: " + peerInfo.addressKey());
             return false;
         }
         boolean online = bootstrapClient != null && checkByBootstrap(peerInfo);
@@ -53,10 +53,10 @@ public class PeerPresenceImpl implements PeerPresenceService {
      * Hoi bootstrap-server danh sach peer online va so khop theo id hoac address.
      */
     private boolean checkByBootstrap(PeerInfo targetPeer) {
-        System.out.println("[DEBUG] Checking peer online status via bootstrap. target=" + targetPeer.addressKey());
+        System.out.println("[DEBUG] Đang kiểm tra trạng thái online qua bootstrap. target=" + targetPeer.addressKey());
         java.util.Collection<PeerInfo> onlinePeers = bootstrapClient.listOrNull();
         if (onlinePeers == null) {
-            System.out.println("[WARN] Bootstrap unavailable during online check. Falling back to direct heartbeat. target="
+            System.out.println("[WARN] Bootstrap không khả dụng khi kiểm tra online. Chuyển sang heartbeat trực tiếp. target="
                     + targetPeer.addressKey());
             return false;
         }
@@ -66,12 +66,12 @@ public class PeerPresenceImpl implements PeerPresenceService {
             }
             peerDirectoryService.put(onlinePeer);
             if (isSamePeer(targetPeer, onlinePeer)) {
-                System.out.println("[INFO] Bootstrap reports peer online. target=" + targetPeer.addressKey()
+                System.out.println("[INFO] Bootstrap xác nhận peer online. target=" + targetPeer.addressKey()
                         + ", matched=" + onlinePeer.addressKey());
                 return true;
             }
         }
-        System.out.println("[INFO] Bootstrap did not confirm peer online. Falling back to direct heartbeat. target="
+        System.out.println("[INFO] Bootstrap chưa xác nhận peer online. Chuyển sang heartbeat trực tiếp. target="
                 + targetPeer.addressKey());
         return false;
     }
@@ -80,13 +80,13 @@ public class PeerPresenceImpl implements PeerPresenceService {
      * Gui heartbeat truc tiep toi host:port de xac minh peer co TCP reachable khong.
      */
     private boolean checkByDirectHeartbeat(PeerInfo peerInfo) {
-        System.out.println("[DEBUG] Sending direct heartbeat to " + peerInfo.addressKey());
+        System.out.println("[DEBUG] Đang gửi heartbeat trực tiếp tới " + peerInfo.addressKey());
         boolean online = messageSender.send(peerInfo, Message.heartbeat(localPeer));
         if (online) {
             peerInfo.setOnline(true);
             peerDirectoryService.put(peerInfo);
         }
-        System.out.println("[INFO] Direct heartbeat result. peer=" + peerInfo.addressKey() + ", online=" + online);
+        System.out.println("[INFO] Kết quả heartbeat trực tiếp. peer=" + peerInfo.addressKey() + ", online=" + online);
         return online;
     }
 

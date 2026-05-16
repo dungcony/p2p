@@ -38,7 +38,7 @@ public class ChatHeader extends JPanel {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             initializeComponents(userName, ipAddress);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize ChatHeader\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo header chat\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -66,7 +66,7 @@ public class ChatHeader extends JPanel {
 
             setBackground(Color.WHITE);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize components\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -79,7 +79,7 @@ public class ChatHeader extends JPanel {
         try {
             userNameLabel.setText(userName);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to set user name\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể cập nhật tên người dùng\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -91,14 +91,14 @@ public class ChatHeader extends JPanel {
     public void setStatus(boolean isOnline) {
         try {
             if (isOnline) {
-                statusLabel.setText("Online");
+                statusLabel.setText("Trực tuyến");
                 statusLabel.setForeground(ColorPalette.PRIMARY);
                 return;
             }
-            statusLabel.setText("Offline");
+            statusLabel.setText("Ngoại tuyến");
             statusLabel.setForeground(ColorPalette.SECONDARY_TEXT);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to set status\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể cập nhật trạng thái\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -126,7 +126,7 @@ public class ChatHeader extends JPanel {
             panel.add(userNameLabel, gbc);
 
             statusLabel = new JLabel(
-                isOnline? "Online": "Offline"
+                isOnline? "Trực tuyến": "Ngoại tuyến"
             );
             statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
             statusLabel.setForeground(ColorPalette.SECONDARY_TEXT);
@@ -146,7 +146,7 @@ public class ChatHeader extends JPanel {
 
             return panel;
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to create device info panel\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể tạo panel thông tin thiết bị\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
             return new JPanel();
         }
@@ -158,7 +158,7 @@ public class ChatHeader extends JPanel {
         try {
             backButton.addActionListener(backFunctionality);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to add back functionality\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thêm chức năng quay lại\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -172,7 +172,7 @@ public class ChatHeader extends JPanel {
             revalidate();
             repaint();
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to set mobile mode\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thiết lập chế độ mobile\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -181,7 +181,7 @@ public class ChatHeader extends JPanel {
         try {
             return backButton;
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to get back button\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể lấy nút quay lại\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
             return null;
         }

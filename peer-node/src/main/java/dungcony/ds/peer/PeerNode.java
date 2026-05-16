@@ -110,18 +110,18 @@ public class PeerNode {
                 this::notifyPeersChanged,
                 this::notifyMessage
         );
-        System.out.println("[INFO] PeerNode initialized: id=" + localPeer.getId()
-                + ", name=" + localPeer.getName()
-                + ", address=" + localPeer.addressKey()
-                + ", bootstrap=" + (bootstrapClient == null ? "disabled" : bootstrapHost + ":" + bootstrapPort)
-                + ", dataDir=" + dataDir.toAbsolutePath());
+        System.out.println("[INFO] Đã khởi tạo PeerNode: id=" + localPeer.getId()
+                + ", tên=" + localPeer.getName()
+                + ", địaChỉ=" + localPeer.addressKey()
+                + ", bootstrap=" + (bootstrapClient == null ? "đã tắt" : bootstrapHost + ":" + bootstrapPort)
+                + ", thưMụcDữLiệu=" + dataDir.toAbsolutePath());
     }
 
     /**
      * Khởi động vai trò nhận tin của peer bằng TCPServer trên một thread riêng.
      */
     public void start() {
-        System.out.println("[INFO] Starting TCP listener for local peer " + localPeer.addressKey());
+        System.out.println("[INFO] Đang khởi động bộ lắng nghe TCP cho peer local " + localPeer.addressKey());
         running = true;
         Thread serverThread = new Thread(tcpServer::listen, "PeerNode-TCPServer-" + localPeer.getPort());
         serverThread.setDaemon(true);
@@ -137,7 +137,7 @@ public class PeerNode {
      * Dừng TCPServer để peer ngừng nhận kết nối mới.
      */
     public void stop() {
-        System.out.println("[INFO] Stopping PeerNode " + localPeer.addressKey());
+        System.out.println("[INFO] Đang dừng PeerNode " + localPeer.addressKey());
         running = false;
         if (bootstrapClient != null) {
             bootstrapClient.leave(localPeer.addressKey());
@@ -189,20 +189,29 @@ public class PeerNode {
     public Collection<PeerInfo> getChatListPeers() {
         Map<String, PeerInfo> conversations = new LinkedHashMap<>();
         for (PeerInfo peerInfo : peerDirectoryService.list()) {
+            if (peerDirectoryService.isSelfPeer(peerInfo)) {
+                continue;
+            }
             if (peerInfo.isOnline()) {
                 conversations.put(peerInfo.getId(), peerInfo);
             }
         }
         for (PeerInfo historyPeer : messageHistoryService.getDirectConversationPeers()) {
+            if (peerDirectoryService.isSelfPeer(historyPeer)) {
+                System.out.println("[DEBUG] Bỏ qua conversation trỏ về peer local. peerId=" + historyPeer.getId());
+                continue;
+            }
             PeerInfo runtimePeer = peerDirectoryService.findKnownPeerById(historyPeer.getId());
             if (runtimePeer == null) {
                 peerDirectoryService.put(historyPeer);
                 conversations.put(historyPeer.getId(), historyPeer);
-            } else {
+            } else if (!peerDirectoryService.isSelfPeer(runtimePeer)) {
                 conversations.put(historyPeer.getId(), runtimePeer);
+            } else {
+                System.out.println("[DEBUG] Bỏ qua runtime peer local trong danh sách chat. peerId=" + runtimePeer.getId());
             }
         }
-        System.out.println("[DEBUG] Chat list peers resolved. count=" + conversations.size());
+        System.out.println("[DEBUG] Đã tạo danh sách chat. sốLượng=" + conversations.size());
         return conversations.values();
     }
 
@@ -221,7 +230,7 @@ public class PeerNode {
             return false;
         }
         boolean available = bootstrapClient.listOrNull() != null;
-        System.out.println("[INFO] Bootstrap availability checked. available=" + available);
+        System.out.println("[INFO] Đã kiểm tra bootstrap. khảDụng=" + available);
         return available;
     }
 
@@ -238,12 +247,12 @@ public class PeerNode {
     public void sendGroupMessage(String groupId, String content) {
         Group group = groupManager.getGroup(groupId);
         if (group == null) {
-            System.out.println("[WARN] Cannot send group message. Group not found: " + groupId);
+            System.out.println("[WARN] Không thể gửi tin nhắn nhóm. Không tìm thấy nhóm: " + groupId);
             return;
         }
         Message message = Message.groupChat(localPeer, groupId, group.getName(), content);
-        System.out.println("[INFO] Broadcasting GROUP_CHAT message id=" + message.getId()
-                + " to group=" + groupId + ", members=" + group.getMembers().size());
+        System.out.println("[INFO] Đang broadcast tin nhắn nhóm. messageId=" + message.getId()
+                + " tới nhóm=" + groupId + ", sốThànhViên=" + group.getMembers().size());
         for (PeerInfo member : group.getMembers()) {
             PeerInfo target = peerDirectoryService.findKnownPeerById(member.getId());
             if (target == null) {
@@ -357,8 +366,8 @@ public class PeerNode {
         } else {
             messageHistoryService.addAndSave(sender, message);
         }
-        System.out.println("[INFO] Inbound " + message.getType() + " message stored. id=" + message.getId()
-                + ", from=" + sender.addressKey());
+        System.out.println("[INFO] Đã nhận " + message.getType() + " và lưu message. id=" + message.getId()
+                + ", từ=" + sender.addressKey());
         notifyPeersChanged();
         notifyMessage(message);
     }
@@ -369,7 +378,7 @@ public class PeerNode {
     public void markPeerOnline(Message message) {
         PeerInfo sender = peerDirectoryService.mergeSenderFromKnownPeers(message);
         peerDirectoryService.put(sender);
-        System.out.println("[DEBUG] Marked peer online from " + message.getType()
+        System.out.println("[DEBUG] Đã đánh dấu peer trực tuyến từ " + message.getType()
                 + ": " + sender.addressKey());
         notifyPeersChanged();
     }
@@ -407,7 +416,7 @@ public class PeerNode {
     }
 
     /**
-     * Chay REGISTER/JOIN mot lan, sau do dinh ky refresh LIST/GROUP de thay peer moi join.
+     * Chay REGISTER/JOIN mot lan, sau do dinh ky JOIN lai nhu heartbeat va dong bo peer/group.
      */
     private void runBootstrapSyncLoop() {
         bootstrapSyncService.registerAndJoinBootstrap();
@@ -419,7 +428,7 @@ public class PeerNode {
                 Thread.currentThread().interrupt();
                 return;
             } catch (RuntimeException e) {
-                System.out.println("[ERROR] Bootstrap refresh loop failed: " + e.getMessage());
+                System.out.println("[ERROR] Vòng refresh bootstrap lỗi: " + e.getMessage());
             }
         }
     }
@@ -443,12 +452,12 @@ public class PeerNode {
      */
     private void storeGroupOfflineIfPossible(Message message, PeerInfo member) {
         if (bootstrapClient == null) {
-            System.out.println("[WARN] Cannot store offline group message because bootstrap is disabled. member="
+            System.out.println("[WARN] Không thể lưu tin nhắn nhóm offline vì bootstrap đang tắt. member="
                     + member.getId());
             return;
         }
         boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
-        System.out.println("[INFO] Offline group fallback stored=" + stored
+        System.out.println("[INFO] Đã lưu fallback tin nhóm offline=" + stored
                 + ", messageId=" + message.getId()
                 + ", groupId=" + message.getGroupId()
                 + ", receiverId=" + member.getId());

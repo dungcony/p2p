@@ -56,22 +56,22 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
     public PeerInfo addKnownPeer(String name, String hostAndMaybePort) {
         PeerInfo peerInfo = parsePeer(name, hostAndMaybePort);
         if (peerInfo == null) {
-            System.out.println("[WARN] Ignored addKnownPeer because address is blank.");
+            System.out.println("[WARN] Đã bỏ qua thêm peer vì địa chỉ rỗng.");
             return null;
         }
         if (isSelfPeer(peerInfo)) {
-            System.out.println("[WARN] Ignored addKnownPeer because target is local peer: " + peerInfo.addressKey());
+            System.out.println("[WARN] Đã bỏ qua thêm peer vì đích là peer local: " + peerInfo.addressKey());
             return null;
         }
         PeerInfo existingPeer = peers.get(peerInfo.addressKey());
         if (existingPeer != null) {
-            System.out.println("[INFO] Known peer already exists. Reusing peer id=" + existingPeer.getId()
-                    + ", address=" + existingPeer.addressKey());
+            System.out.println("[INFO] Peer đã tồn tại. Dùng lại peer id=" + existingPeer.getId()
+                    + ", địaChỉ=" + existingPeer.addressKey());
             return existingPeer;
         }
         put(peerInfo);
-        System.out.println("[INFO] Added known peer: id=" + peerInfo.getId()
-                + ", address=" + peerInfo.addressKey());
+        System.out.println("[INFO] Đã thêm peer đã biết: id=" + peerInfo.getId()
+                + ", địaChỉ=" + peerInfo.addressKey());
         return peerInfo;
     }
 
@@ -81,7 +81,7 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
     @Override
     public PeerInfo resolvePeer(String hostAndMaybePort) {
         if (hostAndMaybePort == null || hostAndMaybePort.isBlank()) {
-            System.out.println("[WARN] resolvePeer called with blank address.");
+            System.out.println("[WARN] resolvePeer được gọi với địa chỉ rỗng.");
             return null;
         }
         PeerInfo existing = peers.get(hostAndMaybePort.trim());
@@ -109,8 +109,8 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
             try {
                 port = Integer.parseInt(value.substring(colonIndex + 1));
             } catch (NumberFormatException ignored) {
-                System.out.println("[WARN] Invalid peer port in address '" + value
-                        + "'. Falling back to local port " + localPeer.getPort());
+                System.out.println("[WARN] Cổng peer không hợp lệ trong địa chỉ '" + value
+                        + "'. Chuyển về cổng local " + localPeer.getPort());
                 port = localPeer.getPort();
             }
         }
@@ -161,10 +161,10 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
             peerInfo.setOnline(true);
             put(peerInfo);
             addedOrUpdated++;
-            System.out.println("[DEBUG] Directory synced online peer id=" + peerInfo.getId()
-                    + ", address=" + peerInfo.addressKey());
+            System.out.println("[DEBUG] Danh bạ đã đồng bộ peer online id=" + peerInfo.getId()
+                    + ", địaChỉ=" + peerInfo.addressKey());
         }
-        System.out.println("[INFO] Directory online sync completed. onlineCount=" + addedOrUpdated
+        System.out.println("[INFO] Đồng bộ trạng thái online trong danh bạ xong. sốOnline=" + addedOrUpdated
                 + ", knownCount=" + peers.size());
         return addedOrUpdated;
     }

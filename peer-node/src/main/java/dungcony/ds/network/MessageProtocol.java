@@ -12,7 +12,7 @@ public class MessageProtocol {
      */
     public String serialize(Message message) {
         String payload = gson.toJson(message);
-        System.out.println("[TRACE] Serialized message id="
+        System.out.println("[TRACE] Đã serialize message id="
                 + (message == null ? "null" : message.getId())
                 + ", bytes=" + payload.length());
         return payload;
@@ -23,7 +23,7 @@ public class MessageProtocol {
      */
     public Message deserialize(String payload) {
         Message message = gson.fromJson(payload, Message.class);
-        System.out.println("[TRACE] Deserialized message id="
+        System.out.println("[TRACE] Đã deserialize message id="
                 + (message == null ? "null" : message.getId())
                 + ", type=" + (message == null ? "null" : message.getType()));
         return message;

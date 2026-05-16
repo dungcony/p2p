@@ -98,7 +98,7 @@ public class CenterPanel extends JPanel {
             revalidate();
             repaint();
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to update the layout\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể cập nhật bố cục\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -118,7 +118,7 @@ class LeftPanel extends RoundedPanel {
         setBorder(new EmptyBorder(30, 30, 30, 30));
         
         // Tiêu đề
-        titleLabel = new JLabel("LAN Messenger");
+        titleLabel = new JLabel("Nhắn tin LAN");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titleLabel.setForeground(ColorPalette.PRIMARY);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -136,7 +136,7 @@ class LeftPanel extends RoundedPanel {
         add(Box.createVerticalStrut(10));
         
         // Dòng slogan
-        JLabel taglineLabel = new JLabel("Connect securely with your friends");
+        JLabel taglineLabel = new JLabel("Kết nối an toàn với các peer của bạn");
         taglineLabel.setFont(new Font("Segoe UI", Font.ITALIC, 16));
         taglineLabel.setForeground(ColorPalette.SECONDARY_TEXT);
         taglineLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -151,7 +151,7 @@ class LeftPanel extends RoundedPanel {
             image = new ImageIcon(image.getImage().getScaledInstance(280, 280, Image.SCALE_SMOOTH));
             logoLabel.setIcon(image);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to laod image\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể tải ảnh\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -171,7 +171,7 @@ class RightPanel extends RoundedPanel {
         setBorder(new EmptyBorder(30, 30, 30, 30));
         
         // Tiêu đề panel
-        JLabel titleLabel = new JLabel("Share Your Connection");
+        JLabel titleLabel = new JLabel("Chia sẻ kết nối của bạn");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setForeground(ColorPalette.PRIMARY);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -210,8 +210,8 @@ class TextLabelForRightPanel extends JPanel {
         setOpaque(false);
         
         instructionLabel = new JTextArea(
-            "Send this IP Address to your friend to establish a secure connection. " +
-            "Once they add your address, you'll be able to start messaging."
+            "Gửi địa chỉ IP này cho peer khác để thiết lập kết nối. " +
+            "Khi họ nhập địa chỉ này, hai bên có thể bắt đầu chat."
         );
         instructionLabel.setLineWrap(true);
         instructionLabel.setWrapStyleWord(true);

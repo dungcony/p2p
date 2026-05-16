@@ -34,10 +34,10 @@ public record OfflineMessageRepo(Conn conn) {
             statement.setLong(6, message.getCreatedAt());
             statement.setInt(7, message.isDelivered() ? 1 : 0);
             statement.executeUpdate();
-            System.out.println("[INFO] Stored offline message id=" + message.getMessageId()
+            System.out.println("[INFO] Đã lưu tin nhắn offline id=" + message.getMessageId()
                     + ", receiver=" + message.getReceiverId());
         } catch (SQLException e) {
-            System.out.println("[ERROR] Failed to store offline message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể lưu tin nhắn offline: " + e.getMessage());
         }
     }
 
@@ -68,7 +68,7 @@ public record OfflineMessageRepo(Conn conn) {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("[ERROR] Failed to load offline messages: " + e.getMessage());
+            System.out.println("[ERROR] Không thể nạp tin nhắn offline: " + e.getMessage());
         }
         return messages;
     }
@@ -91,9 +91,9 @@ public record OfflineMessageRepo(Conn conn) {
                 statement.addBatch();
             }
             int[] updated = statement.executeBatch();
-            System.out.println("[INFO] Marked offline messages delivered. count=" + updated.length);
+            System.out.println("[INFO] Đã đánh dấu tin nhắn offline đã giao. sốLượng=" + updated.length);
         } catch (SQLException e) {
-            System.out.println("[ERROR] Failed to mark offline messages delivered: " + e.getMessage());
+            System.out.println("[ERROR] Không thể đánh dấu tin nhắn offline đã giao: " + e.getMessage());
         }
     }
 }

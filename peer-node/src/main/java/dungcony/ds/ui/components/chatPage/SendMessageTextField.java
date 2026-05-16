@@ -167,7 +167,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 super.setText(placeholder);
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to set placeholder\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể đặt placeholder\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -180,7 +180,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
         try {
             return placeholderColor;
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to get placeholder color\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể lấy màu placeholder\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
             return Color.GRAY;
         }
@@ -197,7 +197,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 setForeground(placeholderColor);
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to set placeholder color\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể đặt placeholder color\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -209,7 +209,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 hidePlaceholder();
             }
         } catch (Exception ex) {
-            System.out.println("[ERROR] Failed to handle focus gained\nError Message: " + ex.getMessage());
+            System.out.println("[ERROR] Không thể xử lý focus vào ô nhập\nChi tiết lỗi: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -221,7 +221,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 showPlaceholder();
             }
         } catch (Exception ex) {
-            System.out.println("[ERROR] Failed to handle focus lost\nError Message: " + ex.getMessage());
+            System.out.println("[ERROR] Không thể xử lý rời focus khỏi ô nhập\nChi tiết lỗi: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -231,7 +231,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
         try {
             return showingPlaceholder;
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to check if showing placeholder\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể kiểm tra trạng thái hiển thị placeholder\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

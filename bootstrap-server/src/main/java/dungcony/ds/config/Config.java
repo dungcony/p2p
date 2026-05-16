@@ -24,7 +24,7 @@ public class Config {
                 properties.load(inputStream);
             }
         } catch (IOException e) {
-            System.out.println("[WARN] Failed to load bootstrap config: " + e.getMessage());
+            System.out.println("[WARN] Không thể nạp cấu hình bootstrap: " + e.getMessage());
         }
 
         int port = parseInt(properties.getProperty("server.port"), 9000);

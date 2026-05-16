@@ -39,7 +39,7 @@ public class GroupManager {
             for (Group group : localGroupRepo.findAll()) {
                 groups.put(group.getGroupId(), group);
             }
-            System.out.println("[INFO] GroupManager loaded local groups. count=" + groups.size());
+            System.out.println("[INFO] GroupManager đã nạp nhóm local. sốLượng=" + groups.size());
         }
     }
 
@@ -54,8 +54,8 @@ public class GroupManager {
         groups.put(group.getGroupId(), group);
         saveGroup(group);
         publishGroup(group);
-        System.out.println("[INFO] Created group id=" + group.getGroupId()
-                + ", name=" + group.getName() + ", members=" + group.getMembers().size());
+        System.out.println("[INFO] Đã tạo nhóm id=" + group.getGroupId()
+                + ", tên=" + group.getName() + ", sốThànhViên=" + group.getMembers().size());
         return group;
     }
 
@@ -67,12 +67,12 @@ public class GroupManager {
         if (group == null) {
             group = new Group(groupId, name, members);
             groups.put(group.getGroupId(), group);
-            System.out.println("[INFO] Local group created from inbound message. groupId=" + group.getGroupId()
-                    + ", name=" + group.getName());
+            System.out.println("[INFO] Đã tạo nhóm local từ tin nhắn nhận vào. groupId=" + group.getGroupId()
+                    + ", tên=" + group.getName());
         } else if (members != null) {
             members.forEach(group::addMember);
-            System.out.println("[DEBUG] Local group members refreshed from inbound message. groupId="
-                    + group.getGroupId() + ", members=" + group.getMembers().size());
+            System.out.println("[DEBUG] Đã refresh thành viên nhóm local từ tin nhắn nhận vào. groupId="
+                    + group.getGroupId() + ", sốThànhViên=" + group.getMembers().size());
         }
         saveGroup(group);
         return group;
@@ -105,7 +105,7 @@ public class GroupManager {
         if (localGroupRepo != null) {
             localGroupRepo.saveAll(groups.values());
         }
-        System.out.println("[INFO] GroupManager replaced groups from bootstrap. count=" + groups.size());
+        System.out.println("[INFO] GroupManager đã thay nhóm bằng dữ liệu bootstrap. sốLượng=" + groups.size());
     }
 
     /**

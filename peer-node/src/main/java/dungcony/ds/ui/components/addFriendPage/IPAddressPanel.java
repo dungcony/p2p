@@ -41,7 +41,7 @@ class IPAddressPanel extends RoundedPanel {
             ipAddress = getWifiIPAddress();
             
             // Nhãn tiêu đề
-            titleLabel = new JLabel("Your IP Address:");
+            titleLabel = new JLabel("Địa chỉ IP của bạn:");
             titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
             titleLabel.setForeground(ColorPalette.SECONDARY_TEXT);
             
@@ -52,14 +52,14 @@ class IPAddressPanel extends RoundedPanel {
             
             // Nút sao chép
             copyButton = new Button(FontIcon.of(FontAwesome.COPY, 15));
-            copyButton.setToolTipText("Copy IP Address");
+            copyButton.setToolTipText("Sao chép địa chỉ IP");
             
             // Sự kiện click nút sao chép
             copyButton.addActionListener(e -> {
                 try {
                     copyIPAddressToClipboard();
                 } catch (Exception ex) {
-                    System.out.println("[ERROR] Failed to copy IP address to clipboard\nError Message: " + ex.getMessage());
+                    System.out.println("[ERROR] Không thể sao chép địa chỉ IP vào clipboard\nChi tiết lỗi: " + ex.getMessage());
                     ex.printStackTrace();
                 }
             });
@@ -69,7 +69,7 @@ class IPAddressPanel extends RoundedPanel {
             add(ipAddressLabel);
             add(copyButton);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize IPAddressPanel\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo panel địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -183,7 +183,7 @@ class IPAddressPanel extends RoundedPanel {
             return localHost.getHostAddress();
             
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to retrieve Wi-Fi IP address\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể lấy địa chỉ IP Wi-Fi\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
             return "Error retrieving IP address";
         }
@@ -210,19 +210,19 @@ class IPAddressPanel extends RoundedPanel {
                         try {
                             ipAddressLabel.setForeground(ColorPalette.PRIMARY);
                         } catch (Exception ex) {
-                            System.out.println("[ERROR] Failed to reset IP address label color\nError Message: " + ex.getMessage());
+                            System.out.println("[ERROR] Không thể reset màu label địa chỉ IP\nChi tiết lỗi: " + ex.getMessage());
                             ex.printStackTrace();
                         }
                     });
                     timer.setRepeats(false);
                     timer.start();
                 } catch (Exception ex) {
-                    System.out.println("[ERROR] Failed to provide visual feedback\nError Message: " + ex.getMessage());
+                    System.out.println("[ERROR] Không thể hiển thị phản hồi trực quan\nChi tiết lỗi: " + ex.getMessage());
                     ex.printStackTrace();
                 }
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to copy IP address to clipboard\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể sao chép địa chỉ IP vào clipboard\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -236,7 +236,7 @@ class IPAddressPanel extends RoundedPanel {
             this.ipAddress = newIpAddress;
             this.ipAddressLabel.setText(newIpAddress);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to update IP address\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể cập nhật địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -249,7 +249,7 @@ class IPAddressPanel extends RoundedPanel {
         try {
             return this.ipAddress;
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to retrieve IP address\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể lấy địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
             return null;
         }

@@ -19,15 +19,15 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
     public ProfileSelection selectProfile() {
         List<PeerConfig> profiles = PeerConfig.listProfiles(dataRoot);
         if (profiles.isEmpty()) {
-            System.out.println("[INFO] No existing profile found. Creating a new UUID profile.");
+            System.out.println("[INFO] Không tìm thấy profile cũ. Đang tạo profile UUID mới.");
             return new ProfileSelection(PeerConfig.createNew(dataRoot), true, true);
         }
 
-        Object[] options = {"Create new profile", "Use existing profile", "Cancel"};
+        Object[] options = {"Tạo profile mới", "Dùng profile có sẵn", "Hủy"};
         int choice = JOptionPane.showOptionDialog(
                 null,
-                "Select how to start this peer.",
-                "Peer Profile",
+                "Chọn cách khởi động peer này.",
+                "Profile peer",
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.QUESTION_MESSAGE,
                 null,
@@ -48,7 +48,7 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
     // ------------------------- PRIVATE -----------------------------//
 
     /**
-     * Cho nguoi dung click profile cu, Start truc tiep hoac Edit neu muon sua name/port.
+     * Cho nguoi dung click profile cu, Start truc tiep hoac Sửa neu muon sua name/port.
      */
     private ProfileSelection selectExistingProfile(List<PeerConfig> profiles) {
         DefaultListModel<PeerConfig> listModel = new DefaultListModel<>();
@@ -67,11 +67,11 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
             return label;
         });
 
-        Object[] options = {"Start", "Edit", "Cancel"};
+        Object[] options = {"Bắt đầu", "Sửa", "Hủy"};
         int choice = JOptionPane.showOptionDialog(
                 null,
                 new JScrollPane(profileList),
-                "Use Existing Profile",
+                "Dùng profile có sẵn",
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
                 null,

@@ -21,7 +21,7 @@ public class LoginDialog extends JDialog {
     public LoginDialog(String defaultPeerId, String defaultPeerName) {
         this.idField = new JTextField(defaultPeerId == null || defaultPeerId.isBlank() ? "peer-local" : defaultPeerId, 20);
         this.nameField = new JTextField(defaultPeerName == null || defaultPeerName.isBlank() ? "peer" : defaultPeerName, 20);
-        setTitle("Start P2P Chat");
+        setTitle("Khởi động P2P Chat");
         setModal(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(12, 12));
@@ -30,12 +30,12 @@ public class LoginDialog extends JDialog {
         form.setBorder(BorderFactory.createEmptyBorder(16, 16, 0, 16));
 //        form.add(new JLabel("Peer ID"));
 //        form.add(idField);
-        form.add(new JLabel("Peer name"));
+        form.add(new JLabel("Tên peer"));
         form.add(nameField);
 
-        JButton startButton = new JButton("Start");
+        JButton startButton = new JButton("Bắt đầu");
         startButton.addActionListener(e -> confirm());
-        JButton cancelButton = new JButton("Cancel");
+        JButton cancelButton = new JButton("Hủy");
         cancelButton.addActionListener(e -> dispose());
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -54,8 +54,8 @@ public class LoginDialog extends JDialog {
      */
     private void confirm() {
         confirmed = true;
-        System.out.println("[INFO] Login confirmed. peerId=" + getPeerId()
-                + ", peerName=" + getPeerName());
+        System.out.println("[INFO] Đã xác nhận đăng nhập. peerId=" + getPeerId()
+                + ", tênPeer=" + getPeerName());
         dispose();
     }
 

@@ -68,7 +68,7 @@ public class RouterManager {
             cardLayout.show(contentPanel, routeName);
             currentRoute = routeName;
         } else {
-            System.err.println("[Error]Route not found: " + routeName);
+            System.err.println("[ERROR] Không tìm thấy route: " + routeName);
         }
     }
 

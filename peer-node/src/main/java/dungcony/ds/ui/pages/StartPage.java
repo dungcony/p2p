@@ -9,7 +9,7 @@ import javax.swing.*;
 public class StartPage extends JPanel {
 
     public StartPage() {
-        JLabel label = new JLabel("This is start page");
+        JLabel label = new JLabel("Đây là trang bắt đầu");
         label.setBounds(0, 0, 303, 303);
         this.add(label);
     }

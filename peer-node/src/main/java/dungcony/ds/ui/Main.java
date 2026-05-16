@@ -17,7 +17,7 @@ public class Main extends JFrame {
             setContentPane(new MainPage());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            setContentPane(new JLabel("Failed to start UI"));
+            setContentPane(new JLabel("Không thể khởi động giao diện"));
         }
     }
 }

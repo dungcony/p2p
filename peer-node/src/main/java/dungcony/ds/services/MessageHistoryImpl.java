@@ -56,7 +56,7 @@ public class MessageHistoryImpl implements MessageHistoryService {
             }
             messages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
         }
-        System.out.println("[DEBUG] Message appended to history. peerKey=" + peerKey
+        System.out.println("[DEBUG] Đã thêm message vào lịch sử. peerKey=" + peerKey
                 + ", messageId=" + message.getId());
     }
 
@@ -108,7 +108,7 @@ public class MessageHistoryImpl implements MessageHistoryService {
             }
             cachedMessages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
         }
-        System.out.println("[DEBUG] Local messages merged into runtime cache. peerKey=" + key
+        System.out.println("[DEBUG] Đã merge tin nhắn local vào cache runtime. peerKey=" + key
                 + ", localCount=" + localMessages.size()
                 + ", cachedCount=" + cachedMessages.size());
     }

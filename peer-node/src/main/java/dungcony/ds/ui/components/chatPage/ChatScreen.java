@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChatScreen extends JPanel implements MessageListener {
-    private String selectedUser = "Select a chat";
+    private String selectedUser = "Chọn một cuộc chat";
     private String ipAddress;
     private String groupId;
     private ChatHistory chatHistory;
@@ -38,7 +38,7 @@ public class ChatScreen extends JPanel implements MessageListener {
         chatHeader.getBackButton().addActionListener(e -> goToChatListPage());
         chatHistory = new ChatHistory();
         sendMessageBox = new SendMessageBox(this);
-        emptyStateLabel = new JLabel("Select a peer to start chatting", SwingConstants.CENTER);
+        emptyStateLabel = new JLabel("Chọn một peer để bắt đầu chat", SwingConstants.CENTER);
         emptyStateLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         emptyStateLabel.setForeground(ColorPalette.SECONDARY_TEXT);
     }

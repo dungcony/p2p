@@ -56,10 +56,10 @@ public class BootstrapServer {
     public void start() {
         running = true;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("[INFO] Bootstrap server listening on port " + port);
+            System.out.println("[INFO] Bootstrap server đang lắng nghe trên cổng " + port);
             while (running) {
                 Socket socket = serverSocket.accept();
-                System.out.println("[DEBUG] Bootstrap accepted connection from "
+                System.out.println("[DEBUG] Bootstrap đã nhận kết nối từ "
                         + socket.getRemoteSocketAddress());
                 Thread handler = new Thread(() -> handle(socket), "BootstrapHandler");
                 handler.setDaemon(true);
@@ -67,7 +67,7 @@ public class BootstrapServer {
             }
         } catch (IOException e) {
             if (running) {
-                System.out.println("[ERROR] Bootstrap server stopped: " + e.getMessage());
+                System.out.println("[ERROR] Bootstrap server đã dừng: " + e.getMessage());
             }
         }
     }
@@ -77,7 +77,7 @@ public class BootstrapServer {
      */
     public void stop() {
         running = false;
-        System.out.println("[INFO] Bootstrap server marked as stopped on port " + port);
+        System.out.println("[INFO] Bootstrap server đã được đánh dấu dừng trên cổng " + port);
     }
 
     /**
@@ -90,14 +90,14 @@ public class BootstrapServer {
 
             String line = reader.readLine();
             if (line == null || line.isBlank()) {
-                System.out.println("[WARN] Bootstrap received empty request.");
+                System.out.println("[WARN] Bootstrap nhận request rỗng.");
                 return;
             }
 
             String[] parts = line.split(" ", 2);
             String command = parts[0].toUpperCase(Locale.ROOT);
             String payload = parts.length > 1 ? parts[1] : "";
-            System.out.println("[INFO] Bootstrap request command=" + command);
+            System.out.println("[INFO] Bootstrap nhận command=" + command);
 
             switch (command) {
                 case "REGISTER" -> {
@@ -105,7 +105,7 @@ public class BootstrapServer {
                     registry.register(peerInfo);
                     System.out.println("[INFO] Bootstrap REGISTER userId="
                             + (peerInfo == null ? "null" : peerInfo.getId())
-                            + ", displayName=" + (peerInfo == null ? "null" : peerInfo.getName()));
+                            + ", tênHiểnThị=" + (peerInfo == null ? "null" : peerInfo.getName()));
                     writer.println("OK");
                     return;
                 }
@@ -116,7 +116,7 @@ public class BootstrapServer {
                     Collection<OfflineMessageEntity> offlineMessages = registry.drainOfflineMessages(receiverId);
                     System.out.println("[INFO] Bootstrap JOIN peer="
                             + (peerInfo == null ? "null" : peerInfo.addressKey())
-                            + ", totalPeers=" + registry.list().size());
+                            + ", tổngPeer=" + registry.list().size());
                     writer.println(gson.toJson(new JoinResponse(registry.list(), offlineMessages)));
                     return;
                 }
@@ -155,22 +155,22 @@ public class BootstrapServer {
                 case "LEAVE" -> {
                     registry.leave(payload.trim());
                     System.out.println("[INFO] Bootstrap LEAVE peerKey=" + payload.trim()
-                            + ", totalPeers=" + registry.list().size());
+                            + ", tổngPeer=" + registry.list().size());
                     writer.println("OK");
                     return;
                 }
                 case "LIST" -> {
                     Collection<PeerInfo> peers = registry.list();
-                    System.out.println("[INFO] Bootstrap LIST totalPeers=" + peers.size());
+                    System.out.println("[INFO] Bootstrap LIST tổngPeer=" + peers.size());
                     writer.println(gson.toJson(peers));
                     return;
                 }
             }
 
-            System.out.println("[WARN] Bootstrap unknown command=" + command);
+            System.out.println("[WARN] Bootstrap nhận command không hỗ trợ=" + command);
             writer.println("UNKNOWN_COMMAND");
         } catch (IOException e) {
-            System.out.println("[WARN] Bootstrap request failed: " + e.getMessage());
+            System.out.println("[WARN] Bootstrap xử lý request thất bại: " + e.getMessage());
         }
     }
 }

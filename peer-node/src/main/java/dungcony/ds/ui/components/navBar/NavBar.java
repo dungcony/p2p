@@ -78,10 +78,10 @@ public class NavBar extends JPanel {
             addFriendButton.addActionListener(e -> openAddFriendPage());
     
             // Đặt tooltip
-            menuButton.setToolTipText("Open Navigation");
-            addFriendButton.setToolTipText("Direct chat");
-            chatButton.setToolTipText("Chats");        
-            scanButton.setToolTipText("Scan nearby friends");
+            menuButton.setToolTipText("Mở điều hướng");
+            addFriendButton.setToolTipText("Chat trực tiếp");
+            chatButton.setToolTipText("Tin nhắn");        
+            scanButton.setToolTipText("Quét peer gần đây");
     
             // Đặt padding cho các nút
             menuButton.setBorder(BorderFactory.createEmptyBorder(10, 5, 8, 12));
@@ -98,16 +98,16 @@ public class NavBar extends JPanel {
                 button.setIconTextGap(8);
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialise buttons in navigation bar\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo nút trên thanh điều hướng\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     } 
 
     /** Thêm tiêu đề cho các nút khi mở rộng */
     public void setTitleToButtons() {
-        chatButton.setText("Chats");
-        addFriendButton.setText("Direct chat");
-        scanButton.setText("Scan nearby friends");
+        chatButton.setText("Tin nhắn");
+        addFriendButton.setText("Chat trực tiếp");
+        scanButton.setText("Quét peer gần đây");
     }
     
     /** Xóa tiêu đề các nút khi thu gọn */

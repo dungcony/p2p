@@ -23,21 +23,21 @@ public class BootstrapGroupImpl implements BootstrapGroupService {
     @Override
     public void publishGroup(Group group) {
         if (bootstrapClient == null) {
-            System.out.println("[WARN] Cannot publish group because bootstrap is disabled. groupId="
+            System.out.println("[WARN] Không thể publish nhóm vì bootstrap đang tắt. groupId="
                     + group.getGroupId());
             return;
         }
         boolean created = bootstrapClient.createGroup(group, localPeer.getId());
         if (!created) {
-            System.out.println("[WARN] Bootstrap CREATE_GROUP failed. groupId=" + group.getGroupId());
+            System.out.println("[WARN] Bootstrap CREATE_GROUP thất bại. groupId=" + group.getGroupId());
             return;
         }
         bootstrapClient.addGroupMember(group.getGroupId(), localPeer.getId());
         for (PeerInfo member : group.getMembers()) {
             bootstrapClient.addGroupMember(group.getGroupId(), member.getId());
         }
-        System.out.println("[INFO] Group published to bootstrap. groupId=" + group.getGroupId()
-                + ", members=" + group.getMembers().size());
+        System.out.println("[INFO] Đã publish nhóm lên bootstrap. groupId=" + group.getGroupId()
+                + ", sốThànhViên=" + group.getMembers().size());
     }
 
     @Override
@@ -57,7 +57,7 @@ public class BootstrapGroupImpl implements BootstrapGroupService {
             joinedGroups.add(toGroup(groupPayload, memberPayloads, knownPeers));
         }
 
-        System.out.println("[INFO] Bootstrap group sync fetched joinedGroups=" + joinedGroups.size());
+        System.out.println("[INFO] Đồng bộ nhóm từ bootstrap lấy được số nhóm đã tham gia=" + joinedGroups.size());
         return joinedGroups;
     }
 

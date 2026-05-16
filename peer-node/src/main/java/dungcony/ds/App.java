@@ -28,7 +28,7 @@ public class App {
             ProfileSelectionService profileSelectionService = new ProfileSelectionImpl(dataRoot);
             ProfileSelection selection = profileSelectionService.selectProfile();
             if (selection == null) {
-                System.out.println("[INFO] Profile selection cancelled. Application will not start PeerNode.");
+                System.out.println("[INFO] Đã hủy chọn profile. Ứng dụng sẽ không khởi động PeerNode.");
                 return;
             }
 
@@ -38,11 +38,11 @@ public class App {
                 PeerPortDialog peerPortDialog = new PeerPortDialog(config.getPeerPort(), config.getBootstrapPort());
                 peerPortDialog.setVisible(true);
                 if (!peerPortDialog.isConfirmed()) {
-                    System.out.println("[INFO] Peer port selection cancelled. Application will not start PeerNode.");
+                    System.out.println("[INFO] Đã hủy chọn cổng peer. Ứng dụng sẽ không khởi động PeerNode.");
                     return;
                 }
                 if (!config.updatePeerPort(peerPortDialog.getPeerPort())) {
-                    System.out.println("[WARN] Peer port selection failed validation. Application will not start PeerNode.");
+                    System.out.println("[WARN] Cổng peer không hợp lệ. Ứng dụng sẽ không khởi động PeerNode.");
                     return;
                 }
                 config.save();
@@ -51,19 +51,19 @@ public class App {
                 LoginDialog loginDialog = new LoginDialog(config.getPeerId(), config.getPeerName());
                 loginDialog.setVisible(true);
                 if (!loginDialog.isConfirmed()) {
-                    System.out.println("[INFO] Profile edit cancelled. Application will not start PeerNode.");
+                    System.out.println("[INFO] Đã hủy sửa profile. Ứng dụng sẽ không khởi động PeerNode.");
                     return;
                 }
                 config.updateIdentity(loginDialog.getPeerId(), loginDialog.getPeerName());
                 config.save();
             } else {
-                System.out.println("[INFO] Starting with existing peer profile without edit. "
+                System.out.println("[INFO] Đang khởi động bằng profile đã chọn, không chỉnh sửa. "
                         + config.getDisplayLabel());
                 config.save();
             }
 
-            System.out.println("[INFO] Starting PeerNode with name=" + config.getPeerName()
-                    + ", port=" + config.getPeerPort()
+            System.out.println("[INFO] Đang khởi động PeerNode với tên=" + config.getPeerName()
+                    + ", cổng=" + config.getPeerPort()
                     + ", bootstrap=" + config.getBootstrapHost() + ":" + config.getBootstrapPort());
             peerNode = new PeerNode(
                     config.getPeerId(),
@@ -75,12 +75,12 @@ public class App {
             );
             peerNode.start();
 
-            System.out.println("[INFO] Opening main chat window.");
+            System.out.println("[INFO] Đang mở cửa sổ chat chính.");
             Main mainWindow = new Main();
             mainWindow.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    System.out.println("[INFO] Main window closing. Stopping PeerNode.");
+                    System.out.println("[INFO] Cửa sổ chính đang đóng. Đang dừng PeerNode.");
                     peerNode.stop();
                 }
             });
@@ -106,19 +106,19 @@ public class App {
             }
             if (arg.startsWith("--data-dir=")) {
                 dataRoot = Path.of(arg.substring("--data-dir=".length()));
-                System.out.println("[INFO] Runtime dataRoot=" + dataRoot.toAbsolutePath());
+                System.out.println("[INFO] Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
                 continue;
             }
             if ("--data-dir".equals(arg) && index + 1 < args.length) {
                 dataRoot = Path.of(args[index + 1]);
-                System.out.println("[INFO] Runtime dataRoot=" + dataRoot.toAbsolutePath());
+                System.out.println("[INFO] Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
                 index++;
                 continue;
             }
-            if (arg.startsWith("--peer-port=") || arg.startsWith("--port=")) {
-                String value = arg.contains("--peer-port=")
-                        ? arg.substring("--peer-port=".length())
-                        : arg.substring("--port=".length());
+            if (arg.startsWith("--peer-cổng=") || arg.startsWith("--cổng=")) {
+                String value = arg.contains("--peer-cổng=")
+                        ? arg.substring("--peer-cổng=".length())
+                        : arg.substring("--cổng=".length());
                 peerPort = parsePeerPort(value);
                 continue;
             }
@@ -128,9 +128,9 @@ public class App {
             }
         }
 
-        System.out.println("[INFO] Runtime dataRoot=" + dataRoot.toAbsolutePath());
+        System.out.println("[INFO] Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
         if (peerPort != null) {
-            System.out.println("[INFO] Runtime peerPort=" + peerPort);
+            System.out.println("[INFO] Cổng peer runtime=" + peerPort);
         }
         return new RuntimeOptions(dataRoot, peerPort);
     }
@@ -146,7 +146,7 @@ public class App {
             }
             return port;
         } catch (NumberFormatException e) {
-            System.out.println("[WARN] Ignored invalid --peer-port value=" + value);
+            System.out.println("[WARN] Đã bỏ qua giá trị --peer-port không hợp lệ=" + value);
             return null;
         }
     }

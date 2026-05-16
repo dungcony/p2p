@@ -31,7 +31,7 @@ public class ScanButton extends ModernButton {
     
 
     public ScanButton() {
-        super("Scan for Devices", ColorPalette.PRIMARY, ColorPalette.SECONDARY);
+        super("Quét thiết bị", ColorPalette.PRIMARY, ColorPalette.SECONDARY);
         initializeIcons();
         initializeButton();
         setupAnimationTimer();
@@ -49,7 +49,7 @@ public class ScanButton extends ModernButton {
     
     /** Khởi tạo nút */
     private void initializeButton() {
-        this.setText("Scan for Devices");
+        this.setText("Quét thiết bị");
         this.setFont(new Font("Segoe UI", Font.BOLD, 14));
         this.setForeground(Color.WHITE);
         this.setBackground(ColorPalette.PRIMARY);

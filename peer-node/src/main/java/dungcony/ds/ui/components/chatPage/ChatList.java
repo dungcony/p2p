@@ -33,7 +33,7 @@ public class ChatList extends JPanel {
             add(scrollPane, BorderLayout.CENTER);
             renderFriends();
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize ChatList\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo danh sách chat\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -56,7 +56,7 @@ public class ChatList extends JPanel {
         scrollPane.getVerticalScrollBar().setBackground(ColorPalette.BACKGROUND);
         scrollPane.getVerticalScrollBar().setUI(new ModernScrollBarUI());
 
-        createGroupButton = new JButton("New group");
+        createGroupButton = new JButton("Nhóm mới");
         createGroupButton.setFocusPainted(false);
         createGroupButton.setBackground(ColorPalette.PRIMARY);
         createGroupButton.setForeground(Color.WHITE);
@@ -80,7 +80,7 @@ public class ChatList extends JPanel {
                 devicesContainer.revalidate();
                 devicesContainer.repaint();
             } catch (Exception e) {
-                System.out.println("[ERROR] Failed to render friends\nError Message: " + e.getMessage());
+                System.out.println("[ERROR] Không thể hiển thị danh sách chat\nChi tiết lỗi: " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -117,10 +117,10 @@ public class ChatList extends JPanel {
         String lastTime = "";
 
         if (message != null) {
-            lastMessage = message.isFromCurrentUser() ? "You: " + message.getContent() : message.getContent();
+            lastMessage = message.isFromCurrentUser() ? "Bạn: " + message.getContent() : message.getContent();
             lastTime = message.getFormattedTime();
         } else if (peerInfo.isOnline()) {
-            lastMessage = "Online";
+            lastMessage = "Trực tuyến";
         }
         addProfile(peerInfo.getName(), lastMessage, lastTime, peerKey);
     }
@@ -132,10 +132,10 @@ public class ChatList extends JPanel {
         String lastMessage = "";
         String lastTime = "";
         if (message != null) {
-            lastMessage = message.isFromCurrentUser() ? "You: " + message.getContent() : message.getContent();
+            lastMessage = message.isFromCurrentUser() ? "Bạn: " + message.getContent() : message.getContent();
             lastTime = message.getFormattedTime();
         }
-        JPanel deviceInfoPanel = createDeviceInfoPanel("[Group] " + group.getName(), lastMessage, lastTime);
+        JPanel deviceInfoPanel = createDeviceInfoPanel("[Nhóm] " + group.getName(), lastMessage, lastTime);
         ChatProfile chatProfile = new ChatProfile(10, deviceInfoPanel, ColorPalette.BACKGROUND);
         chatProfile.setBackground(ColorPalette.BACKGROUND);
 
@@ -220,7 +220,7 @@ public class ChatList extends JPanel {
                 try {
                     showCreateGroupDialog(get());
                 } catch (Exception e) {
-                    System.out.println("[ERROR] Failed to open create group dialog: " + e.getMessage());
+                    System.out.println("[ERROR] Không thể mở hộp thoại tạo nhóm: " + e.getMessage());
                 } finally {
                     createGroupButton.setEnabled(true);
                 }
@@ -250,16 +250,16 @@ public class ChatList extends JPanel {
      */
     private void showCreateGroupDialog(List<PeerInfo> groupCandidates) {
         if (groupCandidates.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No known peers available for group.", "Create group",
+            JOptionPane.showMessageDialog(this, "Không có peer nào để tạo nhóm.", "Tạo nhóm",
                     JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        JTextField groupNameField = new JTextField("New group");
+        JTextField groupNameField = new JTextField("Nhóm mới");
         JList<PeerInfo> peerList = new JList<>(groupCandidates.toArray(new PeerInfo[0]));
         peerList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         peerList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
-            String status = value.isOnline() ? "online" : "offline";
+            String status = value.isOnline() ? "trực tuyến" : "ngoại tuyến";
             JLabel label = new JLabel(value.getName() + " (" + status + ", " + value.getId() + ")");
             label.setOpaque(true);
             label.setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
@@ -272,7 +272,7 @@ public class ChatList extends JPanel {
         panel.add(groupNameField, BorderLayout.NORTH);
         panel.add(new JScrollPane(peerList), BorderLayout.CENTER);
 
-        int choice = JOptionPane.showConfirmDialog(this, panel, "Create group",
+        int choice = JOptionPane.showConfirmDialog(this, panel, "Tạo nhóm",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (choice != JOptionPane.OK_OPTION || peerList.getSelectedValuesList().isEmpty()) {
             return;
@@ -285,8 +285,8 @@ public class ChatList extends JPanel {
         }
 
         Group group = App.peerNode.createGroup(groupNameField.getText(), selectedPeers);
-        System.out.println("[INFO] UI created group. groupId=" + group.getGroupId()
-                + ", members=" + group.getMembers().size());
+        System.out.println("[INFO] UI đã tạo nhóm. groupId=" + group.getGroupId()
+                + ", sốThànhViên=" + group.getMembers().size());
         renderFriends();
     }
 
@@ -304,12 +304,12 @@ public class ChatList extends JPanel {
         if (!offlinePeers.isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Bootstrap server is unavailable. These peers are offline and cannot be added:\n"
+                    "Bootstrap server đang tắt. Các peer sau đang ngoại tuyến nên không thể thêm:\n"
                             + String.join("\n", offlinePeers),
-                    "Offline peers",
+                    "Peer ngoại tuyến",
                     JOptionPane.WARNING_MESSAGE
             );
-            System.out.println("[WARN] Group creation blocked because bootstrap is unavailable and peers are offline: "
+            System.out.println("[WARN] Đã chặn tạo nhóm vì bootstrap không khả dụng và có peer ngoại tuyến: "
                     + offlinePeers);
             return false;
         }

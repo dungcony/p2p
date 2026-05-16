@@ -27,10 +27,10 @@ public record GroupMemberRepo(Conn conn) {
             statement.setString(2, memberEntity.getUserId());
             statement.setLong(3, memberEntity.getJoinedAt());
             statement.executeUpdate();
-            System.out.println("[INFO] Added group member groupId=" + memberEntity.getGroupId()
+            System.out.println("[INFO] Đã thêm thành viên nhóm groupId=" + memberEntity.getGroupId()
                     + ", userId=" + memberEntity.getUserId());
         } catch (SQLException e) {
-            System.out.println("[ERROR] Failed to add group member: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thêm thành viên nhóm: " + e.getMessage());
         }
     }
 
@@ -46,10 +46,10 @@ public record GroupMemberRepo(Conn conn) {
             statement.setString(1, groupId);
             statement.setString(2, userId);
             int deleted = statement.executeUpdate();
-            System.out.println("[INFO] Removed group member groupId=" + groupId
-                    + ", userId=" + userId + ", deleted=" + deleted);
+            System.out.println("[INFO] Đã xóa thành viên nhóm groupId=" + groupId
+                    + ", userId=" + userId + ", đãXóa=" + deleted);
         } catch (SQLException e) {
-            System.out.println("[ERROR] Failed to remove group member: " + e.getMessage());
+            System.out.println("[ERROR] Không thể xóa thành viên nhóm: " + e.getMessage());
         }
     }
 
@@ -76,7 +76,7 @@ public record GroupMemberRepo(Conn conn) {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("[ERROR] Failed to list group members: " + e.getMessage());
+            System.out.println("[ERROR] Không thể liệt kê thành viên nhóm: " + e.getMessage());
         }
         return members;
     }

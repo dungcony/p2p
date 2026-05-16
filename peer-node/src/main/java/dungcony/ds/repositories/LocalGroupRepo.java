@@ -42,9 +42,9 @@ public class LocalGroupRepo {
             if (!Files.exists(groupFilePath)) {
                 Files.writeString(groupFilePath, "[]", StandardCharsets.UTF_8);
             }
-            System.out.println("[INFO] Local group JSON store ready. path=" + groupFilePath.toAbsolutePath());
+            System.out.println("[INFO] Kho JSON nhóm local đã sẵn sàng. path=" + groupFilePath.toAbsolutePath());
         } catch (IOException e) {
-            System.out.println("[ERROR] Failed to initialize local group JSON store: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo kho JSON nhóm local: " + e.getMessage());
         }
     }
 
@@ -53,15 +53,15 @@ public class LocalGroupRepo {
      */
     public synchronized void save(Group group) {
         if (group == null) {
-            System.out.println("[WARN] LocalGroupRepo save ignored null group.");
+            System.out.println("[WARN] LocalGroupRepo bỏ qua lưu nhóm null.");
             return;
         }
         List<Group> groups = findAll();
         groups.removeIf(existingGroup -> group.getGroupId().equals(existingGroup.getGroupId()));
         groups.add(group);
         saveAll(groups);
-        System.out.println("[INFO] Local group saved. groupId=" + group.getGroupId()
-                + ", name=" + group.getName());
+        System.out.println("[INFO] Đã lưu nhóm local. groupId=" + group.getGroupId()
+                + ", tên=" + group.getName());
     }
 
     /**
@@ -72,9 +72,9 @@ public class LocalGroupRepo {
         sortedGroups.sort(Comparator.comparing(Group::getName).thenComparing(Group::getGroupId));
         try {
             Files.writeString(groupFilePath, gson.toJson(sortedGroups), StandardCharsets.UTF_8);
-            System.out.println("[DEBUG] Local groups written. count=" + sortedGroups.size());
+            System.out.println("[DEBUG] Đã ghi nhóm local. sốLượng=" + sortedGroups.size());
         } catch (IOException e) {
-            System.out.println("[ERROR] Failed to write local groups JSON: " + e.getMessage());
+            System.out.println("[ERROR] Không thể ghi JSON nhóm local: " + e.getMessage());
         }
     }
 
@@ -92,10 +92,10 @@ public class LocalGroupRepo {
             }
             List<Group> groups = gson.fromJson(json, GROUP_LIST_TYPE);
             List<Group> result = groups == null ? new ArrayList<>() : new ArrayList<>(groups);
-            System.out.println("[DEBUG] Local groups loaded. count=" + result.size());
+            System.out.println("[DEBUG] Đã nạp nhóm local. sốLượng=" + result.size());
             return result;
         } catch (IOException | RuntimeException e) {
-            System.out.println("[ERROR] Failed to read local groups JSON: " + e.getMessage());
+            System.out.println("[ERROR] Không thể đọc JSON nhóm local: " + e.getMessage());
             return new ArrayList<>();
         }
     }

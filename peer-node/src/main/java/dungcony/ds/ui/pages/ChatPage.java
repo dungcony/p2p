@@ -48,7 +48,7 @@ public class ChatPage extends JPanel {
             // Lắng nghe sự kiện thay đổi kích thước
             addResizeListener();
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize ChatPage\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo trang chat\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -67,7 +67,7 @@ public class ChatPage extends JPanel {
             chatList.setPreferredSize(new Dimension(300, 400));
             chatScreen.setPreferredSize(new Dimension(500, 400));
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize components\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -92,7 +92,7 @@ public class ChatPage extends JPanel {
             // Thêm container vào trang
             add(mainContainer, BorderLayout.CENTER);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to setup layouts\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -110,7 +110,7 @@ public class ChatPage extends JPanel {
                 repaint();
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to set initial state\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể set initial state\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -125,13 +125,13 @@ public class ChatPage extends JPanel {
                         // Use SwingUtilities.invokeLater to ensure proper event handling
                         SwingUtilities.invokeLater(() -> checkAndUpdateLayout());
                     } catch (Exception ex) {
-                        System.out.println("[ERROR] Failed during resize event\nError Message: " + ex.getMessage());
+                        System.out.println("[ERROR] Không thể xử lý sự kiện đổi kích thước\nChi tiết lỗi: " + ex.getMessage());
                         ex.printStackTrace();
                     }
                 }
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to add resize listener\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thêm listener đổi kích thước\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -153,7 +153,7 @@ public class ChatPage extends JPanel {
             chatList.setMinimumSize(new Dimension(250, 0));
             chatScreen.setMinimumSize(new Dimension(300, 0));
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to setup desktop view\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thiết lập giao diện desktop\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -173,7 +173,7 @@ public class ChatPage extends JPanel {
             mobileView.add(chatListWrapper, "CHAT_LIST");
             mobileView.add(chatScreenWrapper, "CHAT_SCREEN");
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to setup mobile view\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thiết lập giao diện mobile\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -196,7 +196,7 @@ public class ChatPage extends JPanel {
                 switchToDesktopMode();
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to check and update layout\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể kiểm tra và cập nhật bố cục\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -237,7 +237,7 @@ public class ChatPage extends JPanel {
                 mainContainer.repaint();
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to switch to mobile mode\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể chuyển sang chế độ mobile\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -272,7 +272,7 @@ public class ChatPage extends JPanel {
                 mainContainer.repaint();
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to switch to desktop mode\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể chuyển sang chế độ desktop\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -286,7 +286,7 @@ public class ChatPage extends JPanel {
                 cardLayout.show(mobileView, "CHAT_LIST");
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to show chat list\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể hiển thị danh sách chat\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -300,7 +300,7 @@ public class ChatPage extends JPanel {
                 cardLayout.show(mobileView, "CHAT_SCREEN");
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to show chat screen\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể hiển thị màn hình chat\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -313,7 +313,7 @@ public class ChatPage extends JPanel {
         try {
             return isMobileMode;
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to check mobile mode status\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể kiểm tra trạng thái chế độ mobile\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -322,7 +322,7 @@ public class ChatPage extends JPanel {
     /** Xử lý khi chọn một cuộc chat từ ChatList */
     public void onChatSelected(String username, String ipAddress) {
         try {
-            System.out.println("[INFO] UI chat selected. user=" + username + ", peer=" + ipAddress);
+            System.out.println("[INFO] UI đã chọn chat. user=" + username + ", peer=" + ipAddress);
             chatScreen.setSelectedUser(username);
             chatScreen.setIpAddress(ipAddress);
             chatScreen.setMessages(App.peerNode == null ? java.util.Collections.emptyList() : App.peerNode.getMessagesWithPeer(ipAddress));
@@ -331,7 +331,7 @@ public class ChatPage extends JPanel {
                 new SwingWorker<Boolean, Void>() {
                     @Override
                     protected Boolean doInBackground() {
-                        System.out.println("[DEBUG] Checking selected peer status in background: " + ipAddress);
+                        System.out.println("[DEBUG] Đang kiểm tra trạng thái peer đã chọn: " + ipAddress);
                         return App.peerNode.checkUserIsOnline(ipAddress);
                     }
 
@@ -351,7 +351,7 @@ public class ChatPage extends JPanel {
             chatScreen.revalidate();
             chatScreen.repaint();
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to handle chat selection\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể xử lý chọn chat\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -361,7 +361,7 @@ public class ChatPage extends JPanel {
      */
     public void onGroupSelected(String groupName, String groupId) {
         try {
-            System.out.println("[INFO] UI group selected. group=" + groupName + ", groupId=" + groupId);
+            System.out.println("[INFO] UI đã chọn nhóm. nhóm=" + groupName + ", groupId=" + groupId);
             chatScreen.setSelectedGroup(groupName, groupId);
             chatScreen.setMessages(App.peerNode == null
                     ? java.util.Collections.emptyList()
@@ -372,7 +372,7 @@ public class ChatPage extends JPanel {
             chatScreen.revalidate();
             chatScreen.repaint();
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to handle group selection\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể xử lý chọn nhóm\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }

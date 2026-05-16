@@ -21,15 +21,15 @@ public class MessageSender {
      */
     public boolean send(PeerInfo peerInfo, Message message) {
         for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
-            System.out.println("[DEBUG] Sending " + message.getType() + " message id=" + message.getId()
-                    + " to=" + peerInfo.addressKey() + ", attempt=" + attempt + "/" + RETRY_COUNT);
+            System.out.println("[DEBUG] Đang gửi " + message.getType() + " message id=" + message.getId()
+                    + " tới=" + peerInfo.addressKey() + ", attempt=" + attempt + "/" + RETRY_COUNT);
             if (tcpClient.send(peerInfo, message)) {
-                System.out.println("[DEBUG] ACK received for message id=" + message.getId()
-                        + " from=" + peerInfo.addressKey());
+                System.out.println("[DEBUG] Đã nhận ACK cho message id=" + message.getId()
+                        + " từ=" + peerInfo.addressKey());
                 return true;
             }
-            System.out.println("[WARN] No ACK for message id=" + message.getId()
-                    + " from=" + peerInfo.addressKey() + ", attempt=" + attempt);
+            System.out.println("[WARN] Không nhận được ACK cho message id=" + message.getId()
+                    + " từ=" + peerInfo.addressKey() + ", attempt=" + attempt);
             sleepBeforeRetry();
         }
         return false;
@@ -40,8 +40,8 @@ public class MessageSender {
      */
     public void broadcast(Group group, Message message) {
         for (PeerInfo member : group.getMembers()) {
-            System.out.println("[INFO] Broadcasting message id=" + message.getId()
-                    + " to member=" + member.addressKey());
+            System.out.println("[INFO] Đang broadcast message id=" + message.getId()
+                    + " tới thành viên=" + member.addressKey());
             send(member, message);
         }
     }

@@ -41,22 +41,22 @@ public class ChatImpl implements ChatService {
     @Override
     public boolean sendMessage(String content, String hostAndMaybePort) {
         if (content == null || content.isBlank()) {
-            System.out.println("[WARN] Refusing to send blank message.");
+            System.out.println("[WARN] Từ chối gửi tin nhắn rỗng.");
             return false;
         }
         PeerInfo receiver = peerDirectoryService.resolvePeer(hostAndMaybePort);
         if (receiver == null) {
-            System.out.println("[WARN] Refusing to send message because target peer is blank.");
+            System.out.println("[WARN] Từ chối gửi tin vì peer đích rỗng.");
             return false;
         }
         if (peerDirectoryService.isSelfPeer(receiver)) {
-            System.out.println("[WARN] Refusing to send message to local peer: " + receiver.addressKey());
+            System.out.println("[WARN] Từ chối gửi tin tới peer hiện tại: " + receiver.addressKey());
             return false;
         }
 
         Message message = Message.chat(localPeer, receiver, content);
-        System.out.println("[INFO] Sending CHAT message id=" + message.getId()
-                + " to=" + receiver.addressKey());
+        System.out.println("[INFO] Đang gửi tin nhắn CHAT id=" + message.getId()
+                + " tới=" + receiver.addressKey());
         boolean sent = messageSender.send(receiver, message);
         receiver.setOnline(sent);
         if (sent || storeOfflineIfPossible(message)) {
@@ -64,10 +64,10 @@ public class ChatImpl implements ChatService {
             messageNotifier.accept(message);
         }
         if (sent) {
-            System.out.println("[INFO] CHAT message delivered and stored. id=" + message.getId());
+            System.out.println("[INFO] Tin nhắn CHAT đã được giao và lưu. id=" + message.getId());
         } else {
-            System.out.println("[WARN] CHAT message failed after retries. id=" + message.getId()
-                    + ", to=" + receiver.addressKey());
+            System.out.println("[WARN] Tin nhắn CHAT thất bại sau khi retry. id=" + message.getId()
+                    + ", tới=" + receiver.addressKey());
         }
         peerChangeNotifier.run();
         return sent;
@@ -78,12 +78,12 @@ public class ChatImpl implements ChatService {
      */
     private boolean storeOfflineIfPossible(Message message) {
         if (bootstrapClient == null) {
-            System.out.println("[WARN] Cannot store offline message because bootstrap is disabled. messageId="
+            System.out.println("[WARN] Không thể lưu tin nhắn offline vì bootstrap đang tắt. messageId="
                     + message.getId());
             return false;
         }
         boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
-        System.out.println("[INFO] Offline fallback stored=" + stored + ", messageId=" + message.getId());
+        System.out.println("[INFO] Đã lưu fallback offline=" + stored + ", messageId=" + message.getId());
         return stored;
     }
 }

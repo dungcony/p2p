@@ -39,16 +39,16 @@ public class PeerConfig {
         Properties globalProperties = loadGlobalProperties(dataRoot);
         try {
             Files.createDirectories(dataRoot);
-            System.out.println("[INFO] Peer data root ready: " + dataRoot.toAbsolutePath());
+            System.out.println("[INFO] Thư mục dữ liệu peer đã sẵn sàng: " + dataRoot.toAbsolutePath());
         } catch (IOException e) {
-            System.out.println("[ERROR] Failed to create peer data root: " + e.getMessage());
+            System.out.println("[ERROR] Không thể tạo thư mục dữ liệu peer: " + e.getMessage());
         }
         if (loadedConfigPath != null && Files.exists(loadedConfigPath)) {
             try (InputStream inputStream = Files.newInputStream(loadedConfigPath)) {
                 profileProperties.load(inputStream);
-                System.out.println("[INFO] Loaded peer config from " + loadedConfigPath.toAbsolutePath());
+                System.out.println("[INFO] Đã nạp cấu hình peer từ " + loadedConfigPath.toAbsolutePath());
             } catch (IOException e) {
-                System.out.println("[WARN] Failed to load peer config. Using defaults. error=" + e.getMessage());
+                System.out.println("[WARN] Không thể nạp cấu hình peer. Dùng mặc định. lỗi=" + e.getMessage());
             }
         }
 
@@ -60,7 +60,7 @@ public class PeerConfig {
         config.bootstrapHost = readString(globalProperties, "bootstrap.host", "localhost");
         config.bootstrapPort = readInt(globalProperties, "bootstrap.port", 9000);
         config.refreshStoragePaths();
-        System.out.println("[INFO] Peer data directory selected: " + config.dataDir.toAbsolutePath());
+        System.out.println("[INFO] Đã chọn thư mục dữ liệu peer: " + config.dataDir.toAbsolutePath());
         return config;
     }
 
@@ -78,8 +78,8 @@ public class PeerConfig {
         config.bootstrapHost = readString(globalProperties, "bootstrap.host", "localhost");
         config.bootstrapPort = readInt(globalProperties, "bootstrap.port", 9000);
         config.refreshStoragePaths();
-        System.out.println("[INFO] Created new peer profile draft. peerId=" + config.peerId
-                + ", dataDir=" + config.dataDir.toAbsolutePath());
+        System.out.println("[INFO] Đã tạo nháp profile peer mới. peerId=" + config.peerId
+                + ", thưMụcDữLiệu=" + config.dataDir.toAbsolutePath());
         return config;
     }
 
@@ -104,14 +104,14 @@ public class PeerConfig {
             }
             Path legacyConfigPath = resolvedDataRoot.resolve("config.properties");
             if (profiles.isEmpty() && isLegacyPeerConfig(legacyConfigPath)) {
-                System.out.println("[INFO] Found legacy peer config as existing profile. "
+                System.out.println("[INFO] Tìm thấy cấu hình peer cũ dưới dạng profile có sẵn. "
                         + "It will be migrated to UUID folder on start.");
                 profiles.add(loadFromConfigPath(resolvedDataRoot, legacyConfigPath));
             }
         } catch (IOException e) {
-            System.out.println("[WARN] Failed to list peer profiles: " + e.getMessage());
+            System.out.println("[WARN] Không thể liệt kê profile peer: " + e.getMessage());
         }
-        System.out.println("[INFO] Peer profiles found=" + profiles.size()
+        System.out.println("[INFO] Số profile peer tìm thấy=" + profiles.size()
                 + ", dataRoot=" + resolvedDataRoot.toAbsolutePath());
         return profiles;
     }
@@ -140,11 +140,11 @@ public class PeerConfig {
      */
     public boolean updatePeerPort(int peerPort) {
         if (peerPort < 1 || peerPort > 65535) {
-            System.out.println("[WARN] Ignored invalid peer port=" + peerPort);
+            System.out.println("[WARN] Đã bỏ qua cổng peer không hợp lệ=" + peerPort);
             return false;
         }
         if (peerPort == bootstrapPort) {
-            System.out.println("[WARN] Rejected peer port because it conflicts with bootstrap.port=" + bootstrapPort);
+            System.out.println("[WARN] Từ chối cổng peer vì trùng với cổng bootstrap=" + bootstrapPort);
             return false;
         }
         this.peerPort = peerPort;
@@ -160,8 +160,8 @@ public class PeerConfig {
             return;
         }
         if (runtimePeerPort < 1 || runtimePeerPort > 65535) {
-            System.out.println("[WARN] Ignored invalid runtime peer port=" + runtimePeerPort
-                    + ". Keeping port=" + peerPort);
+            System.out.println("[WARN] Đã bỏ qua cổng peer runtime không hợp lệ=" + runtimePeerPort
+                    + ". Giữ cổng=" + peerPort);
             protectBootstrapPort();
             return;
         }
@@ -184,11 +184,11 @@ public class PeerConfig {
                 profileProperties.store(outputStream, "Local peer identity profile");
             }
             saveGlobalConfig();
-            System.out.println("[INFO] Saved peer config. peerId=" + peerId
-                    + ", peerName=" + peerName + ", port=" + peerPort
-                    + ", dataDir=" + dataDir.toAbsolutePath());
+            System.out.println("[INFO] Đã lưu cấu hình peer. peerId=" + peerId
+                    + ", tênPeer=" + peerName + ", cổng=" + peerPort
+                    + ", thưMụcDữLiệu=" + dataDir.toAbsolutePath());
         } catch (IOException e) {
-            System.out.println("[ERROR] Failed to save peer config: " + e.getMessage());
+            System.out.println("[ERROR] Không thể lưu cấu hình peer: " + e.getMessage());
         }
     }
 
@@ -253,8 +253,8 @@ public class PeerConfig {
      */
     private void protectBootstrapPort() {
         if (peerPort == bootstrapPort) {
-            System.out.println("[WARN] peer.port conflicts with bootstrap.port=" + bootstrapPort
-                    + ". Falling back to peer default port=" + PeerNode.DEFAULT_PORT);
+            System.out.println("[WARN] peer.port trùng với cổng bootstrap=" + bootstrapPort
+                    + ". Chuyển về cổng mặc định của peer=" + PeerNode.DEFAULT_PORT);
             peerPort = PeerNode.DEFAULT_PORT;
         }
     }
@@ -274,7 +274,7 @@ public class PeerConfig {
         try {
             return Integer.parseInt(readString(properties, key, String.valueOf(defaultValue)));
         } catch (NumberFormatException e) {
-            System.out.println("[WARN] Invalid int config key=" + key + ". fallback=" + defaultValue);
+            System.out.println("[WARN] Config số nguyên không hợp lệ. key=" + key + ". fallback=" + defaultValue);
             return defaultValue;
         }
     }
@@ -301,7 +301,7 @@ public class PeerConfig {
                             .sorted(Comparator.comparing(path -> path.getParent().getFileName().toString()))
                             .toList();
                     if (configPaths.size() > 1) {
-                        System.out.println("[WARN] Multiple peer UUID folders found under data root. "
+                        System.out.println("[WARN] Tìm thấy nhiều thư mục UUID peer trong data root. "
                                 + "Using first folder by name: " + configPaths.get(0).getParent().getFileName());
                     }
                     if (!configPaths.isEmpty()) {
@@ -310,12 +310,12 @@ public class PeerConfig {
                 }
             }
         } catch (IOException e) {
-            System.out.println("[WARN] Failed to scan peer data root: " + e.getMessage());
+            System.out.println("[WARN] Không thể quét thư mục dữ liệu peer: " + e.getMessage());
         }
 
         Path legacyConfigPath = dataRoot.resolve("config.properties");
         if (isLegacyPeerConfig(legacyConfigPath)) {
-            System.out.println("[INFO] Found legacy peer config. It will be saved into UUID folder after login.");
+            System.out.println("[INFO] Tìm thấy cấu hình peer cũ. Cấu hình này sẽ được lưu vào thư mục UUID sau khi đăng nhập.");
             return legacyConfigPath;
         }
         return null;
@@ -330,8 +330,8 @@ public class PeerConfig {
         try (InputStream inputStream = Files.newInputStream(configPath)) {
             properties.load(inputStream);
         } catch (IOException e) {
-            System.out.println("[WARN] Failed to load profile config=" + configPath
-                    + ", error=" + e.getMessage());
+            System.out.println("[WARN] Không thể nạp cấu hình profile=" + configPath
+                    + ", lỗi=" + e.getMessage());
         }
 
         PeerConfig config = new PeerConfig();
@@ -342,8 +342,8 @@ public class PeerConfig {
         config.bootstrapHost = readString(globalProperties, "bootstrap.host", "localhost");
         config.bootstrapPort = readInt(globalProperties, "bootstrap.port", 9000);
         config.refreshStoragePaths();
-        System.out.println("[INFO] Loaded peer profile. " + config.getDisplayLabel()
-                + ", dataDir=" + config.dataDir.toAbsolutePath());
+        System.out.println("[INFO] Đã nạp profile peer. " + config.getDisplayLabel()
+                + ", thưMụcDữLiệu=" + config.dataDir.toAbsolutePath());
         return config;
     }
 
@@ -369,7 +369,7 @@ public class PeerConfig {
         try (OutputStream outputStream = Files.newOutputStream(globalConfigPath)) {
             globalProperties.store(outputStream, "Peer-node shared bootstrap config");
         }
-        System.out.println("[INFO] Saved shared bootstrap config. path=" + globalConfigPath.toAbsolutePath());
+        System.out.println("[INFO] Đã lưu cấu hình bootstrap dùng chung. path=" + globalConfigPath.toAbsolutePath());
     }
 
     /**
@@ -383,9 +383,9 @@ public class PeerConfig {
         }
         try (InputStream inputStream = Files.newInputStream(globalConfigPath)) {
             properties.load(inputStream);
-            System.out.println("[INFO] Loaded shared bootstrap config from " + globalConfigPath.toAbsolutePath());
+            System.out.println("[INFO] Đã nạp cấu hình bootstrap dùng chung từ " + globalConfigPath.toAbsolutePath());
         } catch (IOException e) {
-            System.out.println("[WARN] Failed to load shared bootstrap config: " + e.getMessage());
+            System.out.println("[WARN] Không thể nạp cấu hình bootstrap dùng chung: " + e.getMessage());
         }
         return properties;
     }
@@ -402,7 +402,7 @@ public class PeerConfig {
             properties.load(inputStream);
             return properties.getProperty("peer.id") != null;
         } catch (IOException e) {
-            System.out.println("[WARN] Failed to inspect legacy peer config: " + e.getMessage());
+            System.out.println("[WARN] Không thể kiểm tra cấu hình peer cũ: " + e.getMessage());
             return false;
         }
     }

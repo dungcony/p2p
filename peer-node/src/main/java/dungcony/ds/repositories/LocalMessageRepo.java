@@ -53,9 +53,9 @@ public class LocalMessageRepo {
             if (!Files.exists(messageFilePath)) {
                 Files.writeString(messageFilePath, "[]", StandardCharsets.UTF_8);
             }
-            System.out.println("[INFO] Local message JSON store ready. path=" + messageFilePath.toAbsolutePath());
+            System.out.println("[INFO] Kho JSON tin nhắn local đã sẵn sàng. path=" + messageFilePath.toAbsolutePath());
         } catch (IOException e) {
-            System.out.println("[ERROR] Failed to initialize local message JSON store: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo kho JSON tin nhắn local: " + e.getMessage());
         }
     }
 
@@ -64,7 +64,7 @@ public class LocalMessageRepo {
      */
     public synchronized void save(PeerInfo conversationPeer, Message message) {
         if (conversationPeer == null || message == null) {
-            System.out.println("[WARN] LocalMessageRepo save ignored null conversation/message.");
+            System.out.println("[WARN] LocalMessageRepo bỏ qua lưu conversation/message null.");
             return;
         }
 
@@ -76,15 +76,15 @@ public class LocalMessageRepo {
 
         if (existingRecord.isPresent()) {
             records.set(records.indexOf(existingRecord.get()), newRecord);
-            System.out.println("[DEBUG] Local JSON message updated. messageId=" + message.getId());
+            System.out.println("[DEBUG] Đã cập nhật tin nhắn trong JSON local. messageId=" + message.getId());
         } else {
             records.add(newRecord);
-            System.out.println("[DEBUG] Local JSON message appended. messageId=" + message.getId());
+            System.out.println("[DEBUG] Đã thêm tin nhắn vào JSON local. messageId=" + message.getId());
         }
 
         records.sort(Comparator.comparingLong(MessageRecord::getTimestamp));
         writeAllRecords(records);
-        System.out.println("[INFO] Local message saved. conversationPeerId=" + conversationPeer.getId()
+        System.out.println("[INFO] Đã lưu tin nhắn local. conversationPeerId=" + conversationPeer.getId()
                 + ", messageId=" + message.getId());
     }
 
@@ -104,14 +104,14 @@ public class LocalMessageRepo {
             try {
                 messages.add(record.toMessage());
             } catch (IllegalArgumentException e) {
-                System.out.println("[WARN] Ignored invalid local message record. messageId="
-                        + record.getMessageId() + ", error=" + e.getMessage());
+                System.out.println("[WARN] Đã bỏ qua record tin nhắn local không hợp lệ. messageId="
+                        + record.getMessageId() + ", lỗi=" + e.getMessage());
             }
         }
 
         messages.sort(Comparator.comparingLong(Message::getTimestamp));
-        System.out.println("[DEBUG] Local messages loaded. conversationPeerId="
-                + conversationPeerId + ", count=" + messages.size());
+        System.out.println("[DEBUG] Đã nạp tin nhắn local. conversationPeerId="
+                + conversationPeerId + ", sốLượng=" + messages.size());
         return messages;
     }
 
@@ -135,7 +135,7 @@ public class LocalMessageRepo {
                 peersById.put(peerInfo.getId(), peerInfo);
             }
         }
-        System.out.println("[DEBUG] Local direct conversation peers loaded. count=" + peersById.size());
+        System.out.println("[DEBUG] Đã nạp danh sách conversation trực tiếp local. sốLượng=" + peersById.size());
         return new ArrayList<>(peersById.values());
     }
 
@@ -154,7 +154,7 @@ public class LocalMessageRepo {
             List<MessageRecord> records = gson.fromJson(json, MESSAGE_RECORD_LIST_TYPE);
             return records == null ? new ArrayList<>() : new ArrayList<>(records);
         } catch (IOException | RuntimeException e) {
-            System.out.println("[ERROR] Failed to read local message JSON: " + e.getMessage());
+            System.out.println("[ERROR] Không thể đọc JSON tin nhắn local: " + e.getMessage());
             return new ArrayList<>();
         }
     }
@@ -182,7 +182,7 @@ public class LocalMessageRepo {
                     false
             );
         } catch (NumberFormatException e) {
-            System.out.println("[WARN] Ignored invalid conversation peer key: " + peerKey);
+            System.out.println("[WARN] Đã bỏ qua khóa conversation peer không hợp lệ: " + peerKey);
             return null;
         }
     }
@@ -194,7 +194,7 @@ public class LocalMessageRepo {
         try {
             Files.writeString(messageFilePath, gson.toJson(records), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            System.out.println("[ERROR] Failed to write local message JSON: " + e.getMessage());
+            System.out.println("[ERROR] Không thể ghi JSON tin nhắn local: " + e.getMessage());
         }
     }
 

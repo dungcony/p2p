@@ -17,19 +17,19 @@ public class PeerPortDialog extends JDialog {
         this.peerPort = defaultPeerPort;
         this.portField = new JTextField(String.valueOf(defaultPeerPort), 20);
 
-        setTitle("Peer Port");
+        setTitle("Cổng peer");
         setModal(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(12, 12));
 
         JPanel form = new JPanel(new GridLayout(1, 2, 8, 8));
         form.setBorder(BorderFactory.createEmptyBorder(16, 16, 0, 16));
-        form.add(new JLabel("Peer port"));
+        form.add(new JLabel("Cổng peer"));
         form.add(portField);
 
-        JButton saveButton = new JButton("Save");
+        JButton saveButton = new JButton("Lưu");
         saveButton.addActionListener(e -> confirm());
-        JButton cancelButton = new JButton("Cancel");
+        JButton cancelButton = new JButton("Hủy");
         cancelButton.addActionListener(e -> dispose());
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -54,20 +54,20 @@ public class PeerPortDialog extends JDialog {
             }
             if (port == bootstrapPort) {
                 JOptionPane.showMessageDialog(this,
-                        "Peer port cannot be the same as bootstrap port " + bootstrapPort + ".",
-                        "Invalid peer port",
+                        "Cổng peer không được trùng với cổng bootstrap " + bootstrapPort + ".",
+                        "Cổng peer không hợp lệ",
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
             this.peerPort = port;
             this.confirmed = true;
-            System.out.println("[INFO] Peer port confirmed. port=" + peerPort);
+            System.out.println("[INFO] Đã xác nhận cổng peer. cổng=" + peerPort);
             dispose();
         } catch (NumberFormatException e) {
-            System.out.println("[WARN] Peer port rejected: " + portField.getText());
+            System.out.println("[WARN] Đã từ chối cổng peer: " + portField.getText());
             JOptionPane.showMessageDialog(this,
-                    "Port must be a number from 1 to 65535.",
-                    "Invalid peer port",
+                    "Cổng phải là số từ 1 đến 65535.",
+                    "Cổng peer không hợp lệ",
                     JOptionPane.ERROR_MESSAGE);
         }
     }

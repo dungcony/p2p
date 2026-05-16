@@ -30,7 +30,7 @@ class SendMessageBox extends JPanel {
             setupLayout();
             setupEventHandlers();
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize SendMessageBox\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo ô gửi tin nhắn\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -41,7 +41,7 @@ class SendMessageBox extends JPanel {
             setBorder(new EmptyBorder(10, 15, 10, 15));
     
             // Message input field with modern styling
-            messageField = new SendMessageTextField("Type your message here...");
+            messageField = new SendMessageTextField("Nhập tin nhắn...");
             messageField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             messageField.setBackground(ColorPalette.BACKGROUND);
             messageField.setForeground(ColorPalette.TEXT);
@@ -58,7 +58,7 @@ class SendMessageBox extends JPanel {
             sendButton.setPreferredSize(new Dimension(50, 44));
             sendButton.setBorder(new RoundedBorder(22, ColorPalette.PRIMARY));
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize components\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -69,7 +69,7 @@ class SendMessageBox extends JPanel {
             add(messageField, BorderLayout.CENTER);
             add(sendButton, BorderLayout.EAST);
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to set up layout\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -82,7 +82,7 @@ class SendMessageBox extends JPanel {
                 try {
                     sendMessage();
                 } catch (Exception ex) {
-                    System.out.println("[ERROR] Failed to handle send button action\nError Message: " + ex.getMessage());
+                    System.out.println("[ERROR] Không thể xử lý nút gửi\nChi tiết lỗi: " + ex.getMessage());
                     ex.printStackTrace();
                 }
             });
@@ -92,12 +92,12 @@ class SendMessageBox extends JPanel {
                 try {
                     sendMessage();
                 } catch (Exception ex) {
-                    System.out.println("[ERROR] Failed to handle enter key action\nError Message: " + ex.getMessage());
+                    System.out.println("[ERROR] Không thể xử lý phím Enter\nChi tiết lỗi: " + ex.getMessage());
                     ex.printStackTrace();
                 }
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to set up event handlers\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể thiết lập xử lý sự kiện\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -113,15 +113,15 @@ class SendMessageBox extends JPanel {
                 String ip = parentScreen.getIpAddress();
                 String groupId = parentScreen.getGroupId();
                 if (!parentScreen.isGroupChat() && (ip == null || ip.isBlank())) {
-                    System.out.println("[WARN] UI send ignored because no peer is selected.");
+                    System.out.println("[WARN] Bỏ qua gửi tin vì chưa chọn peer.");
                     return;
                 }
                 if (!parentScreen.isGroupChat() && App.peerNode != null && App.peerNode.isSelfAddress(ip)) {
-                    System.out.println("[WARN] UI send ignored because selected peer is local peer: " + ip);
+                    System.out.println("[WARN] Bỏ qua gửi tin vì peer được chọn là peer hiện tại: " + ip);
                     return;
                 }
-                System.out.println("[INFO] UI send message requested. target=" + (parentScreen.isGroupChat() ? groupId : ip)
-                        + ", length=" + messageText.length());
+                System.out.println("[INFO] UI yêu cầu gửi tin. đích=" + (parentScreen.isGroupChat() ? groupId : ip)
+                        + ", độDài=" + messageText.length());
 
                 // Clear the field immediately for better UX
                 messageField.setText("");
@@ -130,7 +130,7 @@ class SendMessageBox extends JPanel {
                 sendButton.setEnabled(false);
                 messageField.setEnabled(false);
 
-                // Use SwingWorker for background network operation
+                // Dùng SwingWorker để chạy thao tác mạng trong nền
                 new SwingWorker<Void, Void>() {
                     @Override
                     protected Void doInBackground() throws Exception {
@@ -142,10 +142,10 @@ class SendMessageBox extends JPanel {
                                     App.peerNode.sendMessage(messageText, ip);
                                 }
                             } else {
-                                System.out.println("[WARN] Cannot send message because App.peerNode is null.");
+                                System.out.println("[WARN] Không thể gửi tin vì App.peerNode đang null.");
                             }
                         } catch (Exception ex) {
-                            System.out.println("[ERROR] Failed to send message in background\nError Message: " + ex.getMessage());
+                            System.out.println("[ERROR] Không thể gửi tin trong nền\nChi tiết lỗi: " + ex.getMessage());
                             ex.printStackTrace();
                         }
                         return null;
@@ -157,7 +157,7 @@ class SendMessageBox extends JPanel {
                             // Chạy trên EDT khi tác vụ nền hoàn thành
                             get(); // Check if any exception occurred
                         } catch (Exception e) {
-                            System.out.println("[ERROR] Failed to complete message sending\nError Message: " + e.getMessage());
+                            System.out.println("[ERROR] Không thể hoàn tất gửi tin\nChi tiết lỗi: " + e.getMessage());
                             e.printStackTrace();
                         } finally {
                             // Re-enable UI components
@@ -169,10 +169,10 @@ class SendMessageBox extends JPanel {
                 }.execute();
             }
             else {
-                System.out.println("[DEBUG] Ignored blank message submit.");
+                System.out.println("[DEBUG] Đã bỏ qua tin nhắn rỗng.");
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to send message\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể gửi tin nhắn\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }

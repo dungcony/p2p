@@ -43,7 +43,7 @@ public class FoundDevices extends JPanel {
         this.setLayout(new BorderLayout(0, 15));
         
         // Nhãn trạng thái
-        statusLabel = new JLabel("Found devices:", SwingConstants.LEFT);
+        statusLabel = new JLabel("Thiết bị tìm thấy:", SwingConstants.LEFT);
         statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         statusLabel.setForeground(ColorPalette.TEXT);
         statusLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 10, 0));
@@ -71,7 +71,7 @@ public class FoundDevices extends JPanel {
         loader = new JPanel();
         loader.setLayout(new BorderLayout());
         loadingComponent = new LoadingComponent();
-        loadingComponent.setLoadingText("Scanning nearby devices....");
+        loadingComponent.setLoadingText("Đang quét thiết bị gần đây...");
         loader.add(loadingComponent, BorderLayout.CENTER);
         noDeviceFoundPanel = new NoDevicePanel();
     }
@@ -173,7 +173,7 @@ public class FoundDevices extends JPanel {
         panel.add(ipLabel, gbc);
         
         // Nút thêm
-        ModernButton addButton = new ModernButton("Add", ColorPalette.PRIMARY, ColorPalette.SECONDARY);
+        ModernButton addButton = new ModernButton("Thêm", ColorPalette.PRIMARY, ColorPalette.SECONDARY);
         // Thêm người dùng vào cơ sở dữ liệu
         addButton.addActionListener(e -> addUser(ipAddress));
         gbc.gridx = 1;
@@ -192,9 +192,9 @@ public class FoundDevices extends JPanel {
      * @param ip Địa chỉ IP
      */
     private void addUser(String ip) {
-        String response = Dialog.showInputDialog(this, "Enter the name of the friend", "Add friend", Dialog.QUESTION_MESSAGE);
+        String response = Dialog.showInputDialog(this, "Nhập tên peer", "Thêm peer", Dialog.QUESTION_MESSAGE);
         if (response != null && response.isBlank()) {
-            Dialog.showMessageDialog(this, "Please enter name of your friend", "Invalid Name", Dialog.ERROR_MESSAGE);
+            Dialog.showMessageDialog(this, "Vui lòng nhập tên peer", "Tên không hợp lệ", Dialog.ERROR_MESSAGE);
             return;
         }
         if (response != null && App.peerNode != null) {
@@ -214,7 +214,7 @@ public class FoundDevices extends JPanel {
 class NoDevicePanel extends JPanel {
     JLabel label;
     public NoDevicePanel() {
-        label = new JLabel("No devices found", SwingConstants.CENTER);
+        label = new JLabel("Không tìm thấy thiết bị", SwingConstants.CENTER);
         label.setForeground(ColorPalette.SECONDARY_TEXT);
         label.setFont(new Font("Segoe UI", Font.ITALIC, 20));
         setBackground(ColorPalette.PANEL_BACKGROUND);

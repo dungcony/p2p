@@ -27,16 +27,16 @@ public class NetworkAddressImpl implements NetworkAddressService {
                 while (addresses.hasMoreElements()) {
                     InetAddress address = addresses.nextElement();
                     if (address instanceof Inet4Address && !address.isLoopbackAddress() && !address.isLinkLocalAddress()) {
-                        System.out.println("[INFO] Resolved local IPv4 address: " + address.getHostAddress());
+                        System.out.println("[INFO] Đã tìm thấy địa chỉ IPv4 local: " + address.getHostAddress());
                         return address.getHostAddress();
                     }
                 }
             }
             String fallback = InetAddress.getLocalHost().getHostAddress();
-            System.out.println("[WARN] Falling back to InetAddress.getLocalHost(): " + fallback);
+            System.out.println("[WARN] Chuyển sang dùng InetAddress.getLocalHost(): " + fallback);
             return fallback;
         } catch (IOException e) {
-            System.out.println("[WARN] Failed to resolve local host. Falling back to 127.0.0.1. Error=" + e.getMessage());
+            System.out.println("[WARN] Không thể xác định host local. Chuyển sang 127.0.0.1. Lỗi=" + e.getMessage());
             return "127.0.0.1";
         }
     }
@@ -76,8 +76,8 @@ public class NetworkAddressImpl implements NetworkAddressService {
             InetAddress localAddress = InetAddress.getByName(localHost);
             return candidateAddress.isLoopbackAddress() || candidateAddress.equals(localAddress);
         } catch (UnknownHostException e) {
-            System.out.println("[WARN] Failed to compare host with local peer. host="
-                    + candidateHost + ", error=" + e.getMessage());
+            System.out.println("[WARN] Không thể so sánh host với peer local. host="
+                    + candidateHost + ", lỗi=" + e.getMessage());
             return false;
         }
     }

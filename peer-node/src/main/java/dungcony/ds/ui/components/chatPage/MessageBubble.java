@@ -23,7 +23,7 @@ class MessageBubble extends JPanel {
             this.message = message;
             initializeComponents();
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize MessageBubble\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo bong bóng tin nhắn\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -53,7 +53,7 @@ class MessageBubble extends JPanel {
                 add(Box.createHorizontalGlue());
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to initialize components\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -117,7 +117,7 @@ class MessageBubble extends JPanel {
 
             return panel;
         } catch (Exception e) {
-            System.out.println("[ERROR] Failed to create message content\nError Message: " + e.getMessage());
+            System.out.println("[ERROR] Không thể tạo nội dung tin nhắn\nChi tiết lỗi: " + e.getMessage());
             e.printStackTrace();
             return new JPanel();
         }

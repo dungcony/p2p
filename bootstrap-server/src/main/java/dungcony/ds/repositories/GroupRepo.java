@@ -28,9 +28,9 @@ public record GroupRepo(Conn conn) {
             statement.setString(3, groupEntity.getCreatedBy());
             statement.setLong(4, groupEntity.getCreatedAt());
             statement.executeUpdate();
-            System.out.println("[INFO] Saved group id=" + groupEntity.getGroupId());
+            System.out.println("[INFO] Đã lưu nhóm id=" + groupEntity.getGroupId());
         } catch (SQLException e) {
-            System.out.println("[ERROR] Failed to save group: " + e.getMessage());
+            System.out.println("[ERROR] Không thể lưu nhóm: " + e.getMessage());
         }
     }
 
@@ -55,7 +55,7 @@ public record GroupRepo(Conn conn) {
                 ));
             }
         } catch (SQLException e) {
-            System.out.println("[ERROR] Failed to list groups: " + e.getMessage());
+            System.out.println("[ERROR] Không thể liệt kê nhóm: " + e.getMessage());
         }
         return groups;
     }

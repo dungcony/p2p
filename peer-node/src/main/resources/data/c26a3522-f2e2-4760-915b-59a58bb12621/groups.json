@@ -1,8 +1,15 @@
 [
   {
-    "groupId": "8fabdaf9-7b3f-42e9-a1c4-b2a2209a7092",
+    "groupId": "75c7982f-9497-48b7-aa64-dd1cf8270742",
     "name": "New group",
     "members": [
+      {
+        "id": "c26a3522-f2e2-4760-915b-59a58bb12621",
+        "name": "nnyc",
+        "host": "172.28.128.1",
+        "port": 5002,
+        "online": true
+      },
       {
         "id": "f14a8090-35aa-4fd9-b07f-4354d5d8998a",
         "name": "dungcony",

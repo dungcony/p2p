@@ -45,7 +45,17 @@ public class MessageHistoryImpl implements MessageHistoryService {
      */
     @Override
     public void add(String peerKey, Message message) {
-        messageHistory.computeIfAbsent(peerKey, ignored -> Collections.synchronizedList(new ArrayList<>())).add(message);
+        if (peerKey == null || peerKey.isBlank() || message == null) {
+            return;
+        }
+        List<Message> messages = messageHistory.computeIfAbsent(peerKey,
+                ignored -> Collections.synchronizedList(new ArrayList<>()));
+        synchronized (messages) {
+            if (messages.stream().noneMatch(existingMessage -> existingMessage.getId().equals(message.getId()))) {
+                messages.add(message);
+            }
+            messages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
+        }
         System.out.println("[DEBUG] Message appended to history. peerKey=" + peerKey
                 + ", messageId=" + message.getId());
     }
@@ -56,10 +66,10 @@ public class MessageHistoryImpl implements MessageHistoryService {
     @Override
     public List<Message> getMessages(PeerInfo peerInfo, String fallbackKey) {
         String key = peerInfo == null ? fallbackKey : peerInfo.addressKey();
-        if (peerInfo != null && !messageHistory.containsKey(key)) {
+        if (peerInfo != null) {
             List<Message> localMessages = localMessageRepo.findByConversationPeerId(peerInfo.getId());
             if (!localMessages.isEmpty()) {
-                messageHistory.put(key, Collections.synchronizedList(new ArrayList<>(localMessages)));
+                mergeLocalMessages(key, localMessages);
             }
         }
         return new ArrayList<>(messageHistory.getOrDefault(key, Collections.emptyList()));
@@ -72,5 +82,34 @@ public class MessageHistoryImpl implements MessageHistoryService {
     public Message getLastMessage(PeerInfo peerInfo, String fallbackKey) {
         List<Message> messages = getMessages(peerInfo, fallbackKey);
         return messages.isEmpty() ? null : messages.get(messages.size() - 1);
+    }
+
+    /**
+     * Lay cac peer da tung co tin nhan 1-1 trong messages.json.
+     */
+    @Override
+    public List<PeerInfo> getDirectConversationPeers() {
+        return localMessageRepo.findDirectConversationPeers();
+    }
+
+    /**
+     * Merge messages.json vao cache runtime de UI khong mat tin cu khi cache da co tin moi.
+     */
+    private void mergeLocalMessages(String key, List<Message> localMessages) {
+        List<Message> cachedMessages = messageHistory.computeIfAbsent(key,
+                ignored -> Collections.synchronizedList(new ArrayList<>()));
+        synchronized (cachedMessages) {
+            for (Message localMessage : localMessages) {
+                boolean exists = cachedMessages.stream()
+                        .anyMatch(existingMessage -> existingMessage.getId().equals(localMessage.getId()));
+                if (!exists) {
+                    cachedMessages.add(localMessage);
+                }
+            }
+            cachedMessages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
+        }
+        System.out.println("[DEBUG] Local messages merged into runtime cache. peerKey=" + key
+                + ", localCount=" + localMessages.size()
+                + ", cachedCount=" + cachedMessages.size());
     }
 }

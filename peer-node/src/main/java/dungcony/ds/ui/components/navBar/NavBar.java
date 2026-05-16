@@ -21,7 +21,7 @@ public class NavBar extends JPanel {
     private Button menuButton;  
     /** Nút chat */
     private Button chatButton;
-    /** Nút thêm bạn bè */
+    /** Nút mở chat trực tiếp */
     private Button addFriendButton;
     /** Nút quét thiết bị */
     private Button scanButton;
@@ -79,7 +79,7 @@ public class NavBar extends JPanel {
     
             // Đặt tooltip
             menuButton.setToolTipText("Open Navigation");
-            addFriendButton.setToolTipText("Add new friend");
+            addFriendButton.setToolTipText("Direct chat");
             chatButton.setToolTipText("Chats");        
             scanButton.setToolTipText("Scan nearby friends");
     
@@ -106,7 +106,7 @@ public class NavBar extends JPanel {
     /** Thêm tiêu đề cho các nút khi mở rộng */
     public void setTitleToButtons() {
         chatButton.setText("Chats");
-        addFriendButton.setText("Add new friend");
+        addFriendButton.setText("Direct chat");
         scanButton.setText("Scan nearby friends");
     }
     
@@ -148,4 +148,3 @@ public class NavBar extends JPanel {
         this.revalidate();
     }
 }
-

@@ -1,0 +1,18 @@
+[
+  {
+    "messageId": "ac7a617f-a811-460c-a997-203fb0a099ad",
+    "conversationPeerId": "c26a3522-f2e2-4760-915b-59a58bb12621",
+    "conversationPeerName": "c26a3522-f2e2-4760-915b-59a58bb12621",
+    "conversationPeerKey": "172.28.128.1:5002",
+    "senderId": "c26a3522-f2e2-4760-915b-59a58bb12621",
+    "senderHost": "172.28.128.1",
+    "senderPort": 5002,
+    "receiverId": "393ece72-f45a-4867-9a0f-ec22ae8adb3f",
+    "receiverHost": "172.28.128.1",
+    "receiverPort": 5003,
+    "messageType": "CHAT",
+    "content": "xin chào",
+    "timestamp": 1778943721156,
+    "fromCurrentUser": false
+  }
+]

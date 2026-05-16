@@ -9,7 +9,7 @@ import dungcony.ds.ui.utils.ColorPalette;
 import javax.swing.*;
 import java.awt.*;
 
-/** Trang thêm bạn bè bằng địa chỉ IP
+/** Trang mo chat truc tiep bang dia chi IP
  * @author Shoyeb Ansari
  */
 public class AddFriendPage extends JPanel {
@@ -36,7 +36,7 @@ public class AddFriendPage extends JPanel {
             contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
             // Initialize components with proper constraints
-            topPanel = new HeadingPanel("Add friend to start chatting");
+            topPanel = new HeadingPanel("Start direct chat");
             topPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
 
             centerPanel = new CenterPanel();

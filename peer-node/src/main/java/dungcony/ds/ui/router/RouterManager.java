@@ -79,4 +79,11 @@ public class RouterManager {
     public String getCurrentRoute() {
         return currentRoute;
     }
+
+    /**
+     * Lay component cua route da dang ky de page khac co the goi API UI noi bo khi can.
+     */
+    public Component getRoute(String routeName) {
+        return routes.get(routeName);
+    }
 }

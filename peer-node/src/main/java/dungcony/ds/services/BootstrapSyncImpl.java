@@ -13,10 +13,13 @@ import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.peer.GroupManager;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class BootstrapSyncImpl implements BootstrapSyncService {
+    private static final String GROUP_CHAT_PREFIX = "group:";
+
     private final BootstrapClient bootstrapClient;
     private final PeerInfo localPeer;
     private final PeerDirectoryService peerDirectoryService;
@@ -60,30 +63,30 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
         }
 
         JoinResponse joinResponse = bootstrapClient.join(localPeer);
-        int added = syncOnlinePeers(joinResponse);
-        handleOfflineMessages(joinResponse);
+        int added = peerDirectoryService.syncOnlinePeers(joinResponse.getOnlinePeers());
         syncGroupsFromBootstrap();
+        handleOfflineMessages(joinResponse);
         peerChangeNotifier.run();
         System.out.println("[INFO] Bootstrap sync completed. addedPeers=" + added
                 + ", knownPeers=" + peerDirectoryService.size());
     }
 
     /**
-     * Nap danh sach peer online bootstrap tra ve.
+     * Lam moi danh sach peer online va group tu bootstrap-server.
      */
-    private int syncOnlinePeers(JoinResponse joinResponse) {
-        int added = 0;
-        for (PeerInfo peerInfo : joinResponse.getOnlinePeers()) {
-            if (peerInfo == null || peerDirectoryService.isSelfPeer(peerInfo)) {
-                continue;
-            }
-            peerDirectoryService.put(peerInfo);
-            added++;
-            System.out.println("[INFO] Bootstrap discovered peer id=" + peerInfo.getId()
-                    + ", name=" + peerInfo.getName()
-                    + ", address=" + peerInfo.addressKey());
+    @Override
+    public void refreshFromBootstrap() {
+        Collection<PeerInfo> onlinePeers = bootstrapClient.listOrNull();
+        if (onlinePeers == null) {
+            System.out.println("[WARN] Bootstrap refresh skipped because tracker is unavailable. "
+                    + "Keeping current local peer state.");
+            return;
         }
-        return added;
+        int onlineCount = peerDirectoryService.syncOnlinePeers(onlinePeers);
+        syncGroupsFromBootstrap();
+        peerChangeNotifier.run();
+        System.out.println("[INFO] Bootstrap refresh completed. onlinePeers=" + onlineCount
+                + ", knownPeers=" + peerDirectoryService.size());
     }
 
     /**
@@ -101,13 +104,18 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
     private void handleOfflineMessages(JoinResponse joinResponse) {
         for (OfflineMessage offlineMessage : joinResponse.getOfflineMessages()) {
             PeerInfo sender = peerDirectoryService.findKnownPeerById(offlineMessage.senderId());
-            PeerInfo conversationPeer = sender == null
+            boolean isGroupMessage = offlineMessage.groupId() != null && !offlineMessage.groupId().isBlank();
+            PeerInfo conversationPeer = isGroupMessage
+                    ? groupConversationPeer(offlineMessage.groupId())
+                    : sender == null
                     ? new PeerInfo(offlineMessage.senderId(), offlineMessage.senderId(), "", 0, false)
                     : sender;
-            String historyKey = sender == null ? offlineMessage.senderId() : sender.addressKey();
+            String historyKey = isGroupMessage
+                    ? GROUP_CHAT_PREFIX + offlineMessage.groupId()
+                    : sender == null ? offlineMessage.senderId() : sender.addressKey();
             Message message = Message.restore(
                     offlineMessage.messageId(),
-                    MessageType.CHAT,
+                    isGroupMessage ? MessageType.GROUP_CHAT : MessageType.CHAT,
                     offlineMessage.senderId(),
                     sender == null ? "" : sender.getHost(),
                     sender == null ? 0 : sender.getPort(),
@@ -125,5 +133,14 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
                     + ", senderId=" + offlineMessage.senderId()
                     + ", historyKey=" + historyKey);
         }
+    }
+
+    /**
+     * Tao conversation peer dai dien group de message offline group duoc luu dung history.
+     */
+    private PeerInfo groupConversationPeer(String groupId) {
+        Group group = groupManager.getGroup(groupId);
+        String name = group == null ? groupId : group.getName();
+        return new PeerInfo(groupId, name, GROUP_CHAT_PREFIX + groupId, 0, false);
     }
 }

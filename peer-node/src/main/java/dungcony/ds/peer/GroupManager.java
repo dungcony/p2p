@@ -60,6 +60,25 @@ public class GroupManager {
     }
 
     /**
+     * Tao hoac cap nhat group local khi nhan duoc GROUP_CHAT truc tiep tu peer khac.
+     */
+    public Group ensureLocalGroup(String groupId, String name, Collection<PeerInfo> members) {
+        Group group = groups.get(groupId);
+        if (group == null) {
+            group = new Group(groupId, name, members);
+            groups.put(group.getGroupId(), group);
+            System.out.println("[INFO] Local group created from inbound message. groupId=" + group.getGroupId()
+                    + ", name=" + group.getName());
+        } else if (members != null) {
+            members.forEach(group::addMember);
+            System.out.println("[DEBUG] Local group members refreshed from inbound message. groupId="
+                    + group.getGroupId() + ", members=" + group.getMembers().size());
+        }
+        saveGroup(group);
+        return group;
+    }
+
+    /**
      * Tìm group theo groupId để gửi tin hoặc hiển thị thông tin nhóm.
      */
     public Group getGroup(String groupId) {

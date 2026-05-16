@@ -27,7 +27,7 @@ public class PeerPresenceImpl implements PeerPresenceService {
     }
 
     /**
-     * Kiem tra peer online qua bootstrap LIST neu co, fallback heartbeat truc tiep neu chay khong co bootstrap.
+     * Kiem tra peer online qua bootstrap LIST neu co, fallback heartbeat truc tiep khi bootstrap khong thay peer.
      */
     @Override
     public boolean checkUserIsOnline(String hostAndMaybePort) {
@@ -40,9 +40,10 @@ public class PeerPresenceImpl implements PeerPresenceService {
             System.out.println("[WARN] Refusing online check for local peer: " + peerInfo.addressKey());
             return false;
         }
-        boolean online = bootstrapClient == null
-                ? checkByDirectHeartbeat(peerInfo)
-                : checkByBootstrap(peerInfo);
+        boolean online = bootstrapClient != null && checkByBootstrap(peerInfo);
+        if (!online) {
+            online = checkByDirectHeartbeat(peerInfo);
+        }
         peerInfo.setOnline(online);
         peerChangeNotifier.run();
         return online;
@@ -53,7 +54,13 @@ public class PeerPresenceImpl implements PeerPresenceService {
      */
     private boolean checkByBootstrap(PeerInfo targetPeer) {
         System.out.println("[DEBUG] Checking peer online status via bootstrap. target=" + targetPeer.addressKey());
-        for (PeerInfo onlinePeer : bootstrapClient.list()) {
+        java.util.Collection<PeerInfo> onlinePeers = bootstrapClient.listOrNull();
+        if (onlinePeers == null) {
+            System.out.println("[WARN] Bootstrap unavailable during online check. Falling back to direct heartbeat. target="
+                    + targetPeer.addressKey());
+            return false;
+        }
+        for (PeerInfo onlinePeer : onlinePeers) {
             if (onlinePeer == null || peerDirectoryService.isSelfPeer(onlinePeer)) {
                 continue;
             }
@@ -64,16 +71,21 @@ public class PeerPresenceImpl implements PeerPresenceService {
                 return true;
             }
         }
-        System.out.println("[INFO] Bootstrap reports peer offline. target=" + targetPeer.addressKey());
+        System.out.println("[INFO] Bootstrap did not confirm peer online. Falling back to direct heartbeat. target="
+                + targetPeer.addressKey());
         return false;
     }
 
     /**
-     * Gui heartbeat truc tiep khi peer-node khong cau hinh bootstrap-server.
+     * Gui heartbeat truc tiep toi host:port de xac minh peer co TCP reachable khong.
      */
     private boolean checkByDirectHeartbeat(PeerInfo peerInfo) {
-        System.out.println("[DEBUG] Bootstrap disabled. Sending direct heartbeat to " + peerInfo.addressKey());
+        System.out.println("[DEBUG] Sending direct heartbeat to " + peerInfo.addressKey());
         boolean online = messageSender.send(peerInfo, Message.heartbeat(localPeer));
+        if (online) {
+            peerInfo.setOnline(true);
+            peerDirectoryService.put(peerInfo);
+        }
         System.out.println("[INFO] Direct heartbeat result. peer=" + peerInfo.addressKey() + ", online=" + online);
         return online;
     }

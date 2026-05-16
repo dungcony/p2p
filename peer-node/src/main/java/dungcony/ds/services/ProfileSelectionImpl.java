@@ -20,7 +20,7 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
         List<PeerConfig> profiles = PeerConfig.listProfiles(dataRoot);
         if (profiles.isEmpty()) {
             System.out.println("[INFO] No existing profile found. Creating a new UUID profile.");
-            return new ProfileSelection(PeerConfig.createNew(dataRoot), true);
+            return new ProfileSelection(PeerConfig.createNew(dataRoot), true, true);
         }
 
         Object[] options = {"Create new profile", "Use existing profile", "Cancel"};
@@ -36,7 +36,7 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
         );
 
         if (choice == 0) {
-            return new ProfileSelection(PeerConfig.createNew(dataRoot), true);
+            return new ProfileSelection(PeerConfig.createNew(dataRoot), true, true);
         }
         if (choice == 1) {
             return selectExistingProfile(profiles);
@@ -83,6 +83,6 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
         if (selectedProfile == null || choice == 2 || choice == JOptionPane.CLOSED_OPTION) {
             return null;
         }
-        return new ProfileSelection(selectedProfile, choice == 1);
+        return new ProfileSelection(selectedProfile, choice == 1, false);
     }
 }

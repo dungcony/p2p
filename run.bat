@@ -6,7 +6,7 @@ cd /d "%~dp0"
 set "EXEC_ARGS=%*"
 
 if "%EXEC_ARGS%"=="" (
-    echo [INFO] No peer args supplied. Using default data root: peer-node\src\main\resources\data
+    echo [INFO] No peer args supplied. Profile selection will choose the saved port or ask for a new profile port.
 ) else (
     echo [INFO] Peer args: %EXEC_ARGS%
 )

@@ -355,4 +355,25 @@ public class ChatPage extends JPanel {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Xu ly khi chon group chat tu ChatList.
+     */
+    public void onGroupSelected(String groupName, String groupId) {
+        try {
+            System.out.println("[INFO] UI group selected. group=" + groupName + ", groupId=" + groupId);
+            chatScreen.setSelectedGroup(groupName, groupId);
+            chatScreen.setMessages(App.peerNode == null
+                    ? java.util.Collections.emptyList()
+                    : App.peerNode.getMessagesWithGroup(groupId));
+            if (isMobileMode) {
+                showChatScreen();
+            }
+            chatScreen.revalidate();
+            chatScreen.repaint();
+        } catch (Exception e) {
+            System.out.println("[ERROR] Failed to handle group selection\nError Message: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

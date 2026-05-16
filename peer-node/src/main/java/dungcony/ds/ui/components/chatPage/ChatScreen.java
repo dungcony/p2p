@@ -14,6 +14,7 @@ import java.util.List;
 public class ChatScreen extends JPanel implements MessageListener {
     private String selectedUser = "Select a chat";
     private String ipAddress;
+    private String groupId;
     private ChatHistory chatHistory;
     private SendMessageBox sendMessageBox;
     private ChatHeader chatHeader;
@@ -73,6 +74,20 @@ public class ChatScreen extends JPanel implements MessageListener {
         showChatControls(true);
     }
 
+    /**
+     * Chon group chat de UI gui/nhan message theo groupId thay vi host:port.
+     */
+    public void setSelectedGroup(String groupName, String groupId) {
+        this.groupId = groupId;
+        this.ipAddress = null;
+        this.selectedUser = groupName;
+        chatHeader.setUserName(groupName);
+        chatHeader.setStatus(true);
+        messages.clear();
+        chatHistory.clearMessages();
+        showChatControls(true);
+    }
+
     public void setMobileMode(boolean isMobile) {
         chatHeader.setMobileMode(isMobile);
     }
@@ -91,14 +106,35 @@ public class ChatScreen extends JPanel implements MessageListener {
         return ipAddress;
     }
 
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public boolean isGroupChat() {
+        return groupId != null && !groupId.isBlank();
+    }
+
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
+        this.groupId = null;
         showChatControls(ipAddress != null && !ipAddress.isBlank());
     }
 
     @Override
     public void onMessageReceived(Message message) {
-        if (ipAddress == null || message == null) {
+        if (message == null) {
+            return;
+        }
+        if (isGroupChat()) {
+            if (groupId.equals(message.getGroupId())) {
+                messages.add(message);
+                chatHistory.renderMessage(message);
+                revalidate();
+                repaint();
+            }
+            return;
+        }
+        if (ipAddress == null) {
             return;
         }
         if (ipAddress.equals(message.getSenderIp()) || ipAddress.equals(message.getReceiverHost() + ":" + message.getReceiverPort())) {

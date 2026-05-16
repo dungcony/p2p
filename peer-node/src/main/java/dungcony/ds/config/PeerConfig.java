@@ -7,11 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class PeerConfig {
@@ -131,6 +127,50 @@ public class PeerConfig {
     }
 
     /**
+     * Cap nhat dinh danh hien thi; port lang nghe khong doi trong dialog UI.
+     */
+    public void updateIdentity(String peerId, String peerName) {
+        this.peerId = peerId == null || peerId.isBlank() ? this.peerId : peerId.trim();
+        this.peerName = peerName == null || peerName.isBlank() ? this.peerName : peerName.trim();
+        refreshStoragePaths();
+    }
+
+    /**
+     * Cap nhat port lang nghe cua peer khi tao profile moi.
+     */
+    public boolean updatePeerPort(int peerPort) {
+        if (peerPort < 1 || peerPort > 65535) {
+            System.out.println("[WARN] Ignored invalid peer port=" + peerPort);
+            return false;
+        }
+        if (peerPort == bootstrapPort) {
+            System.out.println("[WARN] Rejected peer port because it conflicts with bootstrap.port=" + bootstrapPort);
+            return false;
+        }
+        this.peerPort = peerPort;
+        return true;
+    }
+
+    /**
+     * Ap dung peer port duoc truyen luc chay app qua CLI.
+     */
+    public void applyRuntimePeerPort(Integer runtimePeerPort) {
+        if (runtimePeerPort == null) {
+            protectBootstrapPort();
+            return;
+        }
+        if (runtimePeerPort < 1 || runtimePeerPort > 65535) {
+            System.out.println("[WARN] Ignored invalid runtime peer port=" + runtimePeerPort
+                    + ". Keeping port=" + peerPort);
+            protectBootstrapPort();
+            return;
+        }
+        if (!updatePeerPort(runtimePeerPort)) {
+            protectBootstrapPort();
+        }
+    }
+
+    /**
      * Luu cau hinh peer de lan sau app dung lai cung peer.id khi dang nhap.
      */
     public void save() {
@@ -206,6 +246,17 @@ public class PeerConfig {
      */
     public int getBootstrapPort() {
         return bootstrapPort;
+    }
+
+    /**
+     * Neu peer.port trung bootstrap.port thi khong cho PeerNode chiem cong tracker.
+     */
+    private void protectBootstrapPort() {
+        if (peerPort == bootstrapPort) {
+            System.out.println("[WARN] peer.port conflicts with bootstrap.port=" + bootstrapPort
+                    + ". Falling back to peer default port=" + PeerNode.DEFAULT_PORT);
+            peerPort = PeerNode.DEFAULT_PORT;
+        }
     }
 
     /**

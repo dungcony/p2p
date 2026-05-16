@@ -63,6 +63,12 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
             System.out.println("[WARN] Ignored addKnownPeer because target is local peer: " + peerInfo.addressKey());
             return null;
         }
+        PeerInfo existingPeer = peers.get(peerInfo.addressKey());
+        if (existingPeer != null) {
+            System.out.println("[INFO] Known peer already exists. Reusing peer id=" + existingPeer.getId()
+                    + ", address=" + existingPeer.addressKey());
+            return existingPeer;
+        }
         put(peerInfo);
         System.out.println("[INFO] Added known peer: id=" + peerInfo.getId()
                 + ", address=" + peerInfo.addressKey());
@@ -136,6 +142,31 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
         PeerInfo existing = peers.get(key);
         String displayName = existing == null ? message.getSenderId() : existing.getName();
         return new PeerInfo(message.getSenderId(), displayName, message.getSenderHost(), message.getSenderPort());
+    }
+
+    /**
+     * Dong bo danh sach online bootstrap tra ve, danh dau peer vang mat la offline.
+     */
+    @Override
+    public int syncOnlinePeers(Collection<PeerInfo> onlinePeers) {
+        peers.values().forEach(peerInfo -> peerInfo.setOnline(false));
+        int addedOrUpdated = 0;
+        if (onlinePeers == null) {
+            return addedOrUpdated;
+        }
+        for (PeerInfo peerInfo : onlinePeers) {
+            if (peerInfo == null || isSelfPeer(peerInfo)) {
+                continue;
+            }
+            peerInfo.setOnline(true);
+            put(peerInfo);
+            addedOrUpdated++;
+            System.out.println("[DEBUG] Directory synced online peer id=" + peerInfo.getId()
+                    + ", address=" + peerInfo.addressKey());
+        }
+        System.out.println("[INFO] Directory online sync completed. onlineCount=" + addedOrUpdated
+                + ", knownCount=" + peers.size());
+        return addedOrUpdated;
     }
 
     /**

@@ -7,6 +7,7 @@ import dungcony.ds.peer.PeerNode;
 import dungcony.ds.services.ProfileSelectionImpl;
 import dungcony.ds.ui.LoginDialog;
 import dungcony.ds.ui.Main;
+import dungcony.ds.ui.PeerPortDialog;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -21,7 +22,8 @@ public class App {
      * sau đó mở cửa sổ chat chính.
      */
     public static void main(String[] args) {
-        Path dataRoot = resolveDataRoot(args);
+        RuntimeOptions runtimeOptions = resolveRuntimeOptions(args);
+        Path dataRoot = runtimeOptions.dataRoot();
         SwingUtilities.invokeLater(() -> {
             ProfileSelectionService profileSelectionService = new ProfileSelectionImpl(dataRoot);
             ProfileSelection selection = profileSelectionService.selectProfile();
@@ -31,14 +33,28 @@ public class App {
             }
 
             PeerConfig config = selection.config();
+            config.applyRuntimePeerPort(runtimeOptions.peerPort());
+            if (selection.newProfile() && runtimeOptions.peerPort() == null) {
+                PeerPortDialog peerPortDialog = new PeerPortDialog(config.getPeerPort(), config.getBootstrapPort());
+                peerPortDialog.setVisible(true);
+                if (!peerPortDialog.isConfirmed()) {
+                    System.out.println("[INFO] Peer port selection cancelled. Application will not start PeerNode.");
+                    return;
+                }
+                if (!config.updatePeerPort(peerPortDialog.getPeerPort())) {
+                    System.out.println("[WARN] Peer port selection failed validation. Application will not start PeerNode.");
+                    return;
+                }
+                config.save();
+            }
             if (selection.editBeforeStart()) {
-                LoginDialog loginDialog = new LoginDialog(config.getPeerId(), config.getPeerName(), config.getPeerPort());
+                LoginDialog loginDialog = new LoginDialog(config.getPeerId(), config.getPeerName());
                 loginDialog.setVisible(true);
                 if (!loginDialog.isConfirmed()) {
                     System.out.println("[INFO] Profile edit cancelled. Application will not start PeerNode.");
                     return;
                 }
-                config.updateLogin(loginDialog.getPeerId(), loginDialog.getPeerName(), loginDialog.getPeerPort());
+                config.updateIdentity(loginDialog.getPeerId(), loginDialog.getPeerName());
                 config.save();
             } else {
                 System.out.println("[INFO] Starting with existing peer profile without edit. "
@@ -73,12 +89,14 @@ public class App {
     }
 
     /**
-     * Doc tham so --data-dir de chon data root chua cac folder peer theo UUID.
+     * Doc tham so runtime: --data-dir va --peer-port.
      */
-    private static Path resolveDataRoot(String[] args) {
+    private static RuntimeOptions resolveRuntimeOptions(String[] args) {
         Path defaultDataRoot = Path.of("peer-node", "src", "main", "resources", "data");
+        Path dataRoot = defaultDataRoot;
+        Integer peerPort = null;
         if (args == null) {
-            return defaultDataRoot;
+            return new RuntimeOptions(dataRoot, peerPort);
         }
 
         for (int index = 0; index < args.length; index++) {
@@ -87,18 +105,52 @@ public class App {
                 continue;
             }
             if (arg.startsWith("--data-dir=")) {
-                Path dataRoot = Path.of(arg.substring("--data-dir=".length()));
+                dataRoot = Path.of(arg.substring("--data-dir=".length()));
                 System.out.println("[INFO] Runtime dataRoot=" + dataRoot.toAbsolutePath());
-                return dataRoot;
+                continue;
             }
             if ("--data-dir".equals(arg) && index + 1 < args.length) {
-                Path dataRoot = Path.of(args[index + 1]);
+                dataRoot = Path.of(args[index + 1]);
                 System.out.println("[INFO] Runtime dataRoot=" + dataRoot.toAbsolutePath());
-                return dataRoot;
+                index++;
+                continue;
+            }
+            if (arg.startsWith("--peer-port=") || arg.startsWith("--port=")) {
+                String value = arg.contains("--peer-port=")
+                        ? arg.substring("--peer-port=".length())
+                        : arg.substring("--port=".length());
+                peerPort = parsePeerPort(value);
+                continue;
+            }
+            if (("--peer-port".equals(arg) || "--port".equals(arg)) && index + 1 < args.length) {
+                peerPort = parsePeerPort(args[index + 1]);
+                index++;
             }
         }
 
-        System.out.println("[INFO] Runtime dataRoot=" + defaultDataRoot.toAbsolutePath());
-        return defaultDataRoot;
+        System.out.println("[INFO] Runtime dataRoot=" + dataRoot.toAbsolutePath());
+        if (peerPort != null) {
+            System.out.println("[INFO] Runtime peerPort=" + peerPort);
+        }
+        return new RuntimeOptions(dataRoot, peerPort);
+    }
+
+    /**
+     * Parse peer port tu CLI, tra null neu value khong hop le.
+     */
+    private static Integer parsePeerPort(String value) {
+        try {
+            int port = Integer.parseInt(value);
+            if (port < 1 || port > 65535) {
+                throw new NumberFormatException("Port out of range");
+            }
+            return port;
+        } catch (NumberFormatException e) {
+            System.out.println("[WARN] Ignored invalid --peer-port value=" + value);
+            return null;
+        }
+    }
+
+    private record RuntimeOptions(Path dataRoot, Integer peerPort) {
     }
 }

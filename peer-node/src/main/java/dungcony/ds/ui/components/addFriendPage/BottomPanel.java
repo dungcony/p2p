@@ -1,21 +1,20 @@
 package dungcony.ds.ui.components.addFriendPage;
 
 import dungcony.ds.App;
+import dungcony.ds.model.PeerInfo;
 import dungcony.ds.ui.components.ModernButton;
 import dungcony.ds.ui.components.RoundedPanel;
+import dungcony.ds.ui.pages.ChatPage;
+import dungcony.ds.ui.router.RouterManager;
 import dungcony.ds.ui.utils.ColorPalette;
 import dungcony.ds.ui.utils.Dialog;
-import org.kordamp.ikonli.fontawesome.FontAwesome;
-import org.kordamp.ikonli.swing.FontIcon;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class BottomPanel extends RoundedPanel {
     private ModernButton checkConnectionButton;
-    private ModernButton addFriendButton;
     private InputField nameField;
     private InputField ipField;
 
@@ -25,17 +24,9 @@ public class BottomPanel extends RoundedPanel {
         nameField = new InputField("Name", 50);
         ipField = new InputField("IP Address or host:port", 50);
 
-        checkConnectionButton = new ModernButton("Connect", ColorPalette.PRIMARY, ColorPalette.SECONDARY);
-        checkConnectionButton.setPreferredSize(new Dimension(120, 40));
-
-        addFriendButton = new ModernButton("Add", ColorPalette.PRIMARY, ColorPalette.SECONDARY);
-        addFriendButton.setPreferredSize(new Dimension(120, 40));
-
-        FontIcon plusIcon = FontIcon.of(FontAwesome.PLUS, 14);
-        plusIcon.setIconColor(Color.WHITE);
-        addFriendButton.setIcon(plusIcon);
-        checkConnectionButton.addActionListener(e -> connectFriend(false));
-        addFriendButton.addActionListener(this::addFriend);
+        checkConnectionButton = new ModernButton("Chat", ColorPalette.PRIMARY, ColorPalette.SECONDARY);
+        checkConnectionButton.setPreferredSize(new Dimension(140, 40));
+        checkConnectionButton.addActionListener(e -> connectAndOpenChat());
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -55,7 +46,6 @@ public class BottomPanel extends RoundedPanel {
         buttonPanel.setOpaque(false);
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
         buttonPanel.add(checkConnectionButton);
-        buttonPanel.add(addFriendButton);
         buttonPanel.setPreferredSize(new Dimension(350, 50));
 
         add(inputPanel);
@@ -63,69 +53,52 @@ public class BottomPanel extends RoundedPanel {
         add(buttonPanel);
     }
 
-    private void addFriend(ActionEvent e) {
+    private boolean connectAndOpenChat() {
         String name = nameField.getTextField().getText();
         String address = ipField.getTextField().getText();
-        System.out.println("[INFO] AddFriend requested. name=" + name + ", address=" + address);
-
-        if (name == null || name.isBlank()) {
-            System.out.println("[WARN] AddFriend rejected: empty name.");
-            Dialog.showMessageDialog(null, "Please enter name of your friend", "Empty input fields", Dialog.ERROR_MESSAGE);
-            return;
-        }
+        System.out.println("[INFO] Direct chat requested. name=" + name + ", address=" + address);
 
         if (!isValidPeerAddress(address)) {
-            System.out.println("[WARN] AddFriend rejected: invalid address=" + address);
-            Dialog.showMessageDialog(null, "Please provide valid IP address or host:port", "Invalid address", Dialog.ERROR_MESSAGE);
-            return;
-        }
-        if (App.peerNode != null && App.peerNode.isSelfAddress(address)) {
-            System.out.println("[WARN] AddFriend rejected: address points to local peer=" + address);
-            Dialog.showMessageDialog(null, "You cannot add your own peer address.", "Invalid peer", Dialog.WARNING_MESSAGE);
-            return;
-        }
-
-        if (App.peerNode != null) {
-            if (App.peerNode.addKnownPeer(name, address) == null) {
-                Dialog.showMessageDialog(null, "Peer was not added.", "Add Friend Failed", Dialog.WARNING_MESSAGE);
-                return;
-            }
-        } else {
-            System.out.println("[WARN] AddFriend skipped because App.peerNode is null.");
-        }
-
-        nameField.getTextField().setText("");
-        ipField.getTextField().setText("");
-        Dialog.showConfirmDialog(null, "Your friend added successfully", "Add Friend Success", Dialog.CLOSED_OPTION, Dialog.INFORMATION_MESSAGE);
-    }
-
-    private boolean connectFriend(boolean isFromAddFriend) {
-        String address = ipField.getTextField().getText();
-        System.out.println("[INFO] ConnectFriend requested. address=" + address
-                + ", fromAddFriend=" + isFromAddFriend);
-        if (!isValidPeerAddress(address)) {
-            System.out.println("[WARN] ConnectFriend rejected: invalid address=" + address);
+            System.out.println("[WARN] Direct chat rejected: invalid address=" + address);
             Dialog.showMessageDialog(null, "Please provide valid IP address or host:port", "Invalid address", Dialog.ERROR_MESSAGE);
             return false;
         }
         if (App.peerNode != null && App.peerNode.isSelfAddress(address)) {
-            System.out.println("[WARN] ConnectFriend rejected: address points to local peer=" + address);
+            System.out.println("[WARN] Direct chat rejected: address points to local peer=" + address);
             Dialog.showMessageDialog(null, "You cannot connect to your own peer address.", "Invalid peer", Dialog.WARNING_MESSAGE);
             return false;
         }
 
         boolean online = App.peerNode != null && App.peerNode.checkUserIsOnline(address);
         if (!online) {
-            System.out.println("[WARN] ConnectFriend failed heartbeat. address=" + address);
+            System.out.println("[WARN] Direct chat failed heartbeat. address=" + address);
             Dialog.showMessageDialog(null, "Peer did not respond to heartbeat.", "Offline peer", Dialog.WARNING_MESSAGE);
             return false;
         }
 
-        System.out.println("[INFO] ConnectFriend succeeded. address=" + address);
-        if (!isFromAddFriend) {
-            Dialog.showConfirmDialog(null, "Peer is online. You can add it to your friend list.", "Peer connected", Dialog.CLOSED_OPTION, Dialog.INFORMATION_MESSAGE);
+        String displayName = name == null || name.isBlank() ? address.trim() : name.trim();
+        PeerInfo peerInfo = App.peerNode.addKnownPeer(displayName, address);
+        if (peerInfo == null) {
+            Dialog.showMessageDialog(null, "Peer was not opened.", "Chat Failed", Dialog.WARNING_MESSAGE);
+            return false;
         }
+        openChat(peerInfo);
+        nameField.getTextField().setText("");
+        ipField.getTextField().setText("");
+        System.out.println("[INFO] Direct chat opened. peer=" + peerInfo.addressKey());
         return true;
+    }
+
+    /**
+     * Chuyen thang sang trang chat va mo conversation vua connect.
+     */
+    private void openChat(PeerInfo peerInfo) {
+        RouterManager routerManager = RouterManager.getInstance();
+        routerManager.navigateTo("chats");
+        Component route = routerManager.getRoute("chats");
+        if (route instanceof ChatPage chatPage) {
+            chatPage.onChatSelected(peerInfo.getName(), peerInfo.addressKey());
+        }
     }
 
     public static boolean isValidPeerAddress(String value) {

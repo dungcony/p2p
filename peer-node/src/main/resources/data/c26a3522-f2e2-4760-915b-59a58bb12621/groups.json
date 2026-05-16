@@ -1,0 +1,15 @@
+[
+  {
+    "groupId": "8fabdaf9-7b3f-42e9-a1c4-b2a2209a7092",
+    "name": "New group",
+    "members": [
+      {
+        "id": "f14a8090-35aa-4fd9-b07f-4354d5d8998a",
+        "name": "dungcony",
+        "host": "172.28.128.1",
+        "port": 5001,
+        "online": true
+      }
+    ]
+  }
+]

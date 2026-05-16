@@ -6,29 +6,50 @@ import dungcony.ds.model.PeerInfo;
 import java.util.Collection;
 
 public interface PeerDirectoryService {
-    // thêm peer vào danh bạ theo address key
+    /**
+     * Them peer vao danh ba theo addressKey.
+     */
     void put(PeerInfo peerInfo);
 
-    // lấy danh sasch peer runtime hiện tại
+    /**
+     * Lay danh sach peer runtime hien tai.
+     */
     Collection<PeerInfo> list();
 
-    // lấy số peer đã biết
+    /**
+     * Lay so peer da biet.
+     */
     int size();
 
-    // thêm 1 peer đã biết
+    /**
+     * Them mot peer tu input name va host/port.
+     */
     PeerInfo addKnownPeer(String name, String hostAndMaybePort);
 
-    // tìm peer đã biết
+    /**
+     * Tim peer da biet hoac phan tich dia chi dau vao thanh PeerInfo tam thoi.
+     */
     PeerInfo resolvePeer(String hostAndMaybePort);
 
-    // chuyển chuỗi host thành peerInfo
+    /**
+     * Chuyen chuoi host hoac host:port thanh PeerInfo voi port mac dinh neu khong nhap port.
+     */
     PeerInfo parsePeer(String name, String hostAndMaybePort);
 
-    // tìm peer theo id
+    /**
+     * Tim peer runtime theo user_id on dinh do bootstrap cap.
+     */
     PeerInfo findKnownPeerById(String peerId);
 
-    // tạo peer info và lưu lại
+    /**
+     * Tao PeerInfo tu message den va giu lai ten hien thi neu peer da co trong map.
+     */
     PeerInfo mergeSenderFromKnownPeers(Message message);
+
+    /**
+     * Dong bo danh sach online bootstrap tra ve, danh dau peer vang mat la offline.
+     */
+    int syncOnlinePeers(Collection<PeerInfo> onlinePeers);
 
     /**
      * Kiem tra peer co tro ve local peer hay khong.

@@ -16,6 +16,7 @@ public class MessageRecord {
     private String receiverHost;
     private int receiverPort;
     private String groupId;
+    private String groupName;
     private String messageType;
     private String content;
     private long timestamp;
@@ -37,6 +38,7 @@ public class MessageRecord {
         record.receiverHost = message.getReceiverHost();
         record.receiverPort = message.getReceiverPort();
         record.groupId = message.getGroupId();
+        record.groupName = message.getGroupName();
         record.messageType = message.getType().name();
         record.content = message.getContent();
         record.timestamp = message.getTimestamp();
@@ -58,6 +60,7 @@ public class MessageRecord {
                 receiverHost,
                 receiverPort,
                 groupId,
+                groupName,
                 content,
                 timestamp,
                 fromCurrentUser
@@ -70,6 +73,22 @@ public class MessageRecord {
 
     public String getConversationPeerId() {
         return conversationPeerId;
+    }
+
+    public String getConversationPeerName() {
+        return conversationPeerName;
+    }
+
+    public String getConversationPeerKey() {
+        return conversationPeerKey;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public String getMessageType() {
+        return messageType;
     }
 
     public long getTimestamp() {

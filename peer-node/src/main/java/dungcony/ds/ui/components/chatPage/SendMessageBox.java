@@ -111,15 +111,16 @@ class SendMessageBox extends JPanel {
 
             if (!messageText.isBlank()) {
                 String ip = parentScreen.getIpAddress();
-                if (ip == null || ip.isBlank()) {
+                String groupId = parentScreen.getGroupId();
+                if (!parentScreen.isGroupChat() && (ip == null || ip.isBlank())) {
                     System.out.println("[WARN] UI send ignored because no peer is selected.");
                     return;
                 }
-                if (App.peerNode != null && App.peerNode.isSelfAddress(ip)) {
+                if (!parentScreen.isGroupChat() && App.peerNode != null && App.peerNode.isSelfAddress(ip)) {
                     System.out.println("[WARN] UI send ignored because selected peer is local peer: " + ip);
                     return;
                 }
-                System.out.println("[INFO] UI send message requested. to=" + ip
+                System.out.println("[INFO] UI send message requested. target=" + (parentScreen.isGroupChat() ? groupId : ip)
                         + ", length=" + messageText.length());
 
                 // Clear the field immediately for better UX
@@ -135,7 +136,11 @@ class SendMessageBox extends JPanel {
                     protected Void doInBackground() throws Exception {
                         try {
                             if (App.peerNode != null) {
-                                App.peerNode.sendMessage(messageText, ip);
+                                if (parentScreen.isGroupChat()) {
+                                    App.peerNode.sendGroupMessage(groupId, messageText);
+                                } else {
+                                    App.peerNode.sendMessage(messageText, ip);
+                                }
                             } else {
                                 System.out.println("[WARN] Cannot send message because App.peerNode is null.");
                             }

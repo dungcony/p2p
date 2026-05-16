@@ -148,8 +148,19 @@ public class BootstrapClient {
      * Lay danh sach peer online tu bootstrap-server khi can refresh thu cong.
      */
     public Collection<PeerInfo> list() {
+        Collection<PeerInfo> peers = listOrNull();
+        return peers == null ? Collections.emptyList() : peers;
+    }
+
+    /**
+     * Lay danh sach peer online, tra null neu khong ket noi duoc bootstrap-server.
+     */
+    public Collection<PeerInfo> listOrNull() {
         String response = requestRaw("LIST", "");
-        if (response == null || response.isBlank()) {
+        if (response == null) {
+            return null;
+        }
+        if (response.isBlank()) {
             return Collections.emptyList();
         }
         PeerInfo[] peers = gson.fromJson(response, PeerInfo[].class);

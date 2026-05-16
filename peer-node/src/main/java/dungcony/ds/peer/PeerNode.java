@@ -9,6 +9,7 @@ import dungcony.ds.interfaces.MessageHistoryService;
 import dungcony.ds.interfaces.NetworkAddressService;
 import dungcony.ds.interfaces.PeerDirectoryService;
 import dungcony.ds.interfaces.PeerPresenceService;
+import dungcony.ds.mapper.Mes;
 import dungcony.ds.model.BootstrapClient;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
@@ -33,6 +34,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class PeerNode {
     public static final int DEFAULT_PORT = 5001;
+    private static final long BOOTSTRAP_REFRESH_INTERVAL_MS = 5000;
+    private static final String GROUP_CHAT_PREFIX = "group:";
 
     private final PeerInfo localPeer;
     private final List<MessageListener> messageListeners = new CopyOnWriteArrayList<>();
@@ -47,6 +50,7 @@ public class PeerNode {
     private final MessageSender messageSender;
     private final TCPServer tcpServer;
     private final BootstrapClient bootstrapClient;
+    private volatile boolean running;
 
     /**
      * Khởi tạo một peer cục bộ với tên định danh và port lắng nghe do người dùng nhập.
@@ -118,11 +122,12 @@ public class PeerNode {
      */
     public void start() {
         System.out.println("[INFO] Starting TCP listener for local peer " + localPeer.addressKey());
+        running = true;
         Thread serverThread = new Thread(tcpServer::listen, "PeerNode-TCPServer-" + localPeer.getPort());
         serverThread.setDaemon(true);
         serverThread.start();
         if (bootstrapSyncService != null) {
-            Thread bootstrapThread = new Thread(bootstrapSyncService::registerAndJoinBootstrap, "PeerNode-Bootstrap");
+            Thread bootstrapThread = new Thread(this::runBootstrapSyncLoop, "PeerNode-Bootstrap");
             bootstrapThread.setDaemon(true);
             bootstrapThread.start();
         }
@@ -133,6 +138,7 @@ public class PeerNode {
      */
     public void stop() {
         System.out.println("[INFO] Stopping PeerNode " + localPeer.addressKey());
+        running = false;
         if (bootstrapClient != null) {
             bootstrapClient.leave(localPeer.addressKey());
         }
@@ -178,10 +184,45 @@ public class PeerNode {
     }
 
     /**
+     * Lay danh sach chat: peer online tu bootstrap va peer offline da tung co message.
+     */
+    public Collection<PeerInfo> getChatListPeers() {
+        Map<String, PeerInfo> conversations = new LinkedHashMap<>();
+        for (PeerInfo peerInfo : peerDirectoryService.list()) {
+            if (peerInfo.isOnline()) {
+                conversations.put(peerInfo.getId(), peerInfo);
+            }
+        }
+        for (PeerInfo historyPeer : messageHistoryService.getDirectConversationPeers()) {
+            PeerInfo runtimePeer = peerDirectoryService.findKnownPeerById(historyPeer.getId());
+            if (runtimePeer == null) {
+                peerDirectoryService.put(historyPeer);
+                conversations.put(historyPeer.getId(), historyPeer);
+            } else {
+                conversations.put(historyPeer.getId(), runtimePeer);
+            }
+        }
+        System.out.println("[DEBUG] Chat list peers resolved. count=" + conversations.size());
+        return conversations.values();
+    }
+
+    /**
      * Kiem tra peer co online khong, uu tien trang thai tu bootstrap-server.
      */
     public boolean checkUserIsOnline(String hostAndMaybePort) {
         return peerPresenceService.checkUserIsOnline(hostAndMaybePort);
+    }
+
+    /**
+     * Kiem tra bootstrap-server co dang reachable khong de quyet dinh luong tao group.
+     */
+    public boolean isBootstrapAvailable() {
+        if (bootstrapClient == null) {
+            return false;
+        }
+        boolean available = bootstrapClient.listOrNull() != null;
+        System.out.println("[INFO] Bootstrap availability checked. available=" + available);
+        return available;
     }
 
     /**
@@ -200,10 +241,28 @@ public class PeerNode {
             System.out.println("[WARN] Cannot send group message. Group not found: " + groupId);
             return;
         }
-        Message message = Message.groupChat(localPeer, groupId, content);
+        Message message = Message.groupChat(localPeer, groupId, group.getName(), content);
         System.out.println("[INFO] Broadcasting GROUP_CHAT message id=" + message.getId()
                 + " to group=" + groupId + ", members=" + group.getMembers().size());
-        messageSender.broadcast(group, message);
+        for (PeerInfo member : group.getMembers()) {
+            PeerInfo target = peerDirectoryService.findKnownPeerById(member.getId());
+            if (target == null) {
+                target = member;
+            }
+            if (peerDirectoryService.isSelfPeer(target)) {
+                continue;
+            }
+            Message memberMessage = Message.groupChat(localPeer, target, groupId, group.getName(), content);
+            boolean sent = target.isOnline() && messageSender.send(target, memberMessage);
+            target.setOnline(sent);
+            member.setOnline(sent);
+            if (!sent) {
+                storeGroupOfflineIfPossible(memberMessage, target);
+            }
+        }
+        messageHistoryService.addAndSave(groupHistoryKey(groupId), groupConversationPeer(group), message);
+        notifyMessage(message);
+        notifyPeersChanged();
     }
 
     /**
@@ -211,6 +270,22 @@ public class PeerNode {
      */
     public GroupManager getGroupManager() {
         return groupManager;
+    }
+
+    /**
+     * Tao group chat moi tu danh sach peer duoc chon trong UI.
+     */
+    public Group createGroup(String name, Collection<PeerInfo> members) {
+        Group group = groupManager.createGroup(name, members);
+        notifyPeersChanged();
+        return group;
+    }
+
+    /**
+     * Lay cac group hien tai cua peer de UI hien thi.
+     */
+    public Collection<Group> getGroups() {
+        return groupManager.getAllGroups();
     }
 
     /**
@@ -230,6 +305,28 @@ public class PeerNode {
     }
 
     /**
+     * Lay lich su message cua group.
+     */
+    public List<Message> getMessagesWithGroup(String groupId) {
+        Group group = groupManager.getGroup(groupId);
+        PeerInfo groupPeer = group == null
+                ? new PeerInfo(groupId, groupId, GROUP_CHAT_PREFIX + groupId, 0, false)
+                : groupConversationPeer(group);
+        return messageHistoryService.getMessages(groupPeer, groupHistoryKey(groupId));
+    }
+
+    /**
+     * Lay message cuoi cung cua group de hien preview.
+     */
+    public Message getLastGroupMessage(String groupId) {
+        Group group = groupManager.getGroup(groupId);
+        PeerInfo groupPeer = group == null
+                ? new PeerInfo(groupId, groupId, GROUP_CHAT_PREFIX + groupId, 0, false)
+                : groupConversationPeer(group);
+        return messageHistoryService.getLastMessage(groupPeer, groupHistoryKey(groupId));
+    }
+
+    /**
      * Quét subnet LAN hiện tại bằng heartbeat để tìm các peer đang chạy cùng port.
      */
     public List<PeerInfo> discoverPeersOnLocalNetwork() {
@@ -244,7 +341,22 @@ public class PeerNode {
     public void onInboundMessage(Message message) {
         PeerInfo sender = peerDirectoryService.mergeSenderFromKnownPeers(message);
         peerDirectoryService.put(sender);
-        messageHistoryService.addAndSave(sender, message);
+        if (message.getGroupId() != null && !message.getGroupId().isBlank()) {
+            Group group = groupManager.getGroup(message.getGroupId());
+            if (group == null) {
+                group = groupManager.ensureLocalGroup(
+                        message.getGroupId(),
+                        message.getGroupName(),
+                        List.of(localPeer, sender)
+                );
+            } else {
+                groupManager.ensureLocalGroup(message.getGroupId(), group.getName(), List.of(localPeer, sender));
+            }
+            PeerInfo groupPeer = groupConversationPeer(group);
+            messageHistoryService.addAndSave(groupHistoryKey(message.getGroupId()), groupPeer, message);
+        } else {
+            messageHistoryService.addAndSave(sender, message);
+        }
         System.out.println("[INFO] Inbound " + message.getType() + " message stored. id=" + message.getId()
                 + ", from=" + sender.addressKey());
         notifyPeersChanged();
@@ -292,6 +404,54 @@ public class PeerNode {
         } else {
             SwingUtilities.invokeLater(notifier);
         }
+    }
+
+    /**
+     * Chay REGISTER/JOIN mot lan, sau do dinh ky refresh LIST/GROUP de thay peer moi join.
+     */
+    private void runBootstrapSyncLoop() {
+        bootstrapSyncService.registerAndJoinBootstrap();
+        while (running) {
+            try {
+                Thread.sleep(BOOTSTRAP_REFRESH_INTERVAL_MS);
+                bootstrapSyncService.refreshFromBootstrap();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            } catch (RuntimeException e) {
+                System.out.println("[ERROR] Bootstrap refresh loop failed: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Tao key rieng cho history cua group.
+     */
+    private String groupHistoryKey(String groupId) {
+        return GROUP_CHAT_PREFIX + groupId;
+    }
+
+    /**
+     * Tao PeerInfo dai dien group de LocalMessageRepo luu conversation theo groupId.
+     */
+    private PeerInfo groupConversationPeer(Group group) {
+        return new PeerInfo(group.getGroupId(), group.getName(), GROUP_CHAT_PREFIX + group.getGroupId(), 0, true);
+    }
+
+    /**
+     * Luu group message offline len bootstrap theo receiverId cua tung member.
+     */
+    private void storeGroupOfflineIfPossible(Message message, PeerInfo member) {
+        if (bootstrapClient == null) {
+            System.out.println("[WARN] Cannot store offline group message because bootstrap is disabled. member="
+                    + member.getId());
+            return;
+        }
+        boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
+        System.out.println("[INFO] Offline group fallback stored=" + stored
+                + ", messageId=" + message.getId()
+                + ", groupId=" + message.getGroupId()
+                + ", receiverId=" + member.getId());
     }
 
 }

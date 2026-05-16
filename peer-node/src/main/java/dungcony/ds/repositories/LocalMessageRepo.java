@@ -14,7 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class LocalMessageRepo {
@@ -114,6 +116,30 @@ public class LocalMessageRepo {
     }
 
     /**
+     * Doc danh sach peer da tung co tin nhan 1-1 de hien lai conversation khi peer offline.
+     */
+    public synchronized List<PeerInfo> findDirectConversationPeers() {
+        Map<String, PeerInfo> peersById = new LinkedHashMap<>();
+        for (MessageRecord record : readAllRecords()) {
+            if (record.getConversationPeerId() == null || record.getConversationPeerId().isBlank()) {
+                continue;
+            }
+            if (record.getGroupId() != null && !record.getGroupId().isBlank()) {
+                continue;
+            }
+            if (!"CHAT".equals(record.getMessageType())) {
+                continue;
+            }
+            PeerInfo peerInfo = toPeerInfo(record);
+            if (peerInfo != null) {
+                peersById.put(peerInfo.getId(), peerInfo);
+            }
+        }
+        System.out.println("[DEBUG] Local direct conversation peers loaded. count=" + peersById.size());
+        return new ArrayList<>(peersById.values());
+    }
+
+    /**
      * Doc toan bo record tu file JSON local.
      */
     private List<MessageRecord> readAllRecords() {
@@ -130,6 +156,34 @@ public class LocalMessageRepo {
         } catch (IOException | RuntimeException e) {
             System.out.println("[ERROR] Failed to read local message JSON: " + e.getMessage());
             return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Chuyen metadata conversation trong JSON thanh PeerInfo de UI co the hien history offline.
+     */
+    private PeerInfo toPeerInfo(MessageRecord record) {
+        String peerKey = record.getConversationPeerKey();
+        if (peerKey == null || peerKey.isBlank()) {
+            return null;
+        }
+        int colonIndex = peerKey.lastIndexOf(':');
+        if (colonIndex <= 0 || colonIndex >= peerKey.length() - 1) {
+            return null;
+        }
+        try {
+            String host = peerKey.substring(0, colonIndex);
+            int port = Integer.parseInt(peerKey.substring(colonIndex + 1));
+            return new PeerInfo(
+                    record.getConversationPeerId(),
+                    record.getConversationPeerName(),
+                    host,
+                    port,
+                    false
+            );
+        } catch (NumberFormatException e) {
+            System.out.println("[WARN] Ignored invalid conversation peer key: " + peerKey);
+            return null;
         }
     }
 

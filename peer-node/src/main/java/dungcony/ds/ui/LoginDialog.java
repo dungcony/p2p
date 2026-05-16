@@ -1,43 +1,37 @@
 package dungcony.ds.ui;
 
-import dungcony.ds.peer.PeerNode;
-
 import javax.swing.*;
 import java.awt.*;
 
 public class LoginDialog extends JDialog {
     private final JTextField idField;
     private final JTextField nameField;
-    private final JTextField portField;
     private boolean confirmed;
 
     /**
-     * Tạo dialog nhập tên peer và port lắng nghe trước khi khởi động PeerNode.
+     * Tao dialog nhap ten peer truoc khi khoi dong PeerNode.
      */
     public LoginDialog() {
-        this("peer-local", System.getProperty("user.name", "peer"), PeerNode.DEFAULT_PORT);
+        this("peer-local", System.getProperty("user.name", "peer"));
     }
 
     /**
-     * Tạo dialog nhập peer với giá trị mặc định lấy từ cấu hình đã lưu.
+     * Tao dialog nhap peer voi gia tri mac dinh lay tu cau hinh da luu.
      */
-    public LoginDialog(String defaultPeerId, String defaultPeerName, int defaultPort) {
+    public LoginDialog(String defaultPeerId, String defaultPeerName) {
         this.idField = new JTextField(defaultPeerId == null || defaultPeerId.isBlank() ? "peer-local" : defaultPeerId, 20);
         this.nameField = new JTextField(defaultPeerName == null || defaultPeerName.isBlank() ? "peer" : defaultPeerName, 20);
-        this.portField = new JTextField(String.valueOf(defaultPort), 20);
         setTitle("Start P2P Chat");
         setModal(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(12, 12));
 
-        JPanel form = new JPanel(new GridLayout(2, 2, 8, 8));
+        JPanel form = new JPanel(new GridLayout(1, 2, 8, 8));
         form.setBorder(BorderFactory.createEmptyBorder(16, 16, 0, 16));
 //        form.add(new JLabel("Peer ID"));
 //        form.add(idField);
         form.add(new JLabel("Peer name"));
         form.add(nameField);
-        form.add(new JLabel("Listen port"));
-        form.add(portField);
 
         JButton startButton = new JButton("Start");
         startButton.addActionListener(e -> confirm());
@@ -56,22 +50,13 @@ public class LoginDialog extends JDialog {
     }
 
     /**
-     * Kiểm tra port hợp lệ và đóng dialog khi người dùng xác nhận.
+     * Dong dialog khi nguoi dung xac nhan thong tin profile.
      */
     private void confirm() {
-        try {
-            int port = Integer.parseInt(portField.getText().trim());
-            if (port < 1 || port > 65535) {
-                throw new NumberFormatException("Port out of range");
-            }
-            confirmed = true;
-            System.out.println("[INFO] Login confirmed. peerId=" + getPeerId()
-                    + ", peerName=" + getPeerName() + ", port=" + port);
-            dispose();
-        } catch (NumberFormatException e) {
-            System.out.println("[WARN] Login rejected because port is invalid: " + portField.getText());
-            JOptionPane.showMessageDialog(this, "Port must be a number from 1 to 65535.", "Invalid port", JOptionPane.ERROR_MESSAGE);
-        }
+        confirmed = true;
+        System.out.println("[INFO] Login confirmed. peerId=" + getPeerId()
+                + ", peerName=" + getPeerName());
+        dispose();
     }
 
     /**
@@ -97,10 +82,4 @@ public class LoginDialog extends JDialog {
         return name == null || name.isBlank() ? "peer" : name.trim();
     }
 
-    /**
-     * Lấy port đã nhập để PeerNode mở TCPServer.
-     */
-    public int getPeerPort() {
-        return Integer.parseInt(portField.getText().trim());
-    }
 }

@@ -4,5 +4,6 @@ import dungcony.ds.config.PeerConfig;
 
 public record ProfileSelection(
         PeerConfig config,
-        boolean editBeforeStart) {
+        boolean editBeforeStart,
+        boolean newProfile) {
 }

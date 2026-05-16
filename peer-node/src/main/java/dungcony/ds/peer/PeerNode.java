@@ -1,8 +1,11 @@
 package dungcony.ds.peer;
 
 import dungcony.ds.model.Group;
+import dungcony.ds.model.JoinResponse;
 import dungcony.ds.model.Message;
+import dungcony.ds.model.OfflineMessage;
 import dungcony.ds.model.PeerInfo;
+import dungcony.ds.network.BootstrapClient;
 import dungcony.ds.network.TCPClient;
 import dungcony.ds.network.TCPServer;
 
@@ -32,17 +35,30 @@ public class PeerNode {
     private final GroupManager groupManager = new GroupManager();
     private final MessageSender messageSender;
     private final TCPServer tcpServer;
+    private final BootstrapClient bootstrapClient;
 
     /**
      * Khởi tạo một peer cục bộ với tên định danh và port lắng nghe do người dùng nhập.
      */
     public PeerNode(String peerId, int port) {
-        this.localPeer = new PeerInfo(peerId, resolveLocalHost(), port);
+        this(peerId, peerId, port, null, 0);
+    }
+
+    /**
+     * Khởi tạo peer với id ổn định, tên hiển thị, port lắng nghe và bootstrap-server.
+     */
+    public PeerNode(String peerId, String peerName, int port, String bootstrapHost, int bootstrapPort) {
+        this.localPeer = new PeerInfo(peerId, peerName, resolveLocalHost(), port);
         TCPClient tcpClient = new TCPClient();
         this.messageSender = new MessageSender(tcpClient);
         this.tcpServer = new TCPServer(port, new MessageReceiver(this));
+        this.bootstrapClient = bootstrapHost == null || bootstrapHost.isBlank()
+                ? null
+                : new BootstrapClient(bootstrapHost, bootstrapPort);
         System.out.println("[INFO] PeerNode initialized: id=" + localPeer.getId()
-                + ", address=" + localPeer.addressKey());
+                + ", name=" + localPeer.getName()
+                + ", address=" + localPeer.addressKey()
+                + ", bootstrap=" + (bootstrapClient == null ? "disabled" : bootstrapHost + ":" + bootstrapPort));
     }
 
     /**
@@ -53,6 +69,11 @@ public class PeerNode {
         Thread serverThread = new Thread(tcpServer::listen, "PeerNode-TCPServer-" + localPeer.getPort());
         serverThread.setDaemon(true);
         serverThread.start();
+        if (bootstrapClient != null) {
+            Thread bootstrapThread = new Thread(this::registerAndJoinBootstrap, "PeerNode-Bootstrap");
+            bootstrapThread.setDaemon(true);
+            bootstrapThread.start();
+        }
     }
 
     /**
@@ -60,6 +81,9 @@ public class PeerNode {
      */
     public void stop() {
         System.out.println("[INFO] Stopping PeerNode " + localPeer.addressKey());
+        if (bootstrapClient != null) {
+            bootstrapClient.leave(localPeer.addressKey());
+        }
         tcpServer.stop();
     }
 
@@ -167,6 +191,7 @@ public class PeerNode {
         } else {
             System.out.println("[WARN] CHAT message failed after retries. id=" + message.getId()
                     + ", to=" + receiver.addressKey());
+            storeOfflineIfPossible(message);
         }
         notifyPeersChanged();
         return sent;
@@ -235,7 +260,7 @@ public class PeerNode {
                 continue;
             }
             Thread probe = new Thread(() -> {
-                PeerInfo peerInfo = new PeerInfo(host, host, localPeer.getPort());
+                PeerInfo peerInfo = new PeerInfo(host, host, host, localPeer.getPort());
                 if (messageSender.send(peerInfo, Message.heartbeat(localPeer))) {
                     peers.put(peerInfo.addressKey(), peerInfo);
                     System.out.println("[INFO] Discovered peer " + peerInfo.addressKey());
@@ -266,7 +291,7 @@ public class PeerNode {
      * Xử lý tin nhắn đến từ network: cập nhật peer, lưu lịch sử và notify UI.
      */
     void onInboundMessage(Message message) {
-        PeerInfo sender = new PeerInfo(message.getSenderId(), message.getSenderHost(), message.getSenderPort());
+        PeerInfo sender = mergeSenderFromKnownPeers(message);
         peers.put(sender.addressKey(), sender);
         addMessage(sender.addressKey(), message);
         System.out.println("[INFO] Inbound " + message.getType() + " message stored. id=" + message.getId()
@@ -279,7 +304,7 @@ public class PeerNode {
      * Đánh dấu peer gửi heartbeat/JOIN là online trong danh sách peer đã biết.
      */
     void markPeerOnline(Message message) {
-        PeerInfo sender = new PeerInfo(message.getSenderId(), message.getSenderHost(), message.getSenderPort());
+        PeerInfo sender = mergeSenderFromKnownPeers(message);
         peers.put(sender.addressKey(), sender);
         System.out.println("[DEBUG] Marked peer online from " + message.getType()
                 + ": " + sender.addressKey());
@@ -336,6 +361,94 @@ public class PeerNode {
     }
 
     /**
+     * Dang ky user voi bootstrap, join vao mang, va nap danh sach peer online ve bo nho runtime.
+     */
+    private void registerAndJoinBootstrap() {
+        System.out.println("[INFO] Registering local peer with bootstrap. peerId=" + localPeer.getId()
+                + ", name=" + localPeer.getName());
+        boolean registered = bootstrapClient.register(localPeer);
+        if (!registered) {
+            System.out.println("[WARN] Bootstrap REGISTER failed. Peer still runs in direct TCP mode.");
+            return;
+        }
+
+        JoinResponse joinResponse = bootstrapClient.join(localPeer);
+        int added = 0;
+        for (PeerInfo peerInfo : joinResponse.getOnlinePeers()) {
+            if (peerInfo == null || isSelfPeer(peerInfo)) {
+                continue;
+            }
+            peers.put(peerInfo.addressKey(), peerInfo);
+            added++;
+            System.out.println("[INFO] Bootstrap discovered peer id=" + peerInfo.getId()
+                    + ", name=" + peerInfo.getName()
+                    + ", address=" + peerInfo.addressKey());
+        }
+        handleOfflineMessages(joinResponse);
+        notifyPeersChanged();
+        System.out.println("[INFO] Bootstrap sync completed. addedPeers=" + added
+                + ", knownPeers=" + peers.size());
+    }
+
+    /**
+     * Luu tin offline len bootstrap-server de receiver nhan lai khi JOIN.
+     */
+    private void storeOfflineIfPossible(Message message) {
+        if (bootstrapClient == null) {
+            System.out.println("[WARN] Cannot store offline message because bootstrap is disabled. messageId="
+                    + message.getId());
+            return;
+        }
+        boolean stored = bootstrapClient.storeOffline(OfflineMessage.fromMessage(message));
+        System.out.println("[INFO] Offline fallback stored=" + stored + ", messageId=" + message.getId());
+    }
+
+    /**
+     * Dua cac tin offline bootstrap tra ve vao history neu tim duoc peer gui trong danh sach da biet.
+     */
+    private void handleOfflineMessages(JoinResponse joinResponse) {
+        for (OfflineMessage offlineMessage : joinResponse.getOfflineMessages()) {
+            PeerInfo sender = findKnownPeerById(offlineMessage.getSenderId());
+            String historyKey = sender == null ? offlineMessage.getSenderId() : sender.addressKey();
+            Message message = new Message(
+                    sender == null ? offlineMessage.getSenderId() : sender.getHost(),
+                    offlineMessage.getContent(),
+                    false
+            );
+            addMessage(historyKey, message);
+            notifyMessage(message);
+            System.out.println("[INFO] Offline message loaded. messageId=" + offlineMessage.getMessageId()
+                    + ", senderId=" + offlineMessage.getSenderId()
+                    + ", historyKey=" + historyKey);
+        }
+    }
+
+    /**
+     * Tim peer runtime theo user_id on dinh do bootstrap cap.
+     */
+    private PeerInfo findKnownPeerById(String peerId) {
+        if (peerId == null || peerId.isBlank()) {
+            return null;
+        }
+        for (PeerInfo peerInfo : peers.values()) {
+            if (peerId.equals(peerInfo.getId())) {
+                return peerInfo;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Tao PeerInfo tu message den va giu lai ten hien thi neu peer da co trong map.
+     */
+    private PeerInfo mergeSenderFromKnownPeers(Message message) {
+        String key = message.getSenderHost() + ":" + message.getSenderPort();
+        PeerInfo existing = peers.get(key);
+        String displayName = existing == null ? message.getSenderId() : existing.getName();
+        return new PeerInfo(message.getSenderId(), displayName, message.getSenderHost(), message.getSenderPort());
+    }
+
+    /**
      * Kiểm tra địa chỉ người dùng nhập có trỏ về chính peer hiện tại hay không.
      */
     public boolean isSelfAddress(String hostAndMaybePort) {
@@ -347,7 +460,13 @@ public class PeerNode {
      * So sánh PeerInfo với localPeer để chặn self-chat trong mọi luồng logic.
      */
     private boolean isSelfPeer(PeerInfo peerInfo) {
-        if (peerInfo == null || peerInfo.getPort() != localPeer.getPort()) {
+        if (peerInfo == null) {
+            return false;
+        }
+        if (localPeer.getId().equals(peerInfo.getId())) {
+            return true;
+        }
+        if (peerInfo.getPort() != localPeer.getPort()) {
             return false;
         }
         return isSameHost(peerInfo.getHost(), localPeer.getHost());

@@ -9,6 +9,19 @@ import java.sql.SQLException;
 public record UserRepo(Conn conn) {
 
     /**
+     * Them moi hoac cap nhat user bang connection rieng khi xu ly REGISTER doc lap.
+     */
+    public void upsert(UserEntity userEntity) {
+        try (Connection connection = conn.getConnection()) {
+            upsert(userEntity, connection);
+            System.out.println("[INFO] SQLite upserted user=" + userEntity.getUserId()
+                    + ", displayName=" + userEntity.getDisplayName());
+        } catch (SQLException e) {
+            System.out.println("[ERROR] Failed to upsert user: " + e.getMessage());
+        }
+    }
+
+    /**
      * Them moi hoac cap nhat user trong bang users.
      */
     public void upsert(UserEntity userEntity, Connection connection) throws SQLException {

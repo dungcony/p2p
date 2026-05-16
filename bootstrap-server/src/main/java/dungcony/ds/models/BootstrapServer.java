@@ -51,7 +51,7 @@ public class BootstrapServer {
     }
 
     /**
-     * Bắt đầu vòng lặp accept request JOIN/LEAVE/LIST từ các peer.
+     * Bắt đầu vòng lặp accept request REGISTER/JOIN/LEAVE/LIST từ các peer.
      */
     public void start() {
         running = true;
@@ -81,7 +81,7 @@ public class BootstrapServer {
     }
 
     /**
-     * Xử lý một request tracker: JOIN để đăng ký, LEAVE để rời mạng, LIST để lấy danh sách peer.
+     * Xử lý một request tracker: REGISTER để lưu user, JOIN để online, LEAVE để rời mạng, LIST để lấy danh sách peer.
      */
     private void handle(Socket socket) {
         try (Socket accepted = socket;
@@ -100,6 +100,15 @@ public class BootstrapServer {
             System.out.println("[INFO] Bootstrap request command=" + command);
 
             switch (command) {
+                case "REGISTER" -> {
+                    PeerInfo peerInfo = gson.fromJson(payload, PeerInfo.class);
+                    registry.register(peerInfo);
+                    System.out.println("[INFO] Bootstrap REGISTER userId="
+                            + (peerInfo == null ? "null" : peerInfo.getId())
+                            + ", displayName=" + (peerInfo == null ? "null" : peerInfo.getName()));
+                    writer.println("OK");
+                    return;
+                }
                 case "JOIN" -> {
                     PeerInfo peerInfo = gson.fromJson(payload, PeerInfo.class);
                     registry.join(peerInfo);

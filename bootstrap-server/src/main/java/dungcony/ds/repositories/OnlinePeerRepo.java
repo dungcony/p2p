@@ -50,13 +50,25 @@ public record OnlinePeerRepo(Conn conn)  {
     }
 
     /**
+     * Xoa tat ca dia chi online cu cua mot user trong transaction JOIN hien tai.
+     */
+    public void removeByUserId(String userId, Connection connection) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("DELETE FROM peers_online WHERE user_id = ?")) {
+            statement.setString(1, userId);
+            int deleted = statement.executeUpdate();
+            System.out.println("[DEBUG] SQLite removed stale online peers for userId="
+                    + userId + ", deleted=" + deleted);
+        }
+    }
+
+    /**
      * Doc danh sach peer dang online tu SQLite.
      */
     public Collection<PeerInfo> listOnline() {
         List<PeerInfo> peers = new ArrayList<>();
         try (Connection connection = conn.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
-                     SELECT u.display_name, p.host, p.port, p.online
+                     SELECT p.peer_key, p.user_id, u.display_name, p.host, p.port, p.online, p.last_seen
                      FROM peers_online p
                      JOIN users u ON u.user_id = p.user_id
                      WHERE p.online = 1
@@ -65,14 +77,21 @@ public record OnlinePeerRepo(Conn conn)  {
              ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
                 OnlinePeerEntity onlinePeerEntity = new OnlinePeerEntity(
-                        resultSet.getString("host") + ":" + resultSet.getInt("port"),
-                        resultSet.getString("display_name"),
+                        resultSet.getString("peer_key"),
+                        resultSet.getString("user_id"),
                         resultSet.getString("host"),
                         resultSet.getInt("port"),
                         resultSet.getInt("online") == 1,
-                        0L
+                        resultSet.getLong("last_seen")
                 );
-                peers.add(onlinePeerEntity.toPeerInfo());
+                PeerInfo peerInfo = new PeerInfo(
+                        onlinePeerEntity.getUserId(),
+                        resultSet.getString("display_name"),
+                        onlinePeerEntity.getHost(),
+                        onlinePeerEntity.getPort(),
+                        resultSet.getInt("online") == 1
+                );
+                peers.add(peerInfo);
             }
         } catch (SQLException e) {
             System.out.println("[ERROR] Failed to list online peers: " + e.getMessage());

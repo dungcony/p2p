@@ -22,9 +22,9 @@ public class UserEntity {
         String userId = peerInfo.getId() == null || peerInfo.getId().isBlank()
                 ? peerInfo.addressKey()
                 : peerInfo.getId();
-        String displayName = peerInfo.getId() == null || peerInfo.getId().isBlank()
+        String displayName = peerInfo.getName() == null || peerInfo.getName().isBlank()
                 ? userId
-                : peerInfo.getId();
+                : peerInfo.getName();
         return new UserEntity(userId, displayName, now, now);
     }
 

@@ -4,6 +4,7 @@ import java.util.Objects;
 
 public class PeerInfo {
     private String id;
+    private String name;
     private String host;
     private int port;
     private boolean online;
@@ -15,14 +16,29 @@ public class PeerInfo {
      * Tạo thông tin peer với trạng thái online mặc định.
      */
     public PeerInfo(String id, String host, int port) {
-        this(id, host, port, true);
+        this(id, id, host, port, true);
+    }
+
+    /**
+     * Tạo thông tin peer với id ổn định và tên hiển thị riêng.
+     */
+    public PeerInfo(String id, String name, String host, int port) {
+        this(id, name, host, port, true);
     }
 
     /**
      * Tạo thông tin peer đầy đủ gồm định danh, host, port và trạng thái online.
      */
     public PeerInfo(String id, String host, int port, boolean online) {
+        this(id, id, host, port, online);
+    }
+
+    /**
+     * Tạo thông tin peer đầy đủ gồm id, tên hiển thị, host, port và trạng thái online.
+     */
+    public PeerInfo(String id, String name, String host, int port, boolean online) {
         this.id = id == null || id.isBlank() ? host + ":" + port : id.trim();
+        this.name = name == null || name.isBlank() ? this.id : name.trim();
         this.host = host == null ? "" : host.trim();
         this.port = port;
         this.online = online;
@@ -33,6 +49,13 @@ public class PeerInfo {
      */
     public String getId() {
         return id;
+    }
+
+    /**
+     * Lấy tên hiển thị của peer, tách riêng với id ổn định dùng để lưu DB.
+     */
+    public String getName() {
+        return name == null || name.isBlank() ? id : name;
     }
 
     /**

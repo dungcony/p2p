@@ -6,21 +6,34 @@ import javax.swing.*;
 import java.awt.*;
 
 public class LoginDialog extends JDialog {
-    private final JTextField nameField = new JTextField(System.getProperty("user.name", "peer"), 20);
-    private final JTextField portField = new JTextField(String.valueOf(PeerNode.DEFAULT_PORT), 20);
+    private final JTextField idField;
+    private final JTextField nameField;
+    private final JTextField portField;
     private boolean confirmed;
 
     /**
      * Tạo dialog nhập tên peer và port lắng nghe trước khi khởi động PeerNode.
      */
     public LoginDialog() {
+        this("peer-local", System.getProperty("user.name", "peer"), PeerNode.DEFAULT_PORT);
+    }
+
+    /**
+     * Tạo dialog nhập peer với giá trị mặc định lấy từ cấu hình đã lưu.
+     */
+    public LoginDialog(String defaultPeerId, String defaultPeerName, int defaultPort) {
+        this.idField = new JTextField(defaultPeerId == null || defaultPeerId.isBlank() ? "peer-local" : defaultPeerId, 20);
+        this.nameField = new JTextField(defaultPeerName == null || defaultPeerName.isBlank() ? "peer" : defaultPeerName, 20);
+        this.portField = new JTextField(String.valueOf(defaultPort), 20);
         setTitle("Start P2P Chat");
         setModal(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(12, 12));
 
-        JPanel form = new JPanel(new GridLayout(2, 2, 8, 8));
+        JPanel form = new JPanel(new GridLayout(3, 2, 8, 8));
         form.setBorder(BorderFactory.createEmptyBorder(16, 16, 0, 16));
+        form.add(new JLabel("Peer ID"));
+        form.add(idField);
         form.add(new JLabel("Peer name"));
         form.add(nameField);
         form.add(new JLabel("Listen port"));
@@ -52,7 +65,8 @@ public class LoginDialog extends JDialog {
                 throw new NumberFormatException("Port out of range");
             }
             confirmed = true;
-            System.out.println("[INFO] Login confirmed. peerName=" + getPeerName() + ", port=" + port);
+            System.out.println("[INFO] Login confirmed. peerId=" + getPeerId()
+                    + ", peerName=" + getPeerName() + ", port=" + port);
             dispose();
         } catch (NumberFormatException e) {
             System.out.println("[WARN] Login rejected because port is invalid: " + portField.getText());
@@ -65,6 +79,14 @@ public class LoginDialog extends JDialog {
      */
     public boolean isConfirmed() {
         return confirmed;
+    }
+
+    /**
+     * Lấy id đăng ký ổn định của peer, dùng làm user_id trên bootstrap-server.
+     */
+    public String getPeerId() {
+        String peerId = idField.getText();
+        return peerId == null || peerId.isBlank() ? "peer-local" : peerId.trim();
     }
 
     /**

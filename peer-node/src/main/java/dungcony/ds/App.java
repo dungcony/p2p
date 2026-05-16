@@ -1,5 +1,6 @@
 package dungcony.ds;
 
+import dungcony.ds.config.PeerConfig;
 import dungcony.ds.peer.PeerNode;
 import dungcony.ds.ui.LoginDialog;
 import dungcony.ds.ui.Main;
@@ -17,16 +18,27 @@ public class App {
      */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            LoginDialog loginDialog = new LoginDialog();
+            PeerConfig config = PeerConfig.load();
+            LoginDialog loginDialog = new LoginDialog(config.getPeerId(), config.getPeerName(), config.getPeerPort());
             loginDialog.setVisible(true);
             if (!loginDialog.isConfirmed()) {
                 System.out.println("[INFO] Login dialog cancelled. Application will not start PeerNode.");
                 return;
             }
 
+            config.updateLogin(loginDialog.getPeerId(), loginDialog.getPeerName(), loginDialog.getPeerPort());
+            config.save();
+
             System.out.println("[INFO] Starting PeerNode with name=" + loginDialog.getPeerName()
-                    + ", port=" + loginDialog.getPeerPort());
-            peerNode = new PeerNode(loginDialog.getPeerName(), loginDialog.getPeerPort());
+                    + ", port=" + loginDialog.getPeerPort()
+                    + ", bootstrap=" + config.getBootstrapHost() + ":" + config.getBootstrapPort());
+            peerNode = new PeerNode(
+                    config.getPeerId(),
+                    config.getPeerName(),
+                    config.getPeerPort(),
+                    config.getBootstrapHost(),
+                    config.getBootstrapPort()
+            );
             peerNode.start();
 
             System.out.println("[INFO] Opening main chat window.");

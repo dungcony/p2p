@@ -41,6 +41,21 @@ public class PeerRegistry {
     }
 
     /**
+     * Dang ky hoac cap nhat thong tin user/peer trong bang users, chua danh dau online.
+     */
+    public void register(PeerInfo peerInfo) {
+        if (peerInfo == null) {
+            System.out.println("[WARN] PeerRegistry register ignored null peer.");
+            return;
+        }
+        long now = System.currentTimeMillis();
+        UserEntity userEntity = UserEntity.fromPeerInfo(peerInfo, now);
+        userRepo.upsert(userEntity);
+        System.out.println("[INFO] PeerRegistry registered userId=" + userEntity.getUserId()
+                + ", displayName=" + userEntity.getDisplayName());
+    }
+
+    /**
      * Đăng ký hoặc cập nhật một peer đang online trong tracker.
      */
     public void join(PeerInfo peerInfo) {
@@ -140,6 +155,7 @@ public class PeerRegistry {
             connection.setAutoCommit(false);
             try {
                 userRepo.upsert(userEntity, connection);
+                onlinePeerRepo.removeByUserId(userEntity.getUserId(), connection);
                 onlinePeerRepo.upsert(onlinePeerEntity, connection);
                 connection.commit();
                 System.out.println("[INFO] SQLite saved online peer=" + peerInfo.addressKey());

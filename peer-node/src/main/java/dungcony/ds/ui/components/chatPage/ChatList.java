@@ -67,7 +67,7 @@ public class ChatList extends JPanel {
                             lastMessage = message.isFromCurrentUser() ? "You: " + message.getContent() : message.getContent();
                             lastTime = message.getFormattedTime();
                         }
-                        addProfile(friend.getId(), lastMessage, lastTime, peerKey);
+                        addProfile(friend.getName(), lastMessage, lastTime, peerKey);
                     }
                 }
                 devicesContainer.revalidate();

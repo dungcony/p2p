@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+
 public class Conn {
     private static final Logger LOGGER = LoggerFactory.getLogger(Conn.class);
     private final String jdbcUrl;

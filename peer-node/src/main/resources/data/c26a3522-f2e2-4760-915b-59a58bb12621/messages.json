@@ -271,5 +271,39 @@
     "content": "khjl;",
     "timestamp": 1778946709701,
     "fromCurrentUser": false
+  },
+  {
+    "messageId": "9a16c8d6-f105-44f8-88e3-edf2207c7452",
+    "conversationPeerId": "75c7982f-9497-48b7-aa64-dd1cf8270742",
+    "conversationPeerName": "New group",
+    "conversationPeerKey": "group:75c7982f-9497-48b7-aa64-dd1cf8270742:0",
+    "senderId": "f14a8090-35aa-4fd9-b07f-4354d5d8998a",
+    "senderHost": "172.28.128.1",
+    "senderPort": 5001,
+    "receiverId": "c26a3522-f2e2-4760-915b-59a58bb12621",
+    "receiverHost": "172.28.128.1",
+    "receiverPort": 5002,
+    "groupId": "75c7982f-9497-48b7-aa64-dd1cf8270742",
+    "messageType": "GROUP_CHAT",
+    "content": "ssidughdog\\",
+    "timestamp": 1778947423685,
+    "fromCurrentUser": false
+  },
+  {
+    "messageId": "f5f84ca3-df39-494e-b870-1e5cfbdd2fb3",
+    "conversationPeerId": "75c7982f-9497-48b7-aa64-dd1cf8270742",
+    "conversationPeerName": "New group",
+    "conversationPeerKey": "group:75c7982f-9497-48b7-aa64-dd1cf8270742:0",
+    "senderId": "f14a8090-35aa-4fd9-b07f-4354d5d8998a",
+    "senderHost": "172.28.128.1",
+    "senderPort": 5001,
+    "receiverId": "c26a3522-f2e2-4760-915b-59a58bb12621",
+    "receiverHost": "172.28.128.1",
+    "receiverPort": 5002,
+    "groupId": "75c7982f-9497-48b7-aa64-dd1cf8270742",
+    "messageType": "GROUP_CHAT",
+    "content": "dlogdghf",
+    "timestamp": 1778947424887,
+    "fromCurrentUser": false
   }
 ]

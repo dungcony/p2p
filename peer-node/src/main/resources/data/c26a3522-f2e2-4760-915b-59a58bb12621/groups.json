@@ -16,6 +16,13 @@
         "host": "172.28.128.1",
         "port": 5001,
         "online": true
+      },
+      {
+        "id": "393ece72-f45a-4867-9a0f-ec22ae8adb3f",
+        "name": "dungg",
+        "host": "172.28.128.1",
+        "port": 5003,
+        "online": false
       }
     ]
   }

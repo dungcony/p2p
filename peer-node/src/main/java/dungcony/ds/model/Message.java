@@ -1,10 +1,14 @@
 package dungcony.ds.model;
 
 import dungcony.ds.enums.MessageType;
+import dungcony.ds.enums.MessageStatus;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 public class Message {
@@ -23,6 +27,9 @@ public class Message {
     private String groupName;
     private String content;
     private long timestamp;
+    private MessageStatus status;
+    private List<PeerInfo> peers;
+    private List<PeerInfo> groupMembers;
     private transient boolean fromCurrentUser;
 
     public Message() {
@@ -37,6 +44,7 @@ public class Message {
         this.senderHost = senderHost == null ? "" : senderHost.trim();
         this.content = content == null ? "" : content;
         this.timestamp = Instant.now().toEpochMilli();
+        this.status = MessageStatus.SENT;
         this.fromCurrentUser = fromCurrentUser;
     }
 
@@ -55,6 +63,7 @@ public class Message {
         message.receiverPort = receiver.getPort();
         message.content = content == null ? "" : content;
         message.timestamp = Instant.now().toEpochMilli();
+        message.status = MessageStatus.SENDING;
         message.fromCurrentUser = true;
         return message;
     }
@@ -80,6 +89,7 @@ public class Message {
         message.groupName = groupName;
         message.content = content == null ? "" : content;
         message.timestamp = Instant.now().toEpochMilli();
+        message.status = MessageStatus.SENDING;
         message.fromCurrentUser = true;
         return message;
     }
@@ -116,6 +126,7 @@ public class Message {
         message.receiverHost = source.getSenderHost();
         message.receiverPort = source.getSenderPort();
         message.timestamp = Instant.now().toEpochMilli();
+        message.status = MessageStatus.SENT;
         return message;
     }
 
@@ -130,6 +141,65 @@ public class Message {
         message.senderHost = sender.getHost();
         message.senderPort = sender.getPort();
         message.timestamp = Instant.now().toEpochMilli();
+        message.status = MessageStatus.SENT;
+        return message;
+    }
+
+    /**
+     * Tao request hoi peer dich danh sach peer ma no dang biet.
+     */
+    public static Message peerListRequest(PeerInfo sender, PeerInfo receiver) {
+        Message message = new Message();
+        message.id = UUID.randomUUID().toString();
+        message.type = MessageType.PEER_LIST_REQUEST;
+        message.senderId = sender.getId();
+        message.senderHost = sender.getHost();
+        message.senderPort = sender.getPort();
+        message.receiverId = receiver.getId();
+        message.receiverHost = receiver.getHost();
+        message.receiverPort = receiver.getPort();
+        message.timestamp = Instant.now().toEpochMilli();
+        message.status = MessageStatus.SENT;
+        return message;
+    }
+
+    /**
+     * Tao response tra danh sach peer da biet cho requester.
+     */
+    public static Message peerListResponse(PeerInfo sender, Message request, Collection<PeerInfo> peers) {
+        Message message = new Message();
+        message.id = request.getId();
+        message.type = MessageType.PEER_LIST_RESPONSE;
+        message.senderId = sender.getId();
+        message.senderHost = sender.getHost();
+        message.senderPort = sender.getPort();
+        message.receiverId = request.getSenderId();
+        message.receiverHost = request.getSenderHost();
+        message.receiverPort = request.getSenderPort();
+        message.timestamp = Instant.now().toEpochMilli();
+        message.status = MessageStatus.SENT;
+        message.peers = peers == null ? new ArrayList<>() : new ArrayList<>(peers);
+        return message;
+    }
+
+    /**
+     * Tao message dong bo membership cua group toi mot member dang online.
+     */
+    public static Message groupMembersSync(PeerInfo sender, PeerInfo receiver, Group group) {
+        Message message = new Message();
+        message.id = UUID.randomUUID().toString();
+        message.type = MessageType.GROUP_MEMBERS_SYNC;
+        message.senderId = sender.getId();
+        message.senderHost = sender.getHost();
+        message.senderPort = sender.getPort();
+        message.receiverId = receiver.getId();
+        message.receiverHost = receiver.getHost();
+        message.receiverPort = receiver.getPort();
+        message.groupId = group.getGroupId();
+        message.groupName = group.getName();
+        message.timestamp = Instant.now().toEpochMilli();
+        message.status = MessageStatus.SENT;
+        message.groupMembers = new ArrayList<>(group.getMembers());
         return message;
     }
 
@@ -162,7 +232,21 @@ public class Message {
         message.groupName = groupName;
         message.content = content == null ? "" : content;
         message.timestamp = timestamp;
+        message.status = MessageStatus.SENT;
         message.fromCurrentUser = fromCurrentUser;
+        return message;
+    }
+
+    /**
+     * Phuc hoi message tu local JSON voi trang thai gui da luu.
+     */
+    public static Message restore(String id, MessageType type, String senderId, String senderHost, int senderPort,
+                                  String receiverId, String receiverHost, int receiverPort, String groupId,
+                                  String groupName, String content, long timestamp, boolean fromCurrentUser,
+                                  MessageStatus status) {
+        Message message = restore(id, type, senderId, senderHost, senderPort, receiverId, receiverHost,
+                receiverPort, groupId, groupName, content, timestamp, fromCurrentUser);
+        message.status = status == null ? MessageStatus.SENT : status;
         return message;
     }
 
@@ -227,6 +311,22 @@ public class Message {
 
     public void setFromCurrentUser(boolean fromCurrentUser) {
         this.fromCurrentUser = fromCurrentUser;
+    }
+
+    public MessageStatus getStatus() {
+        return status == null ? MessageStatus.SENT : status;
+    }
+
+    public void setStatus(MessageStatus status) {
+        this.status = status == null ? MessageStatus.SENT : status;
+    }
+
+    public List<PeerInfo> getPeers() {
+        return peers == null ? List.of() : peers;
+    }
+
+    public List<PeerInfo> getGroupMembers() {
+        return groupMembers == null ? List.of() : groupMembers;
     }
 
     public String getFormattedTime() {

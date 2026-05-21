@@ -50,4 +50,14 @@ public class Group {
             members.add(peerInfo);
         }
     }
+
+    /**
+     * Thay danh sach thanh vien bang snapshot moi nhan tu bootstrap/peer sync.
+     */
+    public void replaceMembers(Collection<PeerInfo> newMembers) {
+        members.clear();
+        if (newMembers != null) {
+            newMembers.forEach(this::addMember);
+        }
+    }
 }

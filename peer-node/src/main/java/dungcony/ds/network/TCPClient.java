@@ -21,6 +21,17 @@ public class TCPClient {
      * Mở kết nối TCP tới peer đích, gửi một message và trả về true khi nhận ACK hợp lệ.
      */
     public boolean send(PeerInfo peerInfo, Message message) {
+        Message response = sendForResponse(peerInfo, message);
+        boolean validAck = response != null && response.getType() == MessageType.ACK && message.getId().equals(response.getId());
+        System.out.println("[DEBUG] Đã nhận phản hồi TCP. peer=" + peerInfo.addressKey()
+                + ", messageId=" + message.getId() + ", validAck=" + validAck);
+        return validAck;
+    }
+
+    /**
+     * Mở kết nối TCP tới peer đích, gửi một message và trả về response raw để xử lý các request không phải ACK.
+     */
+    public Message sendForResponse(PeerInfo peerInfo, Message message) {
         try (Socket socket = new Socket()) {
             System.out.println("[DEBUG] Bắt đầu kết nối TCP: " + peerInfo.addressKey()
                     + ", messageId=" + message.getId());
@@ -37,18 +48,18 @@ public class TCPClient {
             if (response == null || response.isBlank()) {
                 System.out.println("[WARN] Phản hồi TCP rỗng. peer=" + peerInfo.addressKey()
                         + ", messageId=" + message.getId());
-                return false;
+                return null;
             }
 
-            Message ack = protocol.deserialize(response);
-            boolean validAck = ack != null && ack.getType() == MessageType.ACK && message.getId().equals(ack.getId());
+            Message decoded = protocol.deserialize(response);
             System.out.println("[DEBUG] Đã nhận phản hồi TCP. peer=" + peerInfo.addressKey()
-                    + ", messageId=" + message.getId() + ", validAck=" + validAck);
-            return validAck;
+                    + ", messageId=" + message.getId()
+                    + ", responseType=" + (decoded == null ? "null" : decoded.getType()));
+            return decoded;
         } catch (IOException e) {
             System.out.println("[WARN] Gửi TCP thất bại. peer=" + peerInfo.addressKey()
                     + ", messageId=" + message.getId() + ", lỗi=" + e.getMessage());
-            return false;
+            return null;
         }
     }
 }

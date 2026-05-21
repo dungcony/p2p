@@ -30,6 +30,24 @@ public class MessageReceiver {
             return Message.ack(message, peerNode.getLocalPeer());
         }
 
+        if (message.getType() == MessageType.PEER_LIST_REQUEST) {
+            peerNode.markPeerOnline(message);
+            System.out.println("[DEBUG] Trả PEER_LIST_RESPONSE cho request id=" + message.getId());
+            return peerNode.buildPeerListResponse(message);
+        }
+
+        if (message.getType() == MessageType.PEER_LIST_RESPONSE) {
+            peerNode.onPeerListResponse(message);
+            System.out.println("[DEBUG] Trả ACK cho PEER_LIST_RESPONSE id=" + message.getId());
+            return Message.ack(message, peerNode.getLocalPeer());
+        }
+
+        if (message.getType() == MessageType.GROUP_MEMBERS_SYNC) {
+            peerNode.onGroupMembersSync(message);
+            System.out.println("[DEBUG] Trả ACK cho GROUP_MEMBERS_SYNC id=" + message.getId());
+            return Message.ack(message, peerNode.getLocalPeer());
+        }
+
         if (message.getType() == MessageType.CHAT || message.getType() == MessageType.GROUP_CHAT) {
             message.setFromCurrentUser(false);
             peerNode.onInboundMessage(message);

@@ -1,5 +1,7 @@
 package dungcony.ds.ui.components.chatPage;
 
+import dungcony.ds.App;
+import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
 import dungcony.ds.ui.utils.ColorPalette;
 
@@ -103,10 +105,18 @@ class MessageBubble extends JPanel {
             timeLabel.setForeground(message.isFromCurrentUser() ?
                     ColorPalette.PANEL_BACKGROUND.darker() : ColorPalette.SECONDARY_TEXT);
             timeLabel.setBorder(new EmptyBorder(4, 0, 0, 0));
+            JLabel statusLabel = createStatusLabel();
+            JButton retryButton = createRetryButton();
 
             // Set alignment
             textArea.setAlignmentX(Component.LEFT_ALIGNMENT);
             timeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            if (statusLabel != null) {
+                statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            }
+            if (retryButton != null) {
+                retryButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+            }
 
             // Constrain the panel width
             int maxWidth = 320; // 300 + some padding
@@ -114,6 +124,13 @@ class MessageBubble extends JPanel {
 
             panel.add(textArea);
             panel.add(timeLabel);
+            if (statusLabel != null) {
+                panel.add(statusLabel);
+            }
+            if (retryButton != null) {
+                panel.add(Box.createVerticalStrut(4));
+                panel.add(retryButton);
+            }
 
             return panel;
         } catch (Exception e) {
@@ -121,6 +138,56 @@ class MessageBubble extends JPanel {
             e.printStackTrace();
             return new JPanel();
         }
+    }
+
+    /**
+     * Tao label trang thai gui tin cho message cua user hien tai.
+     */
+    private JLabel createStatusLabel() {
+        if (!message.isFromCurrentUser()) {
+            return null;
+        }
+        JLabel label = new JLabel(statusText(message.getStatus()));
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        label.setForeground(message.isFromCurrentUser()
+                ? ColorPalette.PANEL_BACKGROUND.darker()
+                : ColorPalette.SECONDARY_TEXT);
+        label.setBorder(new EmptyBorder(2, 0, 0, 0));
+        return label;
+    }
+
+    /**
+     * Tao nut retry thu cong cho tin nhan 1-1 bi FAILED.
+     */
+    private JButton createRetryButton() {
+        if (!message.isFromCurrentUser()
+                || message.getStatus() != MessageStatus.FAILED
+                || (message.getGroupId() != null && !message.getGroupId().isBlank())) {
+            return null;
+        }
+        JButton button = new JButton("Thử lại");
+        button.setFocusPainted(false);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.addActionListener(event -> {
+            button.setEnabled(false);
+            new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() {
+                    return App.peerNode != null && App.peerNode.retryMessage(message);
+                }
+            }.execute();
+        });
+        return button;
+    }
+
+    private String statusText(MessageStatus status) {
+        return switch (status) {
+            case SENDING -> "Đang gửi";
+            case SENT -> "Đã gửi";
+            case PENDING -> "Chờ server giao";
+            case FAILED -> "Gửi lỗi";
+        };
     }
 
 }

@@ -29,6 +29,7 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
     @Override
     public void put(PeerInfo peerInfo) {
         if (peerInfo != null) {
+            removeSamePeerWithDifferentAddress(peerInfo);
             peers.put(peerInfo.addressKey(), peerInfo);
         }
     }
@@ -39,6 +40,37 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
     @Override
     public Collection<PeerInfo> list() {
         return Collections.unmodifiableCollection(peers.values());
+    }
+
+    /**
+     * Merge danh sach peer nhan tu bootstrap hoac peer khac vao danh ba runtime.
+     */
+    @Override
+    public int mergeKnownPeers(Collection<PeerInfo> discoveredPeers) {
+        int merged = 0;
+        if (discoveredPeers == null) {
+            return merged;
+        }
+        for (PeerInfo peerInfo : discoveredPeers) {
+            if (peerInfo == null || isSelfPeer(peerInfo) || isGroupPseudoPeer(peerInfo)) {
+                continue;
+            }
+            PeerInfo normalized = new PeerInfo(
+                    peerInfo.getId(),
+                    peerInfo.getName(),
+                    peerInfo.getHost(),
+                    peerInfo.getPort(),
+                    peerInfo.isOnline()
+            );
+            put(normalized);
+            merged++;
+            System.out.println("[DEBUG] Đã merge peer từ discovery. id=" + normalized.getId()
+                    + ", địaChỉ=" + normalized.addressKey()
+                    + ", online=" + normalized.isOnline());
+        }
+        System.out.println("[INFO] Merge danh sách peer xong. sốPeerMerge=" + merged
+                + ", knownCount=" + peers.size());
+        return merged;
     }
 
     /**
@@ -175,5 +207,17 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
     @Override
     public boolean isSelfPeer(PeerInfo peerInfo) {
         return networkAddressService.isSelfPeer(localPeer, peerInfo);
+    }
+
+    private void removeSamePeerWithDifferentAddress(PeerInfo peerInfo) {
+        if (peerInfo.getId() == null || peerInfo.getId().isBlank()) {
+            return;
+        }
+        peers.entrySet().removeIf(entry -> peerInfo.getId().equals(entry.getValue().getId())
+                && !peerInfo.addressKey().equals(entry.getKey()));
+    }
+
+    private boolean isGroupPseudoPeer(PeerInfo peerInfo) {
+        return peerInfo.getHost() != null && peerInfo.getHost().startsWith("group:");
     }
 }

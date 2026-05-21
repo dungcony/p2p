@@ -51,13 +51,24 @@ public class MessageHistoryImpl implements MessageHistoryService {
         List<Message> messages = messageHistory.computeIfAbsent(peerKey,
                 ignored -> Collections.synchronizedList(new ArrayList<>()));
         synchronized (messages) {
-            if (messages.stream().noneMatch(existingMessage -> existingMessage.getId().equals(message.getId()))) {
+            int existingIndex = findMessageIndex(messages, message.getId());
+            if (existingIndex >= 0) {
+                messages.set(existingIndex, message);
+            } else {
                 messages.add(message);
             }
             messages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
         }
-        System.out.println("[DEBUG] Đã thêm message vào lịch sử. peerKey=" + peerKey
-                + ", messageId=" + message.getId());
+        System.out.println("[DEBUG] Đã cập nhật message trong lịch sử. peerKey=" + peerKey
+                + ", messageId=" + message.getId() + ", status=" + message.getStatus());
+    }
+
+    /**
+     * Luu lai message da thay doi trang thai vao cache runtime va JSON local.
+     */
+    @Override
+    public void updateAndSave(PeerInfo conversationPeer, Message message) {
+        addAndSave(conversationPeer, message);
     }
 
     /**
@@ -100,9 +111,10 @@ public class MessageHistoryImpl implements MessageHistoryService {
                 ignored -> Collections.synchronizedList(new ArrayList<>()));
         synchronized (cachedMessages) {
             for (Message localMessage : localMessages) {
-                boolean exists = cachedMessages.stream()
-                        .anyMatch(existingMessage -> existingMessage.getId().equals(localMessage.getId()));
-                if (!exists) {
+                int existingIndex = findMessageIndex(cachedMessages, localMessage.getId());
+                if (existingIndex >= 0) {
+                    cachedMessages.set(existingIndex, localMessage);
+                } else {
                     cachedMessages.add(localMessage);
                 }
             }
@@ -111,5 +123,17 @@ public class MessageHistoryImpl implements MessageHistoryService {
         System.out.println("[DEBUG] Đã merge tin nhắn local vào cache runtime. peerKey=" + key
                 + ", localCount=" + localMessages.size()
                 + ", cachedCount=" + cachedMessages.size());
+    }
+
+    private int findMessageIndex(List<Message> messages, String messageId) {
+        if (messageId == null) {
+            return -1;
+        }
+        for (int i = 0; i < messages.size(); i++) {
+            if (messageId.equals(messages.get(i).getId())) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

@@ -198,7 +198,8 @@ public class FoundDevices extends JPanel {
             return;
         }
         if (response != null && App.peerNode != null) {
-            App.peerNode.addKnownPeer(response, ip);
+            dungcony.ds.model.PeerInfo peerInfo = App.peerNode.addKnownPeer(response, ip);
+            App.peerNode.discoverPeersFromKnownPeer(peerInfo);
         }
     }
 
@@ -221,4 +222,3 @@ class NoDevicePanel extends JPanel {
         add(label);
     }
 }
-

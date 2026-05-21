@@ -5,7 +5,7 @@
 Xây dựng một hệ thống chat ngang hàng (P2P) cho phép nhiều người dùng trao đổi tin nhắn trực tiếp mà không phụ thuộc
 hoàn toàn vào server trung tâm.
 
-### Áp dụng kiến thức:
+### Áp dụng kiến thức
 
 - Mô hình Peer-to-Peer trong hệ thống phân tán
 - Giao tiếp giữa các tiến trình qua mạng
@@ -22,14 +22,14 @@ Hệ thống gồm nhiều **peer**, mỗi peer đóng vai trò:
 - Client (gửi tin nhắn)
 - Server (nhận và chuyển tiếp tin nhắn)
 
-### Thành phần:
+### Thành phần
 
 - **Peer Node**:
-    - Gửi / nhận tin nhắn
-    - Kết nối tới các peer khác
+  - Gửi / nhận tin nhắn
+  - Kết nối tới các peer khác
 - **Bootstrap Server (Tracker)**:
-    - Lưu danh sách peer
-    - Hỗ trợ peer mới tham gia mạng
+  - Lưu danh sách peer
+  - Hỗ trợ peer mới tham gia mạng
 
 ---
 
@@ -73,15 +73,15 @@ Hệ thống gồm nhiều **peer**, mỗi peer đóng vai trò:
 
 - Đảm bảo message được gửi thành công
 - Cơ chế:
-    - ACK (xác nhận)
-    - Retry khi mất kết nối
-    - Timeout
+  - ACK (xác nhận)
+  - Retry khi mất kết nối
+  - Timeout
 
 ---
 
 ## 4. Yêu cầu kỹ thuật
 
-### Cần thể hiện rõ các đặc điểm của hệ thống phân tán:
+### Cần thể hiện rõ các đặc điểm của hệ thống phân tán
 
 - giao tiếp mạng bằng *TCP socket hoặc giao thức tương đương*
 - mỗi peer có thể gửi và nhận tin đồng thời
@@ -91,4 +91,10 @@ Hệ thống gồm nhiều **peer**, mỗi peer đóng vai trò:
 ### Hệ thống cần có các thành phần chính
 
 - *Peer node:* gửi và nhận tin nhắn
-- *Bootstrap/Tracker server (đơn giản):* hỗ trợ khám phá pe
+- *Bootstrap/Tracker server (đơn giản):* hỗ trợ khám phá peer
+
+## 5. Chức năng nâng cao (khuyến khích)
+
+• broadcast message trong toàn mạng
+• store-and-forward messaging khi peer offline
+• mã hóa tin nhắn (encryption)

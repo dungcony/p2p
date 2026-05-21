@@ -17,6 +17,11 @@ public interface PeerDirectoryService {
     Collection<PeerInfo> list();
 
     /**
+     * Merge danh sach peer nhan tu bootstrap hoac peer khac vao danh ba runtime.
+     */
+    int mergeKnownPeers(Collection<PeerInfo> peers);
+
+    /**
      * Lay so peer da biet.
      */
     int size();

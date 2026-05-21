@@ -22,6 +22,11 @@ public interface MessageHistoryService {
      */
     void add(String peerKey, Message message);
 
+    /**
+     * Luu lai message da thay doi trang thai vao history va JSON.
+     */
+    void updateAndSave(PeerInfo conversationPeer, Message message);
+
 
     /**
      * Lay history voi peer, lazy load tu messages.json khi can.

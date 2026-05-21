@@ -99,6 +99,25 @@ public class GroupManager {
     }
 
     /**
+     * Dong bo group local bang snapshot membership day du tu peer khac.
+     */
+    public Group syncMembers(String groupId, String name, Collection<PeerInfo> members) {
+        Group group = groups.get(groupId);
+        if (group == null) {
+            group = new Group(groupId, name, members);
+            groups.put(group.getGroupId(), group);
+            System.out.println("[INFO] Đã tạo nhóm local từ GROUP_MEMBERS_SYNC. groupId=" + group.getGroupId()
+                    + ", tên=" + group.getName());
+        } else {
+            group.replaceMembers(members);
+            System.out.println("[INFO] Đã cập nhật membership nhóm từ GROUP_MEMBERS_SYNC. groupId=" + groupId
+                    + ", sốThànhViên=" + group.getMembers().size());
+        }
+        saveGroup(group);
+        return group;
+    }
+
+    /**
      * Tìm group theo groupId để gửi tin hoặc hiển thị thông tin nhóm.
      */
     public Group getGroup(String groupId) {

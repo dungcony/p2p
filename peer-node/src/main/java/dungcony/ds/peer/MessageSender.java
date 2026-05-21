@@ -3,6 +3,7 @@ package dungcony.ds.peer;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
+import dungcony.ds.enums.MessageType;
 import dungcony.ds.network.TCPClient;
 
 public class MessageSender {
@@ -33,6 +34,27 @@ public class MessageSender {
             sleepBeforeRetry();
         }
         return false;
+    }
+
+    /**
+     * Gui request va cho response co type cu the, dung cho discovery peer-to-peer.
+     */
+    public Message sendForResponse(PeerInfo peerInfo, Message message, MessageType expectedType) {
+        for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
+            System.out.println("[DEBUG] Đang gửi request " + message.getType() + " id=" + message.getId()
+                    + " tới=" + peerInfo.addressKey() + ", attempt=" + attempt + "/" + RETRY_COUNT);
+            Message response = tcpClient.sendForResponse(peerInfo, message);
+            if (response != null && response.getType() == expectedType && message.getId().equals(response.getId())) {
+                System.out.println("[DEBUG] Đã nhận response hợp lệ. requestId=" + message.getId()
+                        + ", responseType=" + response.getType());
+                return response;
+            }
+            System.out.println("[WARN] Response không hợp lệ hoặc timeout. requestId=" + message.getId()
+                    + ", expected=" + expectedType
+                    + ", actual=" + (response == null ? "null" : response.getType()));
+            sleepBeforeRetry();
+        }
+        return null;
     }
 
     /**

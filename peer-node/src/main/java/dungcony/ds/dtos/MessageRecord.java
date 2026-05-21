@@ -1,6 +1,7 @@
 package dungcony.ds.dtos;
 
 import dungcony.ds.enums.MessageType;
+import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 
@@ -18,6 +19,7 @@ public class MessageRecord {
     private String groupId;
     private String groupName;
     private String messageType;
+    private String status;
     private String content;
     private long timestamp;
     private boolean fromCurrentUser;
@@ -40,6 +42,7 @@ public class MessageRecord {
         record.groupId = message.getGroupId();
         record.groupName = message.getGroupName();
         record.messageType = message.getType().name();
+        record.status = message.getStatus().name();
         record.content = message.getContent();
         record.timestamp = message.getTimestamp();
         record.fromCurrentUser = message.isFromCurrentUser();
@@ -63,8 +66,25 @@ public class MessageRecord {
                 groupName,
                 content,
                 timestamp,
-                fromCurrentUser
+                fromCurrentUser,
+                parseStatus()
         );
+    }
+
+    /**
+     * Doc status tu JSON cu/moi, mac dinh SENT de tuong thich voi file cu chua co field status.
+     */
+    private MessageStatus parseStatus() {
+        if (status == null || status.isBlank()) {
+            return MessageStatus.SENT;
+        }
+        try {
+            return MessageStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            System.out.println("[WARN] Trạng thái tin nhắn trong JSON không hợp lệ. messageId="
+                    + messageId + ", status=" + status + ". Dùng SENT.");
+            return MessageStatus.SENT;
+        }
     }
 
     public String getMessageId() {

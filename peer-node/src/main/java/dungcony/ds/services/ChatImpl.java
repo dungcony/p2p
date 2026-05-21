@@ -1,5 +1,6 @@
 package dungcony.ds.services;
 
+import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.interfaces.ChatService;
 import dungcony.ds.interfaces.MessageHistoryService;
 import dungcony.ds.interfaces.PeerDirectoryService;
@@ -59,15 +60,20 @@ public class ChatImpl implements ChatService {
                 + " tới=" + receiver.addressKey());
         boolean sent = messageSender.send(receiver, message);
         receiver.setOnline(sent);
-        if (sent || storeOfflineIfPossible(message)) {
-            messageHistoryService.addAndSave(receiver, message);
-            messageNotifier.accept(message);
+        if (sent) {
+            message.setStatus(MessageStatus.SENT);
+        } else if (storeOfflineIfPossible(message)) {
+            message.setStatus(MessageStatus.PENDING);
+        } else {
+            message.setStatus(MessageStatus.FAILED);
         }
+        messageHistoryService.addAndSave(receiver, message);
+        messageNotifier.accept(message);
         if (sent) {
             System.out.println("[INFO] Tin nhắn CHAT đã được giao và lưu. id=" + message.getId());
         } else {
             System.out.println("[WARN] Tin nhắn CHAT thất bại sau khi retry. id=" + message.getId()
-                    + ", tới=" + receiver.addressKey());
+                    + ", tới=" + receiver.addressKey() + ", status=" + message.getStatus());
         }
         peerChangeNotifier.run();
         return sent;

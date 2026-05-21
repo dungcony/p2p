@@ -82,6 +82,7 @@ public class BottomPanel extends RoundedPanel {
             Dialog.showMessageDialog(null, "Không thể mở cuộc chat với peer.", "Mở chat thất bại", Dialog.WARNING_MESSAGE);
             return false;
         }
+        App.peerNode.discoverPeersFromKnownPeer(peerInfo);
         openChat(peerInfo);
         nameField.getTextField().setText("");
         ipField.getTextField().setText("");

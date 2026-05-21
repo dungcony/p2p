@@ -127,10 +127,7 @@ public class ChatScreen extends JPanel implements MessageListener {
         }
         if (isGroupChat()) {
             if (groupId.equals(message.getGroupId())) {
-                messages.add(message);
-                chatHistory.renderMessage(message);
-                revalidate();
-                repaint();
+                upsertAndRender(message);
             }
             return;
         }
@@ -138,10 +135,7 @@ public class ChatScreen extends JPanel implements MessageListener {
             return;
         }
         if (ipAddress.equals(message.getSenderIp()) || ipAddress.equals(message.getReceiverHost() + ":" + message.getReceiverPort())) {
-            messages.add(message);
-            chatHistory.renderMessage(message);
-            revalidate();
-            repaint();
+            upsertAndRender(message);
         }
     }
 
@@ -163,6 +157,25 @@ public class ChatScreen extends JPanel implements MessageListener {
             sendMessageBox.setVisible(false);
         }
 
+        revalidate();
+        repaint();
+    }
+
+    private void upsertAndRender(Message message) {
+        int existingIndex = -1;
+        for (int i = 0; i < messages.size(); i++) {
+            if (messages.get(i).getId().equals(message.getId())) {
+                existingIndex = i;
+                break;
+            }
+        }
+        if (existingIndex >= 0) {
+            messages.set(existingIndex, message);
+            renderAllMessages();
+        } else {
+            messages.add(message);
+            chatHistory.renderMessage(message);
+        }
         revalidate();
         repaint();
     }

@@ -4,6 +4,7 @@ import dungcony.ds.App;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
+import dungcony.ds.peer.PeerNode;
 import dungcony.ds.ui.components.ChatProfile;
 import dungcony.ds.ui.components.ModernScrollBarUI;
 import dungcony.ds.ui.pages.ChatPage;
@@ -27,6 +28,7 @@ public class ChatList extends JPanel {
     private JPanel devicesContainer;
     private JScrollPane scrollPane;
     private JButton createGroupButton;
+    private JButton broadcastButton;
     private ChatPage parentChatPage;
 
     public ChatList() {
@@ -36,7 +38,7 @@ public class ChatList extends JPanel {
                 App.peerNode.addMessageListener(message -> renderFriends());
             }
             initializeComponents();
-            add(createGroupButton, BorderLayout.NORTH);
+            add(createActionPanel(), BorderLayout.NORTH);
             add(scrollPane, BorderLayout.CENTER);
             renderFriends();
         } catch (Exception e) {
@@ -69,6 +71,21 @@ public class ChatList extends JPanel {
         createGroupButton.setForeground(Color.WHITE);
         createGroupButton.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
         createGroupButton.addActionListener(event -> openCreateGroupDialog());
+
+        broadcastButton = new JButton("Phát toàn mạng");
+        broadcastButton.setFocusPainted(false);
+        broadcastButton.setBackground(ColorPalette.ACCENT);
+        broadcastButton.setForeground(Color.WHITE);
+        broadcastButton.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        broadcastButton.addActionListener(event -> openBroadcastDialog());
+    }
+
+    private JPanel createActionPanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 2, 8, 0));
+        panel.setBackground(ColorPalette.BACKGROUND);
+        panel.add(createGroupButton);
+        panel.add(broadcastButton);
+        return panel;
     }
 
     private void renderFriends() {
@@ -257,6 +274,61 @@ public class ChatList extends JPanel {
                     System.out.println("[ERROR] Không thể mở hộp thoại tạo nhóm: " + e.getMessage());
                 } finally {
                     createGroupButton.setEnabled(true);
+                }
+            }
+        }.execute();
+    }
+
+    private void openBroadcastDialog() {
+        if (App.peerNode == null) {
+            return;
+        }
+        JTextArea messageArea = new JTextArea(5, 28);
+        messageArea.setLineWrap(true);
+        messageArea.setWrapStyleWord(true);
+        JScrollPane messageScrollPane = new JScrollPane(messageArea);
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                messageScrollPane,
+                "Phát tin nhắn toàn mạng",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+        if (choice != JOptionPane.OK_OPTION) {
+            return;
+        }
+        String content = messageArea.getText();
+        if (content == null || content.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập nội dung broadcast.", "Broadcast",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        broadcastButton.setEnabled(false);
+        new SwingWorker<PeerNode.BroadcastResult, Void>() {
+            @Override
+            protected PeerNode.BroadcastResult doInBackground() {
+                return App.peerNode.broadcastToNetwork(content);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    PeerNode.BroadcastResult result = get();
+                    JOptionPane.showMessageDialog(
+                            ChatList.this,
+                            "Đã gửi tới " + result.delivered() + "/" + result.totalTargets()
+                                    + " peer. Thất bại: " + result.failed(),
+                            "Broadcast",
+                            result.failed() == 0 ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE
+                    );
+                } catch (Exception e) {
+                    System.out.println("[ERROR] Không thể broadcast toàn mạng: " + e.getMessage());
+                    JOptionPane.showMessageDialog(ChatList.this, "Không thể broadcast toàn mạng.", "Broadcast",
+                            JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    broadcastButton.setEnabled(true);
+                    renderFriends();
                 }
             }
         }.execute();

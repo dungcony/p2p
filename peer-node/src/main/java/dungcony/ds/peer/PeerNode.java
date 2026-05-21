@@ -55,6 +55,9 @@ public class PeerNode {
     private final BootstrapClient bootstrapClient;
     private volatile boolean running;
 
+    public record BroadcastResult(int totalTargets, int delivered, int failed) {
+    }
+
     /**
      * Khởi tạo một peer cục bộ với tên định danh và port lắng nghe do người dùng nhập.
      */
@@ -243,6 +246,39 @@ public class PeerNode {
      */
     public boolean sendMessage(String content, String hostAndMaybePort) {
         return chatService.sendMessage(content, hostAndMaybePort);
+    }
+
+    /**
+     * Gui mot message den toan bo peer online ma node biet, uu tien danh sach tu bootstrap.
+     */
+    public BroadcastResult broadcastToNetwork(String content) {
+        if (content == null || content.isBlank()) {
+            System.out.println("[WARN] Từ chối broadcast tin nhắn rỗng.");
+            return new BroadcastResult(0, 0, 0);
+        }
+
+        List<PeerInfo> targets = collectOnlineBroadcastTargets();
+        int delivered = 0;
+        int failed = 0;
+        System.out.println("[INFO] Đang broadcast toàn mạng. sốPeerĐích=" + targets.size());
+        for (PeerInfo target : targets) {
+            Message message = Message.broadcast(localPeer, target, content);
+            boolean sent = messageSender.send(target, message);
+            target.setOnline(sent);
+            if (sent) {
+                delivered++;
+            } else {
+                failed++;
+            }
+            System.out.println("[INFO] Kết quả broadcast toàn mạng. receiver=" + target.addressKey()
+                    + ", sent=" + sent);
+        }
+        notifyPeersChanged();
+        BroadcastResult result = new BroadcastResult(targets.size(), delivered, failed);
+        System.out.println("[INFO] Broadcast toàn mạng hoàn tất. total=" + result.totalTargets()
+                + ", delivered=" + result.delivered()
+                + ", failed=" + result.failed());
+        return result;
     }
 
     /**
@@ -590,6 +626,38 @@ public class PeerNode {
             } catch (RuntimeException e) {
                 System.out.println("[ERROR] Vòng refresh bootstrap lỗi: " + e.getMessage());
             }
+        }
+    }
+
+    /**
+     * Lay danh sach peer online de broadcast, uu tien tracker nhung van hop nhat peer da discover truc tiep.
+     */
+    private List<PeerInfo> collectOnlineBroadcastTargets() {
+        Map<String, PeerInfo> targets = new LinkedHashMap<>();
+        Collection<PeerInfo> bootstrapPeers = bootstrapClient == null ? null : bootstrapClient.listOrNull();
+        if (bootstrapPeers != null) {
+            peerDirectoryService.mergeKnownPeers(bootstrapPeers);
+            appendBroadcastTargets(targets, bootstrapPeers);
+        }
+        appendBroadcastTargets(targets, peerDirectoryService.list());
+        return new ArrayList<>(targets.values());
+    }
+
+    private void appendBroadcastTargets(Map<String, PeerInfo> targets, Collection<PeerInfo> candidates) {
+        if (candidates == null) {
+            return;
+        }
+        for (PeerInfo candidate : candidates) {
+            if (candidate == null || peerDirectoryService.isSelfPeer(candidate)
+                    || !candidate.isOnline()
+                    || candidate.getHost() == null || candidate.getHost().isBlank()
+                    || candidate.getPort() <= 0) {
+                continue;
+            }
+            String key = candidate.getId() == null || candidate.getId().isBlank()
+                    ? candidate.addressKey()
+                    : candidate.getId();
+            targets.put(key, candidate);
         }
     }
 

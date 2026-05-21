@@ -113,6 +113,26 @@ public class Message {
     }
 
     /**
+     * Tao message broadcast toan mang cho mot receiver cu the.
+     */
+    public static Message broadcast(PeerInfo sender, PeerInfo receiver, String content) {
+        Message message = new Message();
+        message.id = UUID.randomUUID().toString();
+        message.type = MessageType.BROADCAST;
+        message.senderId = sender.getId();
+        message.senderHost = sender.getHost();
+        message.senderPort = sender.getPort();
+        message.receiverId = receiver.getId();
+        message.receiverHost = receiver.getHost();
+        message.receiverPort = receiver.getPort();
+        message.content = content == null ? "" : content;
+        message.timestamp = Instant.now().toEpochMilli();
+        message.status = MessageStatus.SENDING;
+        message.fromCurrentUser = true;
+        return message;
+    }
+
+    /**
      * Tạo ACK phản hồi cho message nguồn để bên gửi biết tin đã được nhận.
      */
     public static Message ack(Message source, PeerInfo sender) {

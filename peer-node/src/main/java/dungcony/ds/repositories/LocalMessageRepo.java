@@ -127,7 +127,7 @@ public class LocalMessageRepo {
             if (record.getGroupId() != null && !record.getGroupId().isBlank()) {
                 continue;
             }
-            if (!"CHAT".equals(record.getMessageType())) {
+            if (!"CHAT".equals(record.getMessageType()) && !"BROADCAST".equals(record.getMessageType())) {
                 continue;
             }
             PeerInfo peerInfo = toPeerInfo(record);

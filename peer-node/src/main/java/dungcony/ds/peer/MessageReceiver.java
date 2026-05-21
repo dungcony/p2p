@@ -48,7 +48,9 @@ public class MessageReceiver {
             return Message.ack(message, peerNode.getLocalPeer());
         }
 
-        if (message.getType() == MessageType.CHAT || message.getType() == MessageType.GROUP_CHAT) {
+        if (message.getType() == MessageType.CHAT
+                || message.getType() == MessageType.GROUP_CHAT
+                || message.getType() == MessageType.BROADCAST) {
             message.setFromCurrentUser(false);
             peerNode.onInboundMessage(message);
             System.out.println("[DEBUG] Trả ACK cho tin nhắn chat id=" + message.getId());

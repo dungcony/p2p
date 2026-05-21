@@ -153,6 +153,40 @@ class PeerNodeIntegrationTest {
         assertTrue(carolReceived.await(5, TimeUnit.SECONDS));
     }
 
+    @Test
+    void networkBroadcastIsDeliveredToAllOnlinePeers() throws Exception {
+        RunningBootstrap bootstrap = startBootstrap();
+        PeerNode bob = startPeer("bob", "Bob", freePort(), bootstrap.port(), tempDir.resolve("bob"));
+        PeerNode carol = startPeer("carol", "Carol", freePort(), bootstrap.port(), tempDir.resolve("carol"));
+        await("bob and carol to join bootstrap",
+                () -> bootstrapHasPeer(bootstrap.port(), "bob") && bootstrapHasPeer(bootstrap.port(), "carol"));
+
+        CountDownLatch bobReceived = new CountDownLatch(1);
+        CountDownLatch carolReceived = new CountDownLatch(1);
+        bob.addMessageListener(message -> {
+            if (message.getType() == MessageType.BROADCAST && "hello network".equals(message.getContent())) {
+                bobReceived.countDown();
+            }
+        });
+        carol.addMessageListener(message -> {
+            if (message.getType() == MessageType.BROADCAST && "hello network".equals(message.getContent())) {
+                carolReceived.countDown();
+            }
+        });
+
+        PeerNode alice = startPeer("alice", "Alice", freePort(), bootstrap.port(), tempDir.resolve("alice"));
+        awaitKnownPeer(alice, "bob");
+        awaitKnownPeer(alice, "carol");
+
+        PeerNode.BroadcastResult result = alice.broadcastToNetwork("hello network");
+
+        assertEquals(2, result.totalTargets());
+        assertEquals(2, result.delivered());
+        assertEquals(0, result.failed());
+        assertTrue(bobReceived.await(5, TimeUnit.SECONDS));
+        assertTrue(carolReceived.await(5, TimeUnit.SECONDS));
+    }
+
     private RunningBootstrap startBootstrap() throws Exception {
         int port = freePort();
         BootstrapServer server = new BootstrapServer(port, tempDir.resolve("bootstrap-" + port + ".db"));

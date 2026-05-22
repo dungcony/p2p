@@ -1,5 +1,8 @@
 package dungcony.ds.models;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.entities.GroupEntity;
 import dungcony.ds.entities.GroupMemberEntity;
 import dungcony.ds.entities.OfflineMessageEntity;
@@ -18,7 +21,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PeerRegistry {
-    private static final long ONLINE_TTL_MS = 15_000;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(PeerRegistry.class);
+private static final long ONLINE_TTL_MS = 15_000;
 
     private final Map<String, PeerInfo> peers = new ConcurrentHashMap<>();
     private final Map<String, Long> lastSeenByPeerKey = new ConcurrentHashMap<>();
@@ -32,97 +37,79 @@ public class PeerRegistry {
         this.offlineMessageRepo = new OfflineMessageRepo(conn);
         this.groupRepo = new GroupRepo(conn);
         this.groupMemberRepo = new GroupMemberRepo(conn);
-        System.out.println("[INFO] PeerRegistry khởi tạo cache peer online trong RAM.");
+        LOGGER.info("PeerRegistry khởi tạo cache peer online trong RAM.");
     }
 
-    /**
-     * Dang ky hoac cap nhat thong tin user/peer trong bang users, chua danh dau online.
-     */
+    // Đăng ký hoặc cập nhật thông tin user/peer trong bảng users, chưa đánh dấu online.
     public void register(PeerInfo peerInfo) {
         if (peerInfo == null) {
-            System.out.println("[WARN] PeerRegistry bỏ qua register vì peer null.");
+            LOGGER.warn("PeerRegistry bỏ qua register vì peer null.");
             return;
         }
         UserEntity userEntity = saveUser(peerInfo);
-        System.out.println("[INFO] PeerRegistry đã register userId=" + userEntity.getUserId()
+        LOGGER.info("PeerRegistry đã register userId=" + userEntity.getUserId()
                 + ", tênHiểnThị=" + userEntity.getDisplayName());
     }
 
-    /**
-     * Đăng ký hoặc cập nhật một peer đang online trong tracker.
-     */
+    // Đăng ký hoặc cập nhật một peer đang online trong tracker.
     public void join(PeerInfo peerInfo) {
         if (peerInfo != null) {
             saveUser(peerInfo);
             peerInfo.setOnline(true);
             peers.put(peerInfo.addressKey(), peerInfo);
             lastSeenByPeerKey.put(peerInfo.addressKey(), System.currentTimeMillis());
-            System.out.println("[DEBUG] PeerRegistry peer join/cache heartbeat: " + peerInfo.addressKey());
+            LOGGER.debug("PeerRegistry peer join/cache heartbeat: " + peerInfo.addressKey());
         } else {
-            System.out.println("[WARN] PeerRegistry bỏ qua join vì peer null.");
+            LOGGER.warn("PeerRegistry bỏ qua join vì peer null.");
         }
     }
 
-    /**
-     * Xóa peer khỏi registry khi peer rời mạng.
-     */
+    // Xóa peer khỏi registry khi peer rời mạng.
     public void leave(String addressKey) {
         peers.remove(addressKey);
         lastSeenByPeerKey.remove(addressKey);
-        System.out.println("[DEBUG] PeerRegistry peer rời mạng: " + addressKey);
+        LOGGER.debug("PeerRegistry peer rời mạng: " + addressKey);
     }
 
-    /**
-     * Trả về danh sách peer online hiện được tracker biết.
-     */
+    // Trả về danh sách peer online hiện được tracker biết.
     public Collection<PeerInfo> list() {
         evictExpiredPeers();
         List<PeerInfo> onlinePeers = new ArrayList<>(peers.values());
         onlinePeers.sort(Comparator.comparingLong(
                 (PeerInfo peerInfo) -> lastSeenByPeerKey.getOrDefault(peerInfo.addressKey(), 0L)
         ).reversed());
-        System.out.println("[TRACE] PeerRegistry list cache online sốLượng=" + onlinePeers.size());
+        LOGGER.trace("PeerRegistry list cache online sốLượng=" + onlinePeers.size());
         return onlinePeers;
     }
 
-    /**
-     * Luu message offline khi sender khong gui truc tiep duoc cho receiver.
-     */
+    // Lưu message offline khi sender không gửi trực tiếp được cho receiver.
     public void storeOfflineMessage(OfflineMessageEntity message) {
         offlineMessageRepo.save(message);
     }
 
-    /**
-     * Lay message offline cua peer vua JOIN va danh dau da giao.
-     */
+    // Lấy message offline của peer vừa JOIN và đánh dấu đã giao.
     public Collection<OfflineMessageEntity> drainOfflineMessages(String receiverId) {
         Collection<OfflineMessageEntity> messages = offlineMessageRepo.findPendingByReceiver(receiverId);
         offlineMessageRepo.markDelivered(messages);
-        System.out.println("[INFO] Đã lấy tin nhắn offline cho receiver=" + receiverId
+        LOGGER.info("Đã lấy tin nhắn offline cho receiver=" + receiverId
                 + ", count=" + messages.size());
         return messages;
     }
 
-    /**
-     * Luu group metadata vao tracker.
-     */
+    // Lưu group metadata vào tracker.
     public void createGroup(GroupEntity groupEntity) {
         groupRepo.upsert(groupEntity);
     }
 
-    /**
-     * Lay danh sach group metadata tu tracker.
-     */
+    // Lấy danh sách group metadata từ tracker.
     public Collection<GroupEntity> listGroups() {
         return groupRepo.listAll();
     }
 
-    /**
-     * Them peer/user vao group.
-     */
+    // Thêm peer/user vào group.
     public void addGroupMember(GroupMemberEntity memberEntity) {
         if (memberEntity == null || memberEntity.getUserId() == null || memberEntity.getUserId().isBlank()) {
-            System.out.println("[WARN] Bỏ qua thêm thành viên nhóm vì userId rỗng.");
+            LOGGER.warn("Bỏ qua thêm thành viên nhóm vì userId rỗng.");
             return;
         }
         long now = System.currentTimeMillis();
@@ -130,23 +117,17 @@ public class PeerRegistry {
         groupMemberRepo.add(memberEntity);
     }
 
-    /**
-     * Xoa peer/user khoi group.
-     */
+    // Xóa peer/user khỏi group.
     public void removeGroupMember(String groupId, String userId) {
         groupMemberRepo.remove(groupId, userId);
     }
 
-    /**
-     * Lay danh sach thanh vien cua group.
-     */
+    // Lấy danh sách thành viên của group.
     public Collection<GroupMemberEntity> listGroupMembers(String groupId) {
         return groupMemberRepo.listByGroup(groupId);
     }
 
-    /**
-     * Luu/cap nhat user vao SQLite, khong luu trang thai online vao DB.
-     */
+    // Lưu/cập nhật user vào SQLite, không lưu trạng thái online vào DB.
     private UserEntity saveUser(PeerInfo peerInfo) {
         long now = System.currentTimeMillis();
         UserEntity userEntity = UserEntity.fromPeerInfo(peerInfo, now);
@@ -154,9 +135,7 @@ public class PeerRegistry {
         return userEntity;
     }
 
-    /**
-     * Loai bo peer qua han heartbeat khoi cache online runtime.
-     */
+    // Loại bỏ peer quá hạn heartbeat khỏi cache online runtime.
     private void evictExpiredPeers() {
         long cutoff = System.currentTimeMillis() - ONLINE_TTL_MS;
         int expired = 0;
@@ -168,7 +147,7 @@ public class PeerRegistry {
             }
         }
         if (expired > 0) {
-            System.out.println("[INFO] PeerRegistry đã xóa peer quá hạn khỏi cache online. sốLượng=" + expired);
+            LOGGER.info("PeerRegistry đã xóa peer quá hạn khỏi cache online. sốLượng=" + expired);
         }
     }
 }

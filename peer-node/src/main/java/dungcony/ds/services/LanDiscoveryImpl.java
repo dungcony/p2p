@@ -1,43 +1,44 @@
 package dungcony.ds.services;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.interfaces.LanDiscoveryService;
 import dungcony.ds.interfaces.PeerDirectoryService;
 import dungcony.ds.model.Message;
+import dungcony.ds.model.MessageSender;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.peer.MessageSender;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LanDiscoveryImpl implements LanDiscoveryService {
-    private final PeerInfo localPeer;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(LanDiscoveryImpl.class);
+private final PeerInfo localPeer;
     private final MessageSender messageSender;
     private final PeerDirectoryService peerDirectoryService;
 
-    /**
-     * Khoi tao service scan LAN bang heartbeat.
-     */
+    // Khởi tạo service scan LAN bằng heartbeat.
     public LanDiscoveryImpl(PeerInfo localPeer, MessageSender messageSender, PeerDirectoryService peerDirectoryService) {
         this.localPeer = localPeer;
         this.messageSender = messageSender;
         this.peerDirectoryService = peerDirectoryService;
     }
 
-    /**
-     * Quét subnet LAN hiện tại bằng heartbeat để tìm các peer đang chạy cùng port.
-     */
+    // Quét subnet LAN hiện tại bằng heartbeat để tìm các peer đang chạy cùng port.
     @Override
     public List<PeerInfo> discoverPeersOnLocalNetwork() {
         List<PeerInfo> discovered = new ArrayList<>();
         String localHost = localPeer.getHost();
         int lastDot = localHost.lastIndexOf('.');
         if (lastDot < 0) {
-            System.out.println("[WARN] Không thể khám phá peer. Host local không phải địa chỉ IPv4 LAN: " + localHost);
+            LOGGER.warn("Không thể khám phá peer. Host local không phải địa chỉ IPv4 LAN: " + localHost);
             return discovered;
         }
 
         String prefix = localHost.substring(0, lastDot + 1);
-        System.out.println("[INFO] Đang khởi động khám phá LAN trên subnet " + prefix + "0/24 bằng cổng " + localPeer.getPort());
+        LOGGER.info("Đang khởi động khám phá LAN trên subnet " + prefix + "0/24 bằng cổng " + localPeer.getPort());
         List<Thread> probes = new ArrayList<>();
         for (int i = 1; i <= 254; i++) {
             String host = prefix + i;
@@ -58,18 +59,16 @@ public class LanDiscoveryImpl implements LanDiscoveryService {
                 break;
             }
         }
-        System.out.println("[INFO] Quét LAN xong. sốPeerTìmThấy=" + discovered.size());
+        LOGGER.info("Quét LAN xong. sốPeerTìmThấy=" + discovered.size());
         return discovered;
     }
 
-    /**
-     * Gui heartbeat den mot host trong subnet.
-     */
+    // Gửi heartbeat đến một host trong subnet.
     private void probeHost(String host, List<PeerInfo> discovered) {
         PeerInfo peerInfo = new PeerInfo(host, host, host, localPeer.getPort());
         if (messageSender.send(peerInfo, Message.heartbeat(localPeer))) {
             peerDirectoryService.put(peerInfo);
-            System.out.println("[INFO] Đã phát hiện peer " + peerInfo.addressKey());
+            LOGGER.info("Đã phát hiện peer " + peerInfo.addressKey());
             synchronized (discovered) {
                 discovered.add(peerInfo);
             }

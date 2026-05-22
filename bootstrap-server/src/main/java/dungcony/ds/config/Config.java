@@ -1,12 +1,17 @@
 package dungcony.ds.config;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Properties;
 
 public class Config {
-    private final int serverPort;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
+private final int serverPort;
     private final Path databasePath;
 
     public Config(int serverPort, Path databasePath) {
@@ -14,9 +19,7 @@ public class Config {
         this.databasePath = databasePath;
     }
 
-    /**
-     * Doc cau hinh bootstrap-server tu resource config.properties.
-     */
+    // Đọc cấu hình bootstrap-server từ resource config.properties.
     public static Config load() {
         Properties properties = new Properties();
         try (InputStream inputStream = Config.class.getClassLoader().getResourceAsStream("config.properties")) {
@@ -24,12 +27,20 @@ public class Config {
                 properties.load(inputStream);
             }
         } catch (IOException e) {
-            System.out.println("[WARN] Không thể nạp cấu hình bootstrap: " + e.getMessage());
+            LOGGER.warn("Không thể nạp cấu hình bootstrap: " + e.getMessage());
         }
 
-        int port = parseInt(properties.getProperty("server.port"), 9000);
-        Path databasePath = Path.of(properties.getProperty(
-                "database.path",
+        String configuredPort = firstNonBlank(
+                System.getProperty("server.port"),
+                System.getenv("BOOTSTRAP_SERVER_PORT"),
+                System.getenv("PORT"),
+                properties.getProperty("server.port")
+        );
+        int port = parseInt(configuredPort, 9000);
+        Path databasePath = Path.of(firstNonBlank(
+                System.getProperty("database.path"),
+                System.getenv("BOOTSTRAP_DATABASE_PATH"),
+                properties.getProperty("database.path"),
                 "bootstrap-server/src/main/resources/database/bootstrap-server.db"
         ));
         return new Config(port, databasePath);
@@ -52,5 +63,14 @@ public class Config {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
+    }
+
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return "";
     }
 }

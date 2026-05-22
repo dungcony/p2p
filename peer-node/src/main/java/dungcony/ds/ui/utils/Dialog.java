@@ -12,10 +12,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-/**
- * Dialog hiện đại - Triển khai JOptionPane tùy chỉnh với giao diện đẹp
- * Hỗ trợ các loại dialog: thông báo, cảnh báo, lỗi và xác nhận
- */
+// Dialog hiện đại - Triển khai JOptionPane tùy chỉnh với giao diện đẹp
+// Hỗ trợ các loại dialog: thông báo, cảnh báo, lỗi và xác nhận
 public class Dialog {
     // Các loại tin nhắn
     public static final int INFORMATION_MESSAGE = JOptionPane.INFORMATION_MESSAGE;

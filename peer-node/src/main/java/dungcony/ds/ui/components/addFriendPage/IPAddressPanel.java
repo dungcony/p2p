@@ -1,5 +1,8 @@
 package dungcony.ds.ui.components.addFriendPage;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.App;
 import dungcony.ds.ui.components.Button;
 import dungcony.ds.ui.components.RoundedPanel;
@@ -20,15 +23,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-/** Panel hiển thị địa chỉ IP và nút sao chép */
+// Panel hiển thị địa chỉ IP và nút sao chép
 class IPAddressPanel extends RoundedPanel {
-    /** Nhãn hiển thị địa chỉ IP */
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(IPAddressPanel.class);
+// Nhãn hiển thị địa chỉ IP
     private JLabel ipAddressLabel;
-    /** Nhãn tiêu đề */
+    // Nhãn tiêu đề
     private JLabel titleLabel;
-    /** Nút sao chép */
+    // Nút sao chép
     private Button copyButton;
-    /** Địa chỉ IP */
+    // Địa chỉ IP
     private String ipAddress;
     
     public IPAddressPanel() {
@@ -59,8 +64,8 @@ class IPAddressPanel extends RoundedPanel {
                 try {
                     copyIPAddressToClipboard();
                 } catch (Exception ex) {
-                    System.out.println("[ERROR] Không thể sao chép địa chỉ IP vào clipboard\nChi tiết lỗi: " + ex.getMessage());
-                    ex.printStackTrace();
+                    LOGGER.error("Không thể sao chép địa chỉ IP vào clipboard\nChi tiết lỗi: " + ex.getMessage());
+                    LOGGER.error("Chi tiết lỗi", ex);
                 }
             });
             
@@ -69,15 +74,13 @@ class IPAddressPanel extends RoundedPanel {
             add(ipAddressLabel);
             add(copyButton);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo panel địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo panel địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
     
-    /**
-     * Lấy địa chỉ IP WiFi
-     * @return Chuỗi địa chỉ IP
-     */
+    // Lấy địa chỉ IP WiFi
+    // @return Chuỗi địa chỉ IP
     private String getWifiIPAddress() {
         if (App.peerNode != null) {
             return App.peerNode.getLocalPeer().addressKey();
@@ -85,18 +88,18 @@ class IPAddressPanel extends RoundedPanel {
         try {
             // Các tên giao diện WiFi phổ biến
             Set<String> wifiInterfaceIdentifiers = new HashSet<>(Arrays.asList(
-                // Windows naming patterns
+                // Các mẫu tên trên Windows
                 "wi-fi", "wireless", "wlan", 
-                // Linux naming patterns
+                // Các mẫu tên trên Linux
                 "wlp", "wlo", "wlx", "wls", "ath", "wifi",
-                // macOS naming patterns
+                // Các mẫu tên trên macOS
                 "en", "airport",
-                // Generic patterns
+                // Các mẫu tên chung
                 "wireless"
             ));
             
-            // Phương pháp 1: Tìm giao diện khới động, không là loopback
-            // and match common wireless naming patterns
+            // Phương pháp 1: Tìm giao diện khởi động, không là loopback
+            // và khớp với các mẫu tên mạng không dây phổ biến
             Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
             while (networkInterfaces.hasMoreElements()) {
                 NetworkInterface networkInterface = networkInterfaces.nextElement();
@@ -119,7 +122,7 @@ class IPAddressPanel extends RoundedPanel {
                     }
                 }
                 
-                // For Linux, sometimes the interface is simply named "wlan0" or similar
+                // Trên Linux, đôi khi giao diện chỉ có tên như "wlan0" hoặc tương tự
                 if (!isWifi && (interfaceName.matches("wlan\\d+") || displayName.matches("wlan\\d+"))) {
                     isWifi = true;
                 }
@@ -141,7 +144,7 @@ class IPAddressPanel extends RoundedPanel {
             }
             
             // Phương pháp 2: Tìm giao diện hoạt động
-            // by checking only active, non-loopback interfaces
+            // bằng cách chỉ kiểm tra các giao diện đang hoạt động và không phải loopback
             networkInterfaces = NetworkInterface.getNetworkInterfaces();
             while (networkInterfaces.hasMoreElements()) {
                 NetworkInterface networkInterface = networkInterfaces.nextElement();
@@ -164,13 +167,13 @@ class IPAddressPanel extends RoundedPanel {
                     // Kiểm tra IPv4, không phải loopback, link local hay multicast
                     if (address instanceof Inet4Address && !address.isLoopbackAddress() 
                         && !address.isLinkLocalAddress() && !address.isMulticastAddress()) {
-                        // Found a good candidate
+                        // Đã tìm thấy địa chỉ phù hợp
                         String ipAddress = address.getHostAddress();
                         // Tránh trả về địa chỉ docker/VM
                         if (!(ipAddress.startsWith("192.168.") || ipAddress.startsWith("172.") || ipAddress.startsWith("10."))) {
                             return ipAddress;
                         } else {
-                            // Store this as a backup in case we don't find a better address
+                            // Dùng địa chỉ này làm dự phòng nếu không tìm được địa chỉ tốt hơn
                             ipAddress = address.getHostAddress();
                             return ipAddress;
                         }
@@ -183,16 +186,14 @@ class IPAddressPanel extends RoundedPanel {
             return localHost.getHostAddress();
             
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể lấy địa chỉ IP Wi-Fi\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
-            return "Error retrieving IP address";
+            LOGGER.error("Không thể lấy địa chỉ IP Wi-Fi\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
+            return "Không thể lấy địa chỉ IP";
         }
     }
 
     
-    /**
-     * Sao chép địa chỉ IP vào clipboard
-     */
+    // Sao chép địa chỉ IP vào clipboard
     private void copyIPAddressToClipboard() {
         try {
             StringSelection stringSelection = new StringSelection(ipAddress);
@@ -210,47 +211,43 @@ class IPAddressPanel extends RoundedPanel {
                         try {
                             ipAddressLabel.setForeground(ColorPalette.PRIMARY);
                         } catch (Exception ex) {
-                            System.out.println("[ERROR] Không thể reset màu label địa chỉ IP\nChi tiết lỗi: " + ex.getMessage());
-                            ex.printStackTrace();
+                            LOGGER.error("Không thể reset màu label địa chỉ IP\nChi tiết lỗi: " + ex.getMessage());
+                            LOGGER.error("Chi tiết lỗi", ex);
                         }
                     });
                     timer.setRepeats(false);
                     timer.start();
                 } catch (Exception ex) {
-                    System.out.println("[ERROR] Không thể hiển thị phản hồi trực quan\nChi tiết lỗi: " + ex.getMessage());
-                    ex.printStackTrace();
+                    LOGGER.error("Không thể hiển thị phản hồi trực quan\nChi tiết lỗi: " + ex.getMessage());
+                    LOGGER.error("Chi tiết lỗi", ex);
                 }
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể sao chép địa chỉ IP vào clipboard\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể sao chép địa chỉ IP vào clipboard\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
     
-    /**
-     * Cập nhật địa chỉ IP hiển thị
-     * @param newIpAddress địa chỉ IP mới
-     */
+    // Cập nhật địa chỉ IP hiển thị
+    // @param newIpAddress địa chỉ IP mới
     public void updateIPAddress(String newIpAddress) {
         try {
             this.ipAddress = newIpAddress;
             this.ipAddressLabel.setText(newIpAddress);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể cập nhật địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể cập nhật địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
     
-    /**
-     * Lấy địa chỉ IP hiện tại
-     * @return địa chỉ IP hiện tại
-     */
+    // Lấy địa chỉ IP hiện tại
+    // @return địa chỉ IP hiện tại
     public String getIpAddress() {
         try {
             return this.ipAddress;
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể lấy địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể lấy địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
             return null;
         }
     }

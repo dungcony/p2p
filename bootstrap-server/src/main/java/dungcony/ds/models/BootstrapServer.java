@@ -1,5 +1,8 @@
 package dungcony.ds.models;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import dungcony.ds.config.Config;
 import dungcony.ds.entities.GroupEntity;
@@ -19,21 +22,19 @@ import java.util.Collection;
 import java.util.Locale;
 
 public class BootstrapServer {
-    private final int port;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapServer.class);
+private final int port;
     private final PeerRegistry registry;
     private final Gson gson = new Gson();
     private volatile boolean running;
 
-    /**
-     * Khởi tạo tracker lắng nghe trên port được truyền vào.
-     */
+    // Khởi tạo tracker lắng nghe trên port được truyền vào.
     public BootstrapServer(int port) {
         this(port, Config.load().getDatabasePath());
     }
 
-    /**
-     * Khởi tạo tracker với port và đường dẫn SQLite database.
-     */
+    // Khởi tạo tracker với port và đường dẫn SQLite database.
     public BootstrapServer(int port, java.nio.file.Path databasePath) {
         this.port = port;
         Conn conn = new Conn(databasePath);
@@ -41,25 +42,21 @@ public class BootstrapServer {
         this.registry = new PeerRegistry(conn);
     }
 
-    /**
-     * Cho phép chạy BootstrapServer độc lập từ command line.
-     */
+    // Cho phép chạy BootstrapServer độc lập từ command line.
     public static void main(String[] args) {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 9000;
         Config config = Config.load();
         new BootstrapServer(port, config.getDatabasePath()).start();
     }
 
-    /**
-     * Bắt đầu vòng lặp accept request REGISTER/JOIN/LEAVE/LIST từ các peer.
-     */
+    // Bắt đầu vòng lặp accept request REGISTER/JOIN/LEAVE/LIST từ các peer.
     public void start() {
         running = true;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("[INFO] Bootstrap server đang lắng nghe trên cổng " + port);
+            LOGGER.info("Bootstrap server đang lắng nghe trên cổng " + port);
             while (running) {
                 Socket socket = serverSocket.accept();
-                System.out.println("[DEBUG] Bootstrap đã nhận kết nối từ "
+                LOGGER.debug("Bootstrap đã nhận kết nối từ "
                         + socket.getRemoteSocketAddress());
                 Thread handler = new Thread(() -> handle(socket), "BootstrapHandler");
                 handler.setDaemon(true);
@@ -67,22 +64,18 @@ public class BootstrapServer {
             }
         } catch (IOException e) {
             if (running) {
-                System.out.println("[ERROR] Bootstrap server đã dừng: " + e.getMessage());
+                LOGGER.error("Bootstrap server đã dừng: " + e.getMessage());
             }
         }
     }
 
-    /**
-     * Đánh dấu server dừng nhận request mới.
-     */
+    // Đánh dấu server dừng nhận request mới.
     public void stop() {
         running = false;
-        System.out.println("[INFO] Bootstrap server đã được đánh dấu dừng trên cổng " + port);
+        LOGGER.info("Bootstrap server đã được đánh dấu dừng trên cổng " + port);
     }
 
-    /**
-     * Xử lý một request tracker: REGISTER để lưu user, JOIN để online, LEAVE để rời mạng, LIST để lấy danh sách peer.
-     */
+    // Xử lý một request tracker: REGISTER để lưu user, JOIN để online, LEAVE để rời mạng, LIST để lấy danh sách peer.
     private void handle(Socket socket) {
         try (Socket accepted = socket;
              BufferedReader reader = new BufferedReader(new InputStreamReader(accepted.getInputStream(), StandardCharsets.UTF_8));
@@ -90,20 +83,20 @@ public class BootstrapServer {
 
             String line = reader.readLine();
             if (line == null || line.isBlank()) {
-                System.out.println("[WARN] Bootstrap nhận request rỗng.");
+                LOGGER.warn("Bootstrap nhận request rỗng.");
                 return;
             }
 
             String[] parts = line.split(" ", 2);
             String command = parts[0].toUpperCase(Locale.ROOT);
             String payload = parts.length > 1 ? parts[1] : "";
-            System.out.println("[INFO] Bootstrap nhận command=" + command);
+            LOGGER.info("Bootstrap nhận command=" + command);
 
             switch (command) {
                 case "REGISTER" -> {
                     PeerInfo peerInfo = gson.fromJson(payload, PeerInfo.class);
                     registry.register(peerInfo);
-                    System.out.println("[INFO] Bootstrap REGISTER userId="
+                    LOGGER.info("Bootstrap REGISTER userId="
                             + (peerInfo == null ? "null" : peerInfo.getId())
                             + ", tênHiểnThị=" + (peerInfo == null ? "null" : peerInfo.getName()));
                     writer.println("OK");
@@ -114,7 +107,7 @@ public class BootstrapServer {
                     registry.join(peerInfo);
                     String receiverId = peerInfo == null ? "" : peerInfo.getId();
                     Collection<OfflineMessageEntity> offlineMessages = registry.drainOfflineMessages(receiverId);
-                    System.out.println("[INFO] Bootstrap JOIN peer="
+                    LOGGER.info("Bootstrap JOIN peer="
                             + (peerInfo == null ? "null" : peerInfo.addressKey())
                             + ", tổngPeer=" + registry.list().size());
                     writer.println(gson.toJson(new JoinResponse(registry.list(), offlineMessages)));
@@ -154,23 +147,23 @@ public class BootstrapServer {
                 }
                 case "LEAVE" -> {
                     registry.leave(payload.trim());
-                    System.out.println("[INFO] Bootstrap LEAVE peerKey=" + payload.trim()
+                    LOGGER.info("Bootstrap LEAVE peerKey=" + payload.trim()
                             + ", tổngPeer=" + registry.list().size());
                     writer.println("OK");
                     return;
                 }
                 case "LIST" -> {
                     Collection<PeerInfo> peers = registry.list();
-                    System.out.println("[INFO] Bootstrap LIST tổngPeer=" + peers.size());
+                    LOGGER.info("Bootstrap LIST tổngPeer=" + peers.size());
                     writer.println(gson.toJson(peers));
                     return;
                 }
             }
 
-            System.out.println("[WARN] Bootstrap nhận command không hỗ trợ=" + command);
+            LOGGER.warn("Bootstrap nhận command không hỗ trợ=" + command);
             writer.println("UNKNOWN_COMMAND");
         } catch (IOException e) {
-            System.out.println("[WARN] Bootstrap xử lý request thất bại: " + e.getMessage());
+            LOGGER.warn("Bootstrap xử lý request thất bại: " + e.getMessage());
         }
     }
 }

@@ -1,5 +1,8 @@
 package dungcony.ds.ui.components.chatPage;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.App;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
@@ -9,15 +12,13 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-/**
- * Component bong bóng tin nhắn
- *
- * @author Shoyeb Ansari
- */
+// Component bong bóng tin nhắn
+//
+// @author Shoyeb Ansari
 class MessageBubble extends JPanel {
-    /**
-     * Tin nhắn cần hiển thị
-     */
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageBubble.class);
+// Tin nhắn cần hiển thị
     private Message message;
 
     public MessageBubble(Message message) {
@@ -25,14 +26,12 @@ class MessageBubble extends JPanel {
             this.message = message;
             initializeComponents();
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo bong bóng tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo bong bóng tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Phương thức khởi tạo các thành phần
-     */
+    // Phương thức khởi tạo các thành phần
     private void initializeComponents() {
         try {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -55,16 +54,14 @@ class MessageBubble extends JPanel {
                 add(Box.createHorizontalGlue());
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Phương thức tạo panel nội dung tin nhắn
-     *
-     * @return Panel tin nhắn
-     */
+    // Phương thức tạo panel nội dung tin nhắn
+    //
+    // @return Panel tin nhắn
     private JPanel createMessageContent() {
         try {
             JPanel panel = new JPanel();
@@ -99,7 +96,7 @@ class MessageBubble extends JPanel {
             textArea.setOpaque(false);
             textArea.setVerticalAlignment(SwingConstants.TOP);
 
-            // Time label
+            // Nhãn thời gian
             JLabel timeLabel = new JLabel(message.getFormattedTime());
             timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
             timeLabel.setForeground(message.isFromCurrentUser() ?
@@ -108,7 +105,7 @@ class MessageBubble extends JPanel {
             JLabel statusLabel = createStatusLabel();
             JButton retryButton = createRetryButton();
 
-            // Set alignment
+            // Đặt căn chỉnh
             textArea.setAlignmentX(Component.LEFT_ALIGNMENT);
             timeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             if (statusLabel != null) {
@@ -118,7 +115,7 @@ class MessageBubble extends JPanel {
                 retryButton.setAlignmentX(Component.LEFT_ALIGNMENT);
             }
 
-            // Constrain the panel width
+            // Giới hạn chiều rộng panel
             int maxWidth = 320; // 300 + some padding
             panel.setMaximumSize(new Dimension(maxWidth, Integer.MAX_VALUE));
 
@@ -134,15 +131,13 @@ class MessageBubble extends JPanel {
 
             return panel;
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể tạo nội dung tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể tạo nội dung tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
             return new JPanel();
         }
     }
 
-    /**
-     * Tao label trang thai gui tin cho message cua user hien tai.
-     */
+    // Tạo label trạng thái gửi tin cho message của user hiện tại.
     private JLabel createStatusLabel() {
         if (!message.isFromCurrentUser()) {
             return null;
@@ -156,9 +151,7 @@ class MessageBubble extends JPanel {
         return label;
     }
 
-    /**
-     * Tao nut retry thu cong cho tin nhan 1-1 bi FAILED.
-     */
+    // Tạo nút retry thủ công cho tin nhắn 1-1 bị FAILED.
     private JButton createRetryButton() {
         if (!message.isFromCurrentUser()
                 || message.getStatus() != MessageStatus.FAILED

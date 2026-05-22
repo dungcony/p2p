@@ -15,9 +15,7 @@ public class Init {
         this.conn = conn;
     }
 
-    /**
-     * Tao cac bang neu file database moi hoac chua co schema.
-     */
+    // Tạo các bảng nếu file database mới hoặc chưa có schema.
     public void initializeSchema() {
         try (Connection connection = conn.getConnection();
              Statement statement = connection.createStatement()) {

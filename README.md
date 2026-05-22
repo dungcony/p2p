@@ -32,3 +32,28 @@ mvn -pl bootstrap-server exec:java -Dexec.mainClass="dungcony.ds.App" -Dexec.arg
 ```bat
 mvn test
 ```
+
+## Docker bootstrap-server
+
+Build va chay rieng bootstrap server:
+
+```bat
+docker build -f bootstrap-server/Dockerfile -t p2p-bootstrap-server .
+docker run --rm -p 9000:9000 -v p2p-bootstrap-data:/data p2p-bootstrap-server
+```
+
+Hoac dung Docker Compose:
+
+```bat
+docker compose up --build bootstrap-server
+```
+
+Co the doi port/database bang environment:
+
+```bat
+docker run --rm -p 9100:9100 ^
+  -e BOOTSTRAP_SERVER_PORT=9100 ^
+  -e BOOTSTRAP_DATABASE_PATH=/data/bootstrap-server.db ^
+  -v p2p-bootstrap-data:/data ^
+  p2p-bootstrap-server
+```

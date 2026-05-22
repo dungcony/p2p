@@ -7,39 +7,25 @@ import java.util.List;
 
 public interface MessageHistoryService {
 
-    /**
-     * Luu message vao memory va messages.json theo peer doi thoai.
-     */
+    // Lưu message vào memory và messages.json theo peer đối thoại.
     void addAndSave(PeerInfo conversationPeer, Message message);
     
-    /**
-     * Luu message vao memory voi key tuy bien va persist theo peer doi thoai.
-     */
+    // Lưu message vào memory với key tùy biến và persist theo peer đối thoại.
     void addAndSave(String historyKey, PeerInfo conversationPeer, Message message);
 
-    /**
-     * Luu message vao history runtime.
-     */
+    // Lưu message vào history runtime.
     void add(String peerKey, Message message);
 
-    /**
-     * Luu lai message da thay doi trang thai vao history va JSON.
-     */
+    // Lưu lại message đã thay đổi trạng thái vào history và JSON.
     void updateAndSave(PeerInfo conversationPeer, Message message);
 
 
-    /**
-     * Lay history voi peer, lazy load tu messages.json khi can.
-     */
+    // Lấy history với peer, lazy load từ messages.json khi cần.
     List<Message> getMessages(PeerInfo peerInfo, String fallbackKey);
 
-    /**
-     * Lay message cuoi cung voi peer.
-     */
+    // Lấy message cuối cùng với peer.
     Message getLastMessage(PeerInfo peerInfo, String fallbackKey);
 
-    /**
-     * Lay cac peer da tung co tin nhan 1-1 trong messages.json.
-     */
+    // Lấy các peer đã từng có tin nhắn 1-1 trong messages.json.
     List<PeerInfo> getDirectConversationPeers();
 }

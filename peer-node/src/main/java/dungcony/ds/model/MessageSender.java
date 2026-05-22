@@ -1,55 +1,51 @@
-package dungcony.ds.peer;
+package dungcony.ds.model;
 
-import dungcony.ds.model.Group;
-import dungcony.ds.model.Message;
-import dungcony.ds.model.PeerInfo;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.enums.MessageType;
 import dungcony.ds.network.TCPClient;
 
 public class MessageSender {
-    private static final int RETRY_COUNT = 3;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageSender.class);
+private static final int RETRY_COUNT = 3;
     private final TCPClient tcpClient;
 
-    /**
-     * Khởi tạo sender với TCPClient dùng để gửi dữ liệu qua mạng.
-     */
+    // Khởi tạo sender với TCPClient dùng để gửi dữ liệu qua mạng.
     public MessageSender(TCPClient tcpClient) {
         this.tcpClient = tcpClient;
     }
 
-    /**
-     * Gửi message tới một peer, retry vài lần nếu chưa nhận ACK.
-     */
+    // Gửi message tới một peer, retry vài lần nếu chưa nhận ACK.
     public boolean send(PeerInfo peerInfo, Message message) {
         for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
-            System.out.println("[DEBUG] Đang gửi " + message.getType() + " message id=" + message.getId()
+            LOGGER.debug("Đang gửi " + message.getType() + " message id=" + message.getId()
                     + " tới=" + peerInfo.addressKey() + ", attempt=" + attempt + "/" + RETRY_COUNT);
             if (tcpClient.send(peerInfo, message)) {
-                System.out.println("[DEBUG] Đã nhận ACK cho message id=" + message.getId()
+                LOGGER.debug("Đã nhận ACK cho message id=" + message.getId()
                         + " từ=" + peerInfo.addressKey());
                 return true;
             }
-            System.out.println("[WARN] Không nhận được ACK cho message id=" + message.getId()
+            LOGGER.warn("Không nhận được ACK cho message id=" + message.getId()
                     + " từ=" + peerInfo.addressKey() + ", attempt=" + attempt);
             sleepBeforeRetry();
         }
         return false;
     }
 
-    /**
-     * Gui request va cho response co type cu the, dung cho discovery peer-to-peer.
-     */
+    // Gửi request và cho response có type cụ thể, dùng cho discovery peer-to-peer.
     public Message sendForResponse(PeerInfo peerInfo, Message message, MessageType expectedType) {
         for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
-            System.out.println("[DEBUG] Đang gửi request " + message.getType() + " id=" + message.getId()
+            LOGGER.debug("Đang gửi request " + message.getType() + " id=" + message.getId()
                     + " tới=" + peerInfo.addressKey() + ", attempt=" + attempt + "/" + RETRY_COUNT);
             Message response = tcpClient.sendForResponse(peerInfo, message);
             if (response != null && response.getType() == expectedType && message.getId().equals(response.getId())) {
-                System.out.println("[DEBUG] Đã nhận response hợp lệ. requestId=" + message.getId()
+                LOGGER.debug("Đã nhận response hợp lệ. requestId=" + message.getId()
                         + ", responseType=" + response.getType());
                 return response;
             }
-            System.out.println("[WARN] Response không hợp lệ hoặc timeout. requestId=" + message.getId()
+            LOGGER.warn("Response không hợp lệ hoặc timeout. requestId=" + message.getId()
                     + ", expected=" + expectedType
                     + ", actual=" + (response == null ? "null" : response.getType()));
             sleepBeforeRetry();
@@ -57,20 +53,16 @@ public class MessageSender {
         return null;
     }
 
-    /**
-     * Broadcast một message tới toàn bộ thành viên của group.
-     */
+    // Broadcast một message tới toàn bộ thành viên của group.
     public void broadcast(Group group, Message message) {
         for (PeerInfo member : group.getMembers()) {
-            System.out.println("[INFO] Đang broadcast message id=" + message.getId()
+            LOGGER.info("Đang broadcast message id=" + message.getId()
                     + " tới thành viên=" + member.addressKey());
             send(member, message);
         }
     }
 
-    /**
-     * Nghỉ ngắn giữa các lần retry để tránh gửi dồn dập khi peer chưa phản hồi.
-     */
+    // Nghỉ ngắn giữa các lần retry để tránh gửi dồn dập khi peer chưa phản hồi.
     private void sleepBeforeRetry() {
         try {
             Thread.sleep(300);

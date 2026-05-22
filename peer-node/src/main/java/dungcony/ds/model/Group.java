@@ -1,29 +1,28 @@
 package dungcony.ds.model;
 
-import java.util.LinkedHashSet;
+import lombok.Getter;
+
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
+@Getter
 public class Group {
     private String groupId;
     private String name;
-    private Set<PeerInfo> members = new LinkedHashSet<>();
+    private final Set<PeerInfo> members = new LinkedHashSet<>();
 
     public Group() {
     }
 
-    /**
-     * Tạo group mới với id tự sinh và tên hiển thị.
-     */
+    // Tạo group mới với id tự sinh và tên hiển thị.
     public Group(String name) {
         this.groupId = UUID.randomUUID().toString();
         this.name = name == null || name.isBlank() ? "Group" : name.trim();
     }
 
-    /**
-     * Phuc hoi group co san tu bootstrap/local cache voi groupId da ton tai.
-     */
+    // Phục hồi group có sẵn từ bootstrap/local cache với groupId đã tồn tại.
     public Group(String groupId, String name, Collection<PeerInfo> members) {
         this.groupId = groupId == null || groupId.isBlank() ? UUID.randomUUID().toString() : groupId;
         this.name = name == null || name.isBlank() ? "Group" : name.trim();
@@ -32,18 +31,6 @@ public class Group {
         }
     }
 
-    public String getGroupId() {
-        return groupId;
-    }
-
-
-    public String getName() {
-        return name;
-    }
-
-    public Set<PeerInfo> getMembers() {
-        return members;
-    }
 
     public void addMember(PeerInfo peerInfo) {
         if (peerInfo != null) {
@@ -51,9 +38,7 @@ public class Group {
         }
     }
 
-    /**
-     * Thay danh sach thanh vien bang snapshot moi nhan tu bootstrap/peer sync.
-     */
+    // Thay danh sách thành viên bằng snapshot mới nhận từ bootstrap/peer sync.
     public void replaceMembers(Collection<PeerInfo> newMembers) {
         members.clear();
         if (newMembers != null) {

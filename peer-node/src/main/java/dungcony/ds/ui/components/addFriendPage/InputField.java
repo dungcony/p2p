@@ -6,9 +6,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-/**
- * Ô nhập liệu với nhãn và góc bo tròn
- */
+// Ô nhập liệu với nhãn và góc bo tròn
 public class InputField extends JPanel {
     private JTextField textField;
     private JLabel label;

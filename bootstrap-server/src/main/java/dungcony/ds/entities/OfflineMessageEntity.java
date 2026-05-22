@@ -1,8 +1,6 @@
 package dungcony.ds.entities;
 
-/**
- * Entity anh xa 1-1 voi bang offline_messages.
- */
+// Entity ánh xạ 1-1 với bảng offline_messages.
 public class OfflineMessageEntity {
     private final String messageId;
     private final String senderId;

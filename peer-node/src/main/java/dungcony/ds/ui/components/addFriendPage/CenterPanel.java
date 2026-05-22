@@ -1,6 +1,9 @@
 package dungcony.ds.ui.components.addFriendPage;
 
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.ui.components.RoundedPanel;
 import dungcony.ds.ui.utils.ColorPalette;
 
@@ -11,15 +14,15 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
 
-/**
- * Panel giữa của trang thêm bạn bè, chứa 2 panel trái và phải
- */
+// Panel giữa của trang thêm bạn bè, chứa 2 panel trái và phải
 public class CenterPanel extends JPanel {
-    private static final int MEDIUM_WIDTH = 768;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(CenterPanel.class);
+private static final int MEDIUM_WIDTH = 768;
 
-    /** Panel bên phải */
+    // Panel bên phải
     private RightPanel rightPanel;
-    /** Panel bên trái */
+    // Panel bên trái
     private LeftPanel leftPanel;
 
     public CenterPanel() {
@@ -49,18 +52,16 @@ public class CenterPanel extends JPanel {
                     try {
                         updateLayout();
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        LOGGER.error("Chi tiết lỗi", ex);
                     }
                 }
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
     
-    /**
-     * Cập nhật bố cục khi thay đổi kích thước
-     */
+    // Cập nhật bố cục khi thay đổi kích thước
     private void updateLayout() {
         try {
             int width = getWidth();
@@ -98,18 +99,18 @@ public class CenterPanel extends JPanel {
             revalidate();
             repaint();
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể cập nhật bố cục\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể cập nhật bố cục\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 }
 
 
-/** Panel trái của trang thêm bạn bè */
+// Panel trái của trang thêm bạn bè
 class LeftPanel extends RoundedPanel {
-    /** Nhãn logo LAN Messenger */
+    // Nhãn logo LAN Messenger
     private JLabel logoLabel;
-    /** Nhãn tiêu đề */
+    // Nhãn tiêu đề
     private JLabel titleLabel;
     
     public LeftPanel() {
@@ -144,25 +145,25 @@ class LeftPanel extends RoundedPanel {
         add(Box.createVerticalGlue());
     }
 
-    /** Tải ảnh logo */
+    // Tải ảnh logo
     private void loadImage() {
         try {
             ImageIcon image = new ImageIcon("public/images/app/logo.png");
             image = new ImageIcon(image.getImage().getScaledInstance(280, 280, Image.SCALE_SMOOTH));
             logoLabel.setIcon(image);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể tải ảnh\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể tải ảnh\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 }
 
-/** Panel phải của trang thêm bạn bè */
+// Panel phải của trang thêm bạn bè
 class RightPanel extends RoundedPanel {
     private static final int LARGE_WIDTH = 1200;
-    /** Panel hiển thị IP và nút copy */
+    // Panel hiển thị IP và nút copy
     private IPAddressPanel ipAddressPanel;
-    /** Panel hướng dẫn người dùng */
+    // Panel hướng dẫn người dùng
     private TextLabelForRightPanel textPanel;
 
     public RightPanel() {
@@ -186,11 +187,9 @@ class RightPanel extends RoundedPanel {
         add(textPanel);
     }
 
-    /**
-     * Cập nhật kích thước {@code textPanel} khi thay đổi kích thước
-     * @param width chiều rộng tính toán được
-     * @param parentWidth chiều rộng cửa sổ
-     */
+    // Cập nhật kích thước {@code textPanel} khi thay đổi kích thước
+    // @param width chiều rộng tính toán được
+    // @param parentWidth chiều rộng cửa sổ
     public void updateInternalWrapping(int width, int parentWidth) {
         textPanel.updateInternalWrapping(width);
         ipAddressPanel.setPreferredSize(new Dimension(Math.min(300, width - 60), 60));
@@ -200,9 +199,9 @@ class RightPanel extends RoundedPanel {
     }
 }
 
-/** Container chứa text hướng dẫn */
+// Container chứa text hướng dẫn
 class TextLabelForRightPanel extends JPanel {
-    /** Ô text hướng dẫn có thể wrap */
+    // Ô text hướng dẫn có thể wrap
     private JTextArea instructionLabel;
     
     public TextLabelForRightPanel() {
@@ -225,10 +224,8 @@ class TextLabelForRightPanel extends JPanel {
         add(instructionLabel, BorderLayout.CENTER);
     }
 
-    /**
-     * 
-     * @param width Calculated new width of the {@code instructionLabel}
-     */
+    //
+    // @param width Chiều rộng mới đã tính cho {@code instructionLabel}
     public void updateInternalWrapping(int width) {
         int textAreaWidth = width - 40;
         instructionLabel.setPreferredSize(new Dimension(textAreaWidth, 90));

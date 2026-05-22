@@ -1,5 +1,8 @@
 package dungcony.ds.repositories;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.entities.GroupMemberEntity;
 
 import java.sql.Connection;
@@ -12,9 +15,9 @@ import java.util.List;
 
 public record GroupMemberRepo(Conn conn) {
 
-    /**
-     * Them thanh vien vao group_members.
-     */
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(GroupMemberRepo.class);
+// Thêm thành viên vào group_members.
     public void add(GroupMemberEntity memberEntity) {
         try (Connection connection = conn.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
@@ -27,16 +30,14 @@ public record GroupMemberRepo(Conn conn) {
             statement.setString(2, memberEntity.getUserId());
             statement.setLong(3, memberEntity.getJoinedAt());
             statement.executeUpdate();
-            System.out.println("[INFO] Đã thêm thành viên nhóm groupId=" + memberEntity.getGroupId()
+            LOGGER.info("Đã thêm thành viên nhóm groupId=" + memberEntity.getGroupId()
                     + ", userId=" + memberEntity.getUserId());
         } catch (SQLException e) {
-            System.out.println("[ERROR] Không thể thêm thành viên nhóm: " + e.getMessage());
+            LOGGER.error("Không thể thêm thành viên nhóm: " + e.getMessage());
         }
     }
 
-    /**
-     * Xoa thanh vien khoi group_members.
-     */
+    // Xóa thành viên khỏi group_members.
     public void remove(String groupId, String userId) {
         try (Connection connection = conn.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
@@ -46,16 +47,14 @@ public record GroupMemberRepo(Conn conn) {
             statement.setString(1, groupId);
             statement.setString(2, userId);
             int deleted = statement.executeUpdate();
-            System.out.println("[INFO] Đã xóa thành viên nhóm groupId=" + groupId
+            LOGGER.info("Đã xóa thành viên nhóm groupId=" + groupId
                     + ", userId=" + userId + ", đãXóa=" + deleted);
         } catch (SQLException e) {
-            System.out.println("[ERROR] Không thể xóa thành viên nhóm: " + e.getMessage());
+            LOGGER.error("Không thể xóa thành viên nhóm: " + e.getMessage());
         }
     }
 
-    /**
-     * Lay danh sach thanh vien cua mot group.
-     */
+    // Lấy danh sách thành viên của một group.
     public Collection<GroupMemberEntity> listByGroup(String groupId) {
         List<GroupMemberEntity> members = new ArrayList<>();
         try (Connection connection = conn.getConnection();
@@ -76,7 +75,7 @@ public record GroupMemberRepo(Conn conn) {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("[ERROR] Không thể liệt kê thành viên nhóm: " + e.getMessage());
+            LOGGER.error("Không thể liệt kê thành viên nhóm: " + e.getMessage());
         }
         return members;
     }

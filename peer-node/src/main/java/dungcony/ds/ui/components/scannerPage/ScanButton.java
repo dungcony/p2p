@@ -13,16 +13,16 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Nút quét cho trang scanner */
+// Nút quét cho trang scanner
 public class ScanButton extends ModernButton {
     
-    /** Cờ cho biết đang quét hay không */
+    // Cờ cho biết đang quét hay không
     private boolean isScanning = false;
-    /** Cờ hover */
+    // Cờ hover
     private boolean isHovered = false;
-    /** Icon quét */
+    // Icon quét
     private FontIcon scanIcon;
-    /** Icon loading */
+    // Icon loading
     private FontIcon loadingIcon;
 
     private Timer animationTimer;
@@ -38,7 +38,7 @@ public class ScanButton extends ModernButton {
         setupInteractions();
     }
     
-    /** Khởi tạo icon */
+    // Khởi tạo icon
     private void initializeIcons() {
         scanIcon = FontIcon.of(FontAwesome.SEARCH, 16);
         scanIcon.setIconColor(Color.WHITE);
@@ -47,7 +47,7 @@ public class ScanButton extends ModernButton {
         loadingIcon.setIconColor(Color.WHITE);
     }
     
-    /** Khởi tạo nút */
+    // Khởi tạo nút
     private void initializeButton() {
         this.setText("Quét thiết bị");
         this.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -76,7 +76,7 @@ public class ScanButton extends ModernButton {
         });
     }
     
-    /** Thiết lập tương tác chuột */
+    // Thiết lập tương tác chuột
     private void setupInteractions() {
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -103,9 +103,7 @@ public class ScanButton extends ModernButton {
     }
     
     
-    /**
-     * Bắt đầu quét
-     */
+    // Bắt đầu quét
     public void startScanning() {
         if (!isScanning) {
             isScanning = true;
@@ -136,10 +134,8 @@ public class ScanButton extends ModernButton {
         }
     }
     
-    /**
-     * Lấy trạng thái quét
-     * @return true nếu đang quét
-     */
+    // Lấy trạng thái quét
+    // @return true nếu đang quét
     public boolean isScanning() {
         return isScanning;
     }

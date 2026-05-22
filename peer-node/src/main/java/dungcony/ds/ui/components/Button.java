@@ -1,13 +1,18 @@
 package dungcony.ds.ui.components;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.ui.utils.ColorPalette;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
 
-/** Component nút bấm */
+// Component nút bấm
 public class Button extends JButton {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Button.class);
 
     private boolean isActive = false;
 
@@ -22,7 +27,7 @@ public class Button extends JButton {
 
 
     public void setIsActive(boolean isActive) {
-        System.out.println("I came here");
+        LOGGER.debug("Đã cập nhật trạng thái active của nút: " + isActive);
         this.isActive = isActive;
         if (isActive) {
             this.setBorder(new MatteBorder(0, 0, 0, 2, ColorPalette.PRIMARY));

@@ -1,8 +1,6 @@
 package dungcony.ds.entities;
 
-/**
- * Entity anh xa 1-1 voi bang groups.
- */
+// Entity ánh xạ 1-1 với bảng groups.
 public class GroupEntity {
     private final String groupId;
     private final String name;

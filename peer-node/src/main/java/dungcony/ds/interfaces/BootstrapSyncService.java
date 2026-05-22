@@ -1,13 +1,9 @@
 package dungcony.ds.interfaces;
 
 public interface BootstrapSyncService {
-    /**
-     * Dang ky peer hien tai, join bootstrap, dong bo peer/group va offline message.
-     */
+    // Đăng ký peer hiện tại, join bootstrap, đồng bộ peer/group và offline message.
     void registerAndJoinBootstrap();
 
-    /**
-     * Lam moi danh sach peer online va group tu bootstrap-server.
-     */
+    // Làm mới danh sách peer online và group từ bootstrap-server.
     void refreshFromBootstrap();
 }

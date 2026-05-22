@@ -5,8 +5,6 @@ import dungcony.ds.model.PeerInfo;
 import java.util.List;
 
 public interface LanDiscoveryService {
-    /**
-     * Quet LAN de tim cac peer dang lang nghe cung port voi peer hien tai.
-     */
+    // Quét LAN để tim các peer đang lắng nghe cùng port với peer hiện tại.
     List<PeerInfo> discoverPeersOnLocalNetwork();
 }

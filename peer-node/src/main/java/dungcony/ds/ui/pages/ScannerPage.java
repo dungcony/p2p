@@ -1,5 +1,8 @@
 package dungcony.ds.ui.pages;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.App;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.ui.components.addFriendPage.HeadingPanel;
@@ -11,19 +14,19 @@ import dungcony.ds.ui.utils.ColorPalette;
 import javax.swing.*;
 import java.awt.*;
 
-/** 
- * Trang quét các thiết bị gần đây trên cùng mạng
- * @see HeadingPanel
- * @see ScanButton
- * @see FoundDevices
- * @author Shoyeb Ansari
-*/
+// Trang quét các thiết bị gần đây trên cùng mạng
+// @see HeadingPanel
+// @see ScanButton
+// @see FoundDevices
+// @author Shoyeb Ansari
 public class ScannerPage extends JPanel {
-    /** Panel tiêu đề */
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScannerPage.class);
+// Panel tiêu đề
     private HeadingPanel headingPanel;
-    /** Nút quét */
+    // Nút quét
     private ScanButton scanButton;
-    /** Component hiển thị các thiết bị tìm thấy */
+    // Component hiển thị các thiết bị tìm thấy
     private FoundDevices foundDevices;
     
     public ScannerPage() throws InterruptedException {
@@ -63,7 +66,7 @@ public class ScannerPage extends JPanel {
             try {
                 scanNearbyUsers();
             } catch (InterruptedException e1) {
-                e1.printStackTrace();
+                LOGGER.error("Chi tiết lỗi", e1);
             }
         });
         this.add(topPanel, BorderLayout.NORTH);
@@ -71,7 +74,7 @@ public class ScannerPage extends JPanel {
     }
     
     private void scanNearbyUsers() throws InterruptedException {
-        System.out.println("[INFO] UI yêu cầu quét peer gần đây.");
+        LOGGER.info("UI yêu cầu quét peer gần đây.");
         // Hiển thị loading ngay lập tức
         foundDevices.setLoadingPanel();
         
@@ -79,7 +82,7 @@ public class ScannerPage extends JPanel {
             @Override
             protected String[] doInBackground() throws Exception {
                 if (App.peerNode == null) {
-                    System.out.println("[WARN] Bỏ qua quét vì App.peerNode đang null.");
+                    LOGGER.warn("Bỏ qua quét vì App.peerNode đang null.");
                     return new String[0];
                 }
                 return App.peerNode.discoverPeersOnLocalNetwork().stream()
@@ -91,10 +94,10 @@ public class ScannerPage extends JPanel {
             protected void done() {
                 try {
                     String[] foundDevicesList = get();
-                    System.out.println("[INFO] UI quét xong. tìm thấy=" + foundDevicesList.length);
+                    LOGGER.info("UI quét xong. tìm thấy=" + foundDevicesList.length);
                     foundDevices.setFoundDevices(foundDevicesList);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.error("Chi tiết lỗi", e);
                     // Xử lý lỗi
                 }
             }

@@ -8,19 +8,17 @@ import javax.swing.*;
 import java.awt.*;
 
 
-/** Component vẽ biểu tượng tròn */
+// Component vẽ biểu tượng tròn
 public class CircularIcon extends JPanel {
 
-    /** Biểu tượng */
+    // Biểu tượng
     private FontIcon userIcon;
-    /** Màu nền của biểu tượng */
+    // Màu nền của biểu tượng
     private Color circleColor;
-    /** Màu biểu tượng */
+    // Màu biểu tượng
     private Color iconColor;
 
-    /**
-     * @param icon biểu tượng cần hiển thị trong vòng tròn
-     */
+    // @param icon biểu tượng cần hiển thị trong vòng tròn
     public CircularIcon(FontIcon icon) {
         this.userIcon = icon;
         this.circleColor = ColorPalette.PRIMARY;
@@ -83,37 +81,29 @@ public class CircularIcon extends JPanel {
         g2d.dispose();
     }
     
-    /**
-     * Thay đổi màu nền
-     * @param color màu mới
-     */
+    // Thay đổi màu nền
+    // @param color màu mới
     public void setCircleColor(Color color) {
         this.circleColor = color;
         repaint();
     }
     
-    /**
-     * Thay đổi màu biểu tượng
-     * @param color màu mới
-     */
+    // Thay đổi màu biểu tượng
+    // @param color màu mới
     public void setIconColor(Color color) {
         this.iconColor = color;
         repaint();
     }
     
-    /**
-     * Lấy màu nền
-     * @return màu nền
-     */
+    // Lấy màu nền
+    // @return màu nền
     public Color getCircleColor() {
         return circleColor;
     }
 
     
-    /**
-     * Lấy màu biểu tượng
-     * @return màu biểu tượng
-     */
+    // Lấy màu biểu tượng
+    // @return màu biểu tượng
     public Color getIconColor() {
         return iconColor;
     }

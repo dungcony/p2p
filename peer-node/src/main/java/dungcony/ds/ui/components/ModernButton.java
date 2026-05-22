@@ -9,9 +9,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class ModernButton extends JButton {
-    /** Cờ hover */
+    // Cờ hover
     private boolean isHover = false;
-    /** Màu mặc định */
+    // Màu mặc định
     private Color normalColor = ColorPalette.PRIMARY;
     private Color hoverColor = ColorPalette.SECONDARY;
     

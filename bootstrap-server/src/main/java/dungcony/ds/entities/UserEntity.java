@@ -2,9 +2,7 @@ package dungcony.ds.entities;
 
 import dungcony.ds.models.PeerInfo;
 
-/**
- * Entity anh xa 1-1 voi bang users.
- */
+// Entity ánh xạ 1-1 với bảng users.
 public class UserEntity {
     private final String userId;
     private final String displayName;

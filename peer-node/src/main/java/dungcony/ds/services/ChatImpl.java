@@ -1,19 +1,24 @@
 package dungcony.ds.services;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.interfaces.ChatService;
 import dungcony.ds.interfaces.MessageHistoryService;
 import dungcony.ds.interfaces.PeerDirectoryService;
-import dungcony.ds.mapper.Mes;
 import dungcony.ds.model.BootstrapClient;
 import dungcony.ds.model.Message;
+import dungcony.ds.model.MessageSender;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.peer.MessageSender;
+import dungcony.ds.utils.Mes;
 
 import java.util.function.Consumer;
 
 public class ChatImpl implements ChatService {
-    private final PeerInfo localPeer;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatImpl.class);
+private final PeerInfo localPeer;
     private final MessageSender messageSender;
     private final BootstrapClient bootstrapClient;
     private final PeerDirectoryService peerDirectoryService;
@@ -21,9 +26,7 @@ public class ChatImpl implements ChatService {
     private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
-    /**
-     * Khoi tao service xu ly heartbeat va gui chat 1-1.
-     */
+    // Khởi tạo service xử lý heartbeat và gửi chat 1-1.
     public ChatImpl(PeerInfo localPeer, MessageSender messageSender, BootstrapClient bootstrapClient,
                     PeerDirectoryService peerDirectoryService, MessageHistoryService messageHistoryService,
                     Consumer<Message> messageNotifier, Runnable peerChangeNotifier) {
@@ -36,27 +39,25 @@ public class ChatImpl implements ChatService {
         this.peerChangeNotifier = peerChangeNotifier;
     }
 
-    /**
-     * Gửi tin nhắn 1-1 trực tiếp tới peer đích, lưu lịch sử nếu gửi được hoặc store offline thành công.
-     */
+    // Gửi tin nhắn 1-1 trực tiếp tới peer đích, lưu lịch sử nếu gửi được hoặc store offline thành công.
     @Override
     public boolean sendMessage(String content, String hostAndMaybePort) {
         if (content == null || content.isBlank()) {
-            System.out.println("[WARN] Từ chối gửi tin nhắn rỗng.");
+            LOGGER.warn("Từ chối gửi tin nhắn rỗng.");
             return false;
         }
         PeerInfo receiver = peerDirectoryService.resolvePeer(hostAndMaybePort);
         if (receiver == null) {
-            System.out.println("[WARN] Từ chối gửi tin vì peer đích rỗng.");
+            LOGGER.warn("Từ chối gửi tin vì peer đích rỗng.");
             return false;
         }
         if (peerDirectoryService.isSelfPeer(receiver)) {
-            System.out.println("[WARN] Từ chối gửi tin tới peer hiện tại: " + receiver.addressKey());
+            LOGGER.warn("Từ chối gửi tin tới peer hiện tại: " + receiver.addressKey());
             return false;
         }
 
         Message message = Message.chat(localPeer, receiver, content);
-        System.out.println("[INFO] Đang gửi tin nhắn CHAT id=" + message.getId()
+        LOGGER.info("Đang gửi tin nhắn CHAT id=" + message.getId()
                 + " tới=" + receiver.addressKey());
         boolean sent = messageSender.send(receiver, message);
         receiver.setOnline(sent);
@@ -70,26 +71,24 @@ public class ChatImpl implements ChatService {
         messageHistoryService.addAndSave(receiver, message);
         messageNotifier.accept(message);
         if (sent) {
-            System.out.println("[INFO] Tin nhắn CHAT đã được giao và lưu. id=" + message.getId());
+            LOGGER.info("Tin nhắn CHAT đã được giao và lưu. id=" + message.getId());
         } else {
-            System.out.println("[WARN] Tin nhắn CHAT thất bại sau khi retry. id=" + message.getId()
+            LOGGER.warn("Tin nhắn CHAT thất bại sau khi retry. id=" + message.getId()
                     + ", tới=" + receiver.addressKey() + ", status=" + message.getStatus());
         }
         peerChangeNotifier.run();
         return sent;
     }
 
-    /**
-     * Luu tin offline len bootstrap-server de receiver nhan lai khi JOIN.
-     */
+    // Lưu tin offline lên bootstrap-server để receiver nhận lại khi JOIN.
     private boolean storeOfflineIfPossible(Message message) {
         if (bootstrapClient == null) {
-            System.out.println("[WARN] Không thể lưu tin nhắn offline vì bootstrap đang tắt. messageId="
+            LOGGER.warn("Không thể lưu tin nhắn offline vì bootstrap đang tắt. messageId="
                     + message.getId());
             return false;
         }
         boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
-        System.out.println("[INFO] Đã lưu fallback offline=" + stored + ", messageId=" + message.getId());
+        LOGGER.info("Đã lưu fallback offline=" + stored + ", messageId=" + message.getId());
         return stored;
     }
 }

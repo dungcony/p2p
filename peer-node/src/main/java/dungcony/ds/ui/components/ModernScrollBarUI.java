@@ -5,9 +5,7 @@ import dungcony.ds.ui.utils.ColorPalette;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * Giao diện ScrollBar tùy chỉnh hiện đại
- */
+// Giao diện ScrollBar tùy chỉnh hiện đại
 public class ModernScrollBarUI extends javax.swing.plaf.basic.BasicScrollBarUI {
     @Override
     protected void configureScrollBarColors() {

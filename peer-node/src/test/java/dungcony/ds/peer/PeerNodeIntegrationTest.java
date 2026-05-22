@@ -2,10 +2,7 @@ package dungcony.ds.peer;
 
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.enums.MessageType;
-import dungcony.ds.model.BootstrapClient;
-import dungcony.ds.model.Group;
-import dungcony.ds.model.Message;
-import dungcony.ds.model.PeerInfo;
+import dungcony.ds.model.*;
 import dungcony.ds.models.BootstrapServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -24,11 +21,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 class PeerNodeIntegrationTest {
     private final List<PeerNode> peers = new ArrayList<>();

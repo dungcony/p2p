@@ -1,5 +1,8 @@
 package dungcony.ds.repositories;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.entities.GroupEntity;
 
 import java.sql.Connection;
@@ -12,9 +15,9 @@ import java.util.List;
 
 public record GroupRepo(Conn conn) {
 
-    /**
-     * Tao/cap nhat metadata group trong bang groups.
-     */
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(GroupRepo.class);
+// Tạo/cập nhật metadata group trong bảng groups.
     public void upsert(GroupEntity groupEntity) {
         try (Connection connection = conn.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
@@ -28,15 +31,13 @@ public record GroupRepo(Conn conn) {
             statement.setString(3, groupEntity.getCreatedBy());
             statement.setLong(4, groupEntity.getCreatedAt());
             statement.executeUpdate();
-            System.out.println("[INFO] Đã lưu nhóm id=" + groupEntity.getGroupId());
+            LOGGER.info("Đã lưu nhóm id=" + groupEntity.getGroupId());
         } catch (SQLException e) {
-            System.out.println("[ERROR] Không thể lưu nhóm: " + e.getMessage());
+            LOGGER.error("Không thể lưu nhóm: " + e.getMessage());
         }
     }
 
-    /**
-     * Lay toan bo group metadata bootstrap dang luu.
-     */
+    // Lấy toàn bộ group metadata bootstrap đang lưu.
     public Collection<GroupEntity> listAll() {
         List<GroupEntity> groups = new ArrayList<>();
         try (Connection connection = conn.getConnection();
@@ -55,7 +56,7 @@ public record GroupRepo(Conn conn) {
                 ));
             }
         } catch (SQLException e) {
-            System.out.println("[ERROR] Không thể liệt kê nhóm: " + e.getMessage());
+            LOGGER.error("Không thể liệt kê nhóm: " + e.getMessage());
         }
         return groups;
     }

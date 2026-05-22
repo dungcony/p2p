@@ -9,22 +9,18 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-/**
- * Component thẻ hiển thị thông tin người dùng
- */
+// Component thẻ hiển thị thông tin người dùng
 public class ChatProfile extends RoundedPanel {
-    /** Biểu tượng tròn */
+    // Biểu tượng tròn
     private CircularIcon icon;
-    /** Panel nội dung bên phải */
+    // Panel nội dung bên phải
     private JPanel contentPanel;
-    /** Cờ hover */
+    // Cờ hover
     private boolean isHovered = false;
-    /** Cờ chọn */
+    // Cờ chọn
     private boolean isSelected = false;
 
-    /**
-     * @param contentPanel Panel bên phải của profile
-     */
+    // @param contentPanel Panel bên phải của profile
     public ChatProfile(int radius, JPanel contentPanel, Color color) {
         super(radius, color);
         this.icon = new CircularIcon(FontIcon.of(FontAwesome.USER, 30));
@@ -35,9 +31,7 @@ public class ChatProfile extends RoundedPanel {
         setupInteractions();
     }
     
-    /** 
-     * Khởi tạo các thành phần của ChatProfile
-     */
+    // Khởi tạo các thành phần của ChatProfile
     private void initializeComponents() {
         // Thiết lập panel chính
         this.setBackground(ColorPalette.PANEL_BACKGROUND);
@@ -50,7 +44,7 @@ public class ChatProfile extends RoundedPanel {
         contentPanel.setOpaque(false);
     }
     
-    /** Thiết lập bố cục của ChatProfile */
+    // Thiết lập bố cục của ChatProfile
     private void setupLayout() {
         this.setLayout(new BorderLayout(15, 0));
         this.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
@@ -59,9 +53,7 @@ public class ChatProfile extends RoundedPanel {
         this.add(contentPanel, BorderLayout.CENTER);
     }
     
-    /**
-     * Thiết lập các tương tác: hover, click...
-     */
+    // Thiết lập các tương tác: hover, click...
     private void setupInteractions() {
         // Hiệu ứng hover
         this.addMouseListener(new MouseAdapter() {
@@ -121,17 +113,13 @@ public class ChatProfile extends RoundedPanel {
         super.paintComponent(g);
     }
     
-    /** 
-     * Đặt trạng thái chọn
-     */
+    // Đặt trạng thái chọn
     public void setSelected(boolean selected) {
         this.isSelected = selected;
         repaint();
     }
     
-    /**
-     * Kiểm tra có đang được chọn không
-     */
+    // Kiểm tra có đang được chọn không
     public boolean isSelected() {
         return isSelected;
     }

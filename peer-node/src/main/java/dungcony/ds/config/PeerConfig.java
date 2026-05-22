@@ -1,6 +1,9 @@
 package dungcony.ds.config;
 
-import dungcony.ds.peer.PeerNode;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import dungcony.ds.model.PeerNode;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +14,9 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class PeerConfig {
-    private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main", "resources", "data");
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(PeerConfig.class);
+private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main", "resources", "data");
 
     private Path dataRoot;
     private Path dataDir;
@@ -22,16 +27,12 @@ public class PeerConfig {
     private String bootstrapHost;
     private int bootstrapPort;
 
-    /**
-     * Doc cau hinh peer tu file resources/data/config.properties va tao id neu chua co.
-     */
+    // Đọc cấu hình peer từ file resources/data/config.properties và tạo id nếu chưa có.
     public static PeerConfig load() {
         return load(DEFAULT_DATA_DIR);
     }
 
-    /**
-     * Doc cau hinh peer tu dataDir rieng cua instance hien tai.
-     */
+    // Đọc cấu hình peer từ dataDir riêng của instance hiện tại.
     public static PeerConfig load(Path dataDir) {
         Path dataRoot = dataDir == null ? DEFAULT_DATA_DIR : dataDir.normalize();
         Path loadedConfigPath = resolveConfigPath(dataRoot);
@@ -39,16 +40,16 @@ public class PeerConfig {
         Properties globalProperties = loadGlobalProperties(dataRoot);
         try {
             Files.createDirectories(dataRoot);
-            System.out.println("[INFO] Thư mục dữ liệu peer đã sẵn sàng: " + dataRoot.toAbsolutePath());
+            LOGGER.info("Thư mục dữ liệu peer đã sẵn sàng: " + dataRoot.toAbsolutePath());
         } catch (IOException e) {
-            System.out.println("[ERROR] Không thể tạo thư mục dữ liệu peer: " + e.getMessage());
+            LOGGER.error("Không thể tạo thư mục dữ liệu peer: " + e.getMessage());
         }
         if (loadedConfigPath != null && Files.exists(loadedConfigPath)) {
             try (InputStream inputStream = Files.newInputStream(loadedConfigPath)) {
                 profileProperties.load(inputStream);
-                System.out.println("[INFO] Đã nạp cấu hình peer từ " + loadedConfigPath.toAbsolutePath());
+                LOGGER.info("Đã nạp cấu hình peer từ " + loadedConfigPath.toAbsolutePath());
             } catch (IOException e) {
-                System.out.println("[WARN] Không thể nạp cấu hình peer. Dùng mặc định. lỗi=" + e.getMessage());
+                LOGGER.warn("Không thể nạp cấu hình peer. Dùng mặc định. lỗi=" + e.getMessage());
             }
         }
 
@@ -60,13 +61,11 @@ public class PeerConfig {
         config.bootstrapHost = readString(globalProperties, "bootstrap.host", "localhost");
         config.bootstrapPort = readInt(globalProperties, "bootstrap.port", 9000);
         config.refreshStoragePaths();
-        System.out.println("[INFO] Đã chọn thư mục dữ liệu peer: " + config.dataDir.toAbsolutePath());
+        LOGGER.info("Đã chọn thư mục dữ liệu peer: " + config.dataDir.toAbsolutePath());
         return config;
     }
 
-    /**
-     * Tao profile moi voi peer.id la UUID va folder profile cung ten UUID.
-     */
+    // Tạo profile mới với peer.id la UUID và folder profile cùng tên UUID.
     public static PeerConfig createNew(Path dataRoot) {
         Path resolvedDataRoot = dataRoot == null ? DEFAULT_DATA_DIR : dataRoot.normalize();
         PeerConfig config = new PeerConfig();
@@ -78,14 +77,12 @@ public class PeerConfig {
         config.bootstrapHost = readString(globalProperties, "bootstrap.host", "localhost");
         config.bootstrapPort = readInt(globalProperties, "bootstrap.port", 9000);
         config.refreshStoragePaths();
-        System.out.println("[INFO] Đã tạo nháp profile peer mới. peerId=" + config.peerId
+        LOGGER.info("Đã tạo nháp profile peer mới. peerId=" + config.peerId
                 + ", thưMụcDữLiệu=" + config.dataDir.toAbsolutePath());
         return config;
     }
 
-    /**
-     * Liet ke cac profile da co trong data root, moi profile la mot folder UUID co config.properties.
-     */
+    // Liet ke các profile đã có trong data root, mới profile la một folder UUID có config.properties.
     public static List<PeerConfig> listProfiles(Path dataRoot) {
         Path resolvedDataRoot = dataRoot == null ? DEFAULT_DATA_DIR : dataRoot.normalize();
         List<PeerConfig> profiles = new ArrayList<>();
@@ -104,21 +101,19 @@ public class PeerConfig {
             }
             Path legacyConfigPath = resolvedDataRoot.resolve("config.properties");
             if (profiles.isEmpty() && isLegacyPeerConfig(legacyConfigPath)) {
-                System.out.println("[INFO] Tìm thấy cấu hình peer cũ dưới dạng profile có sẵn. "
+                LOGGER.info("Tìm thấy cấu hình peer cũ dưới dạng profile có sẵn. "
                         + "It will be migrated to UUID folder on start.");
                 profiles.add(loadFromConfigPath(resolvedDataRoot, legacyConfigPath));
             }
         } catch (IOException e) {
-            System.out.println("[WARN] Không thể liệt kê profile peer: " + e.getMessage());
+            LOGGER.warn("Không thể liệt kê profile peer: " + e.getMessage());
         }
-        System.out.println("[INFO] Số profile peer tìm thấy=" + profiles.size()
+        LOGGER.info("Số profile peer tìm thấy=" + profiles.size()
                 + ", dataRoot=" + resolvedDataRoot.toAbsolutePath());
         return profiles;
     }
 
-    /**
-     * Cap nhat ten va port sau khi nguoi dung bam Start o man hinh dang nhap.
-     */
+    // Cập nhật tên và port sau khi người dùng bấm Start ở màn hình đăng nhập.
     public void updateLogin(String peerId, String peerName, int peerPort) {
         this.peerId = peerId == null || peerId.isBlank() ? this.peerId : peerId.trim();
         this.peerName = peerName == null || peerName.isBlank() ? this.peerName : peerName.trim();
@@ -126,41 +121,35 @@ public class PeerConfig {
         refreshStoragePaths();
     }
 
-    /**
-     * Cap nhat dinh danh hien thi; port lang nghe khong doi trong dialog UI.
-     */
+    // Cập nhật định danh hiển thị; port lắng nghe không đổi trong dialog UI.
     public void updateIdentity(String peerId, String peerName) {
         this.peerId = peerId == null || peerId.isBlank() ? this.peerId : peerId.trim();
         this.peerName = peerName == null || peerName.isBlank() ? this.peerName : peerName.trim();
         refreshStoragePaths();
     }
 
-    /**
-     * Cap nhat port lang nghe cua peer khi tao profile moi.
-     */
+    // Cập nhật port lắng nghe của peer khi tạo profile mới.
     public boolean updatePeerPort(int peerPort) {
         if (peerPort < 1 || peerPort > 65535) {
-            System.out.println("[WARN] Đã bỏ qua cổng peer không hợp lệ=" + peerPort);
+            LOGGER.warn("Đã bỏ qua cổng peer không hợp lệ=" + peerPort);
             return false;
         }
         if (peerPort == bootstrapPort) {
-            System.out.println("[WARN] Từ chối cổng peer vì trùng với cổng bootstrap=" + bootstrapPort);
+            LOGGER.warn("Từ chối cổng peer vì trùng với cổng bootstrap=" + bootstrapPort);
             return false;
         }
         this.peerPort = peerPort;
         return true;
     }
 
-    /**
-     * Ap dung peer port duoc truyen luc chay app qua CLI.
-     */
+    // Áp dụng peer port được truyền lúc chạy app qua CLI.
     public void applyRuntimePeerPort(Integer runtimePeerPort) {
         if (runtimePeerPort == null) {
             protectBootstrapPort();
             return;
         }
         if (runtimePeerPort < 1 || runtimePeerPort > 65535) {
-            System.out.println("[WARN] Đã bỏ qua cổng peer runtime không hợp lệ=" + runtimePeerPort
+            LOGGER.warn("Đã bỏ qua cổng peer runtime không hợp lệ=" + runtimePeerPort
                     + ". Giữ cổng=" + peerPort);
             protectBootstrapPort();
             return;
@@ -170,9 +159,7 @@ public class PeerConfig {
         }
     }
 
-    /**
-     * Luu cau hinh peer de lan sau app dung lai cung peer.id khi dang nhap.
-     */
+    // Lưu cấu hình peer để lần sau app dùng lại cùng peer.id khi đăng nhập.
     public void save() {
         Properties profileProperties = new Properties();
         profileProperties.setProperty("peer.id", peerId);
@@ -184,112 +171,86 @@ public class PeerConfig {
                 profileProperties.store(outputStream, "Local peer identity profile");
             }
             saveGlobalConfig();
-            System.out.println("[INFO] Đã lưu cấu hình peer. peerId=" + peerId
+            LOGGER.info("Đã lưu cấu hình peer. peerId=" + peerId
                     + ", tênPeer=" + peerName + ", cổng=" + peerPort
                     + ", thưMụcDữLiệu=" + dataDir.toAbsolutePath());
         } catch (IOException e) {
-            System.out.println("[ERROR] Không thể lưu cấu hình peer: " + e.getMessage());
+            LOGGER.error("Không thể lưu cấu hình peer: " + e.getMessage());
         }
     }
 
-    /**
-     * Lay data directory rieng cua instance peer-node hien tai.
-     */
+    // Lấy data directory riêng của instance peer-node hiện tại.
     public Path getDataDir() {
         return dataDir;
     }
 
-    /**
-     * Lay data root chua cac folder profile peer theo UUID.
-     */
+    // Lấy data root chua các folder profile peer theo UUID.
     public Path getDataRoot() {
         return dataRoot;
     }
 
-    /**
-     * Label ngan gon de hien thi trong dialog chon profile.
-     */
+    // Label ngắn gọn để hiển thị trong dialog chọn profile.
     public String getDisplayLabel() {
         return peerName + " | " + peerPort + " | " + peerId;
     }
 
-    /**
-     * Lay id on dinh dung lam khoa user_id tren bootstrap-server.
-     */
+    // Lấy id ổn định dùng làm khóa user_id trên bootstrap-server.
     public String getPeerId() {
         return peerId;
     }
 
-    /**
-     * Lay ten hien thi cua peer.
-     */
+    // Lấy tên hiển thị của peer.
     public String getPeerName() {
         return peerName;
     }
 
-    /**
-     * Lay port TCP peer-node se lang nghe.
-     */
+    // Lấy port TCP peer-node se lắng nghe.
     public int getPeerPort() {
         return peerPort;
     }
 
-    /**
-     * Lay host cua bootstrap-server.
-     */
+    // Lấy host của bootstrap-server.
     public String getBootstrapHost() {
         return bootstrapHost;
     }
 
-    /**
-     * Lay port cua bootstrap-server.
-     */
+    // Lấy port của bootstrap-server.
     public int getBootstrapPort() {
         return bootstrapPort;
     }
 
-    /**
-     * Neu peer.port trung bootstrap.port thi khong cho PeerNode chiem cong tracker.
-     */
+    // Nếu peer.port trùng bootstrap.port thì không cho PeerNode chiếm cổng tracker.
     private void protectBootstrapPort() {
         if (peerPort == bootstrapPort) {
-            System.out.println("[WARN] peer.port trùng với cổng bootstrap=" + bootstrapPort
+            LOGGER.warn("peer.port trùng với cổng bootstrap=" + bootstrapPort
                     + ". Chuyển về cổng mặc định của peer=" + PeerNode.DEFAULT_PORT);
             peerPort = PeerNode.DEFAULT_PORT;
         }
     }
 
-    /**
-     * Doc string property voi fallback khi value rong.
-     */
+    // Đọc string property với fallback khi value rỗng.
     private static String readString(Properties properties, String key, String defaultValue) {
         String value = properties.getProperty(key);
         return value == null || value.isBlank() ? defaultValue : value.trim();
     }
 
-    /**
-     * Doc int property voi fallback khi value khong hop le.
-     */
+    // Đọc int property với fallback khi value không hợp lệ.
     private static int readInt(Properties properties, String key, int defaultValue) {
         try {
             return Integer.parseInt(readString(properties, key, String.valueOf(defaultValue)));
         } catch (NumberFormatException e) {
-            System.out.println("[WARN] Config số nguyên không hợp lệ. key=" + key + ". fallback=" + defaultValue);
+            LOGGER.warn("Config số nguyên không hợp lệ. key=" + key + ". fallback=" + defaultValue);
             return defaultValue;
         }
     }
 
-    /**
-     * Cap nhat dataDir/configPath theo peer.id hien tai de folder duoc dat theo UUID.
-     */
+    // Cập nhật dataDir/configPath theo peer.id hiện tại để folder được dat theo UUID.
     private void refreshStoragePaths() {
         this.dataDir = dataRoot.resolve(safePathSegment(peerId));
         this.configPath = dataDir.resolve("config.properties");
     }
 
-    /**
-     * Tim config co san trong data root: uu tien folder UUID con, sau do moi den config legacy.
-     */
+    // Tìm config có sẵn trong data root: ưu tiên folder UUID con, sau đó mới đến config legacy.
     private static Path resolveConfigPath(Path dataRoot) {
         try {
             if (Files.exists(dataRoot)) {
@@ -301,7 +262,7 @@ public class PeerConfig {
                             .sorted(Comparator.comparing(path -> path.getParent().getFileName().toString()))
                             .toList();
                     if (configPaths.size() > 1) {
-                        System.out.println("[WARN] Tìm thấy nhiều thư mục UUID peer trong data root. "
+                        LOGGER.warn("Tìm thấy nhiều thư mục UUID peer trong data root. "
                                 + "Using first folder by name: " + configPaths.get(0).getParent().getFileName());
                     }
                     if (!configPaths.isEmpty()) {
@@ -310,27 +271,25 @@ public class PeerConfig {
                 }
             }
         } catch (IOException e) {
-            System.out.println("[WARN] Không thể quét thư mục dữ liệu peer: " + e.getMessage());
+            LOGGER.warn("Không thể quét thư mục dữ liệu peer: " + e.getMessage());
         }
 
         Path legacyConfigPath = dataRoot.resolve("config.properties");
         if (isLegacyPeerConfig(legacyConfigPath)) {
-            System.out.println("[INFO] Tìm thấy cấu hình peer cũ. Cấu hình này sẽ được lưu vào thư mục UUID sau khi đăng nhập.");
+            LOGGER.info("Tìm thấy cấu hình peer cũ. Cấu hình này sẽ được lưu vào thư mục UUID sau khi đăng nhập.");
             return legacyConfigPath;
         }
         return null;
     }
 
-    /**
-     * Doc mot profile cu the tu file config.properties trong folder UUID.
-     */
+    // Đọc một profile cũ từ file config.properties trong folder UUID.
     private static PeerConfig loadFromConfigPath(Path dataRoot, Path configPath) {
         Properties properties = new Properties();
         Properties globalProperties = loadGlobalProperties(dataRoot);
         try (InputStream inputStream = Files.newInputStream(configPath)) {
             properties.load(inputStream);
         } catch (IOException e) {
-            System.out.println("[WARN] Không thể nạp cấu hình profile=" + configPath
+            LOGGER.warn("Không thể nạp cấu hình profile=" + configPath
                     + ", lỗi=" + e.getMessage());
         }
 
@@ -342,14 +301,12 @@ public class PeerConfig {
         config.bootstrapHost = readString(globalProperties, "bootstrap.host", "localhost");
         config.bootstrapPort = readInt(globalProperties, "bootstrap.port", 9000);
         config.refreshStoragePaths();
-        System.out.println("[INFO] Đã nạp profile peer. " + config.getDisplayLabel()
+        LOGGER.info("Đã nạp profile peer. " + config.getDisplayLabel()
                 + ", thưMụcDữLiệu=" + config.dataDir.toAbsolutePath());
         return config;
     }
 
-    /**
-     * Chuyen peer.id thanh ten folder an toan tren filesystem.
-     */
+    // Chuyển peer.id thành tên folder an toàn trên filesystem.
     private static String safePathSegment(String value) {
         if (value == null || value.isBlank()) {
             return UUID.randomUUID().toString();
@@ -357,9 +314,7 @@ public class PeerConfig {
         return value.replaceAll("[^a-zA-Z0-9._-]", "_");
     }
 
-    /**
-     * Luu bootstrap config chung vao dataRoot/config.properties, khong ghi vao tung profile.
-     */
+    // Lưu bootstrap config chung vào dataRoot/config.properties, không ghi vào tung profile.
     private void saveGlobalConfig() throws IOException {
         Properties globalProperties = new Properties();
         globalProperties.setProperty("bootstrap.host", bootstrapHost);
@@ -369,12 +324,10 @@ public class PeerConfig {
         try (OutputStream outputStream = Files.newOutputStream(globalConfigPath)) {
             globalProperties.store(outputStream, "Peer-node shared bootstrap config");
         }
-        System.out.println("[INFO] Đã lưu cấu hình bootstrap dùng chung. path=" + globalConfigPath.toAbsolutePath());
+        LOGGER.info("Đã lưu cấu hình bootstrap dùng chung. path=" + globalConfigPath.toAbsolutePath());
     }
 
-    /**
-     * Doc bootstrap config chung tu dataRoot/config.properties.
-     */
+    // Đọc bootstrap config chung từ dataRoot/config.properties.
     private static Properties loadGlobalProperties(Path dataRoot) {
         Properties properties = new Properties();
         Path globalConfigPath = dataRoot.resolve("config.properties");
@@ -383,16 +336,14 @@ public class PeerConfig {
         }
         try (InputStream inputStream = Files.newInputStream(globalConfigPath)) {
             properties.load(inputStream);
-            System.out.println("[INFO] Đã nạp cấu hình bootstrap dùng chung từ " + globalConfigPath.toAbsolutePath());
+            LOGGER.info("Đã nạp cấu hình bootstrap dùng chung từ " + globalConfigPath.toAbsolutePath());
         } catch (IOException e) {
-            System.out.println("[WARN] Không thể nạp cấu hình bootstrap dùng chung: " + e.getMessage());
+            LOGGER.warn("Không thể nạp cấu hình bootstrap dùng chung: " + e.getMessage());
         }
         return properties;
     }
 
-    /**
-     * Kiem tra config root cu co chua peer.id hay khong de migrate thanh profile UUID.
-     */
+    // Kiểm tra config root cũ có chứa peer.id hay không để migrate thành profile UUID.
     private static boolean isLegacyPeerConfig(Path configPath) {
         if (!Files.exists(configPath)) {
             return false;
@@ -402,7 +353,7 @@ public class PeerConfig {
             properties.load(inputStream);
             return properties.getProperty("peer.id") != null;
         } catch (IOException e) {
-            System.out.println("[WARN] Không thể kiểm tra cấu hình peer cũ: " + e.getMessage());
+            LOGGER.warn("Không thể kiểm tra cấu hình peer cũ: " + e.getMessage());
             return false;
         }
     }

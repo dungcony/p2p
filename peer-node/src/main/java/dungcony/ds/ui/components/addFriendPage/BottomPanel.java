@@ -1,5 +1,8 @@
 package dungcony.ds.ui.components.addFriendPage;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.App;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.ui.components.ModernButton;
@@ -14,7 +17,9 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class BottomPanel extends RoundedPanel {
-    private ModernButton checkConnectionButton;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(BottomPanel.class);
+private ModernButton checkConnectionButton;
     private InputField nameField;
     private InputField ipField;
 
@@ -56,22 +61,22 @@ public class BottomPanel extends RoundedPanel {
     private boolean connectAndOpenChat() {
         String name = nameField.getTextField().getText();
         String address = ipField.getTextField().getText();
-        System.out.println("[INFO] Yêu cầu chat trực tiếp. tên=" + name + ", địaChỉ=" + address);
+        LOGGER.info("Yêu cầu chat trực tiếp. tên=" + name + ", địaChỉ=" + address);
 
         if (!isValidPeerAddress(address)) {
-            System.out.println("[WARN] Từ chối chat trực tiếp: địa chỉ không hợp lệ=" + address);
+            LOGGER.warn("Từ chối chat trực tiếp: địa chỉ không hợp lệ=" + address);
             Dialog.showMessageDialog(null, "Vui lòng nhập địa chỉ IP hoặc host:port hợp lệ", "Địa chỉ không hợp lệ", Dialog.ERROR_MESSAGE);
             return false;
         }
         if (App.peerNode != null && App.peerNode.isSelfAddress(address)) {
-            System.out.println("[WARN] Từ chối chat trực tiếp: địa chỉ trỏ về peer hiện tại=" + address);
+            LOGGER.warn("Từ chối chat trực tiếp: địa chỉ trỏ về peer hiện tại=" + address);
             Dialog.showMessageDialog(null, "Bạn không thể kết nối tới chính peer hiện tại.", "Peer không hợp lệ", Dialog.WARNING_MESSAGE);
             return false;
         }
 
         boolean online = App.peerNode != null && App.peerNode.checkUserIsOnline(address);
         if (!online) {
-            System.out.println("[WARN] Chat trực tiếp thất bại heartbeat. địa chỉ=" + address);
+            LOGGER.warn("Chat trực tiếp thất bại heartbeat. địa chỉ=" + address);
             Dialog.showMessageDialog(null, "Peer không phản hồi heartbeat.", "Peer ngoại tuyến", Dialog.WARNING_MESSAGE);
             return false;
         }
@@ -86,13 +91,11 @@ public class BottomPanel extends RoundedPanel {
         openChat(peerInfo);
         nameField.getTextField().setText("");
         ipField.getTextField().setText("");
-        System.out.println("[INFO] Đã mở chat trực tiếp. peer=" + peerInfo.addressKey());
+        LOGGER.info("Đã mở chat trực tiếp. peer=" + peerInfo.addressKey());
         return true;
     }
 
-    /**
-     * Chuyen thang sang trang chat va mo conversation vua connect.
-     */
+    // Chuyển thẳng sẵng trang chat và mở conversation vừa connect.
     private void openChat(PeerInfo peerInfo) {
         RouterManager routerManager = RouterManager.getInstance();
         routerManager.navigateTo("chats");

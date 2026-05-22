@@ -74,9 +74,7 @@ public class ChatScreen extends JPanel implements MessageListener {
         showChatControls(true);
     }
 
-    /**
-     * Chon group chat de UI gui/nhan message theo groupId thay vi host:port.
-     */
+    // Chọn group chat để UI gửi/nhận message theo groupId thay vì host:port.
     public void setSelectedGroup(String groupName, String groupId) {
         this.groupId = groupId;
         this.ipAddress = null;

@@ -1,5 +1,8 @@
 package dungcony.ds.services;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.config.PeerConfig;
 import dungcony.ds.dtos.ProfileSelection;
 import dungcony.ds.interfaces.ProfileSelectionService;
@@ -9,7 +12,9 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class ProfileSelectionImpl implements ProfileSelectionService {
-    private final Path dataRoot;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProfileSelectionImpl.class);
+private final Path dataRoot;
 
     public ProfileSelectionImpl(Path dataRoot) {
         this.dataRoot = dataRoot;
@@ -19,7 +24,7 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
     public ProfileSelection selectProfile() {
         List<PeerConfig> profiles = PeerConfig.listProfiles(dataRoot);
         if (profiles.isEmpty()) {
-            System.out.println("[INFO] Không tìm thấy profile cũ. Đang tạo profile UUID mới.");
+            LOGGER.info("Không tìm thấy profile cũ. Đang tạo profile UUID mới.");
             return new ProfileSelection(PeerConfig.createNew(dataRoot), true, true);
         }
 
@@ -47,9 +52,7 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
 
     // ------------------------- PRIVATE -----------------------------//
 
-    /**
-     * Cho nguoi dung click profile cu, Start truc tiep hoac Sửa neu muon sua name/port.
-     */
+    // Cho người dùng click profile cũ, Start trực tiếp hoặc Sửa nếu muốn sửa name/port.
     private ProfileSelection selectExistingProfile(List<PeerConfig> profiles) {
         DefaultListModel<PeerConfig> listModel = new DefaultListModel<>();
         profiles.forEach(listModel::addElement);

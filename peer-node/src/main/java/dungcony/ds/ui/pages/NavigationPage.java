@@ -5,15 +5,10 @@ import dungcony.ds.ui.components.navBar.NavBar;
 import javax.swing.*;
 import java.awt.*;
 
-/** 
- * Trang điều hướng bên trái của ứng dụng
- * @author Shoyeb Ansari
- * */
+// Trang điều hướng bên trái của ứng dụng
+// @author Shoyeb Ansari
 public class NavigationPage extends JLayeredPane {
-  
-    /** 
-     * Thanh điều hướng
-     */
+    // Thanh điều hướng
     private NavBar navBar;
 
     public NavigationPage() {

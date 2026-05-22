@@ -1,5 +1,8 @@
 package dungcony.ds.services;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.interfaces.MessageHistoryService;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
@@ -12,37 +15,31 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MessageHistoryImpl implements MessageHistoryService {
-    private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<>();
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageHistoryImpl.class);
+private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<>();
     private final LocalMessageRepo localMessageRepo;
 
-    /**
-     * Khoi tao service quan ly message history runtime va JSON local.
-     */
+    // Khởi tạo service quản lý message history runtime và JSON local.
     public MessageHistoryImpl(LocalMessageRepo localMessageRepo) {
         this.localMessageRepo = localMessageRepo;
     }
 
-    /**
-     * Luu message vao memory va messages.json theo peer doi thoai.
-     */
+    // Lưu message vào memory và messages.json theo peer đối thoại.
     @Override
     public void addAndSave(PeerInfo conversationPeer, Message message) {
         add(conversationPeer.addressKey(), message);
         localMessageRepo.save(conversationPeer, message);
     }
 
-    /**
-     * Luu message vao memory voi key tuy bien va persist theo peer doi thoai.
-     */
+    // Lưu message vào memory với key tùy biến và persist theo peer đối thoại.
     @Override
     public void addAndSave(String historyKey, PeerInfo conversationPeer, Message message) {
         add(historyKey, message);
         localMessageRepo.save(conversationPeer, message);
     }
 
-    /**
-     * Luu message vao history runtime.
-     */
+    // Lưu message vào history runtime.
     @Override
     public void add(String peerKey, Message message) {
         if (peerKey == null || peerKey.isBlank() || message == null) {
@@ -59,21 +56,17 @@ public class MessageHistoryImpl implements MessageHistoryService {
             }
             messages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
         }
-        System.out.println("[DEBUG] Đã cập nhật message trong lịch sử. peerKey=" + peerKey
+        LOGGER.debug("Đã cập nhật message trong lịch sử. peerKey=" + peerKey
                 + ", messageId=" + message.getId() + ", status=" + message.getStatus());
     }
 
-    /**
-     * Luu lai message da thay doi trang thai vao cache runtime va JSON local.
-     */
+    // Lưu lại message đã thay đổi trạng thái vào cache runtime và JSON local.
     @Override
     public void updateAndSave(PeerInfo conversationPeer, Message message) {
         addAndSave(conversationPeer, message);
     }
 
-    /**
-     * Lay history voi peer, lazy load tu messages.json khi can.
-     */
+    // Lấy history với peer, lazy load từ messages.json khi cần.
     @Override
     public List<Message> getMessages(PeerInfo peerInfo, String fallbackKey) {
         String key = peerInfo == null ? fallbackKey : peerInfo.addressKey();
@@ -86,26 +79,20 @@ public class MessageHistoryImpl implements MessageHistoryService {
         return new ArrayList<>(messageHistory.getOrDefault(key, Collections.emptyList()));
     }
 
-    /**
-     * Lay message cuoi cung voi peer.
-     */
+    // Lấy message cuối cùng với peer.
     @Override
     public Message getLastMessage(PeerInfo peerInfo, String fallbackKey) {
         List<Message> messages = getMessages(peerInfo, fallbackKey);
         return messages.isEmpty() ? null : messages.get(messages.size() - 1);
     }
 
-    /**
-     * Lay cac peer da tung co tin nhan 1-1 trong messages.json.
-     */
+    // Lấy các peer đã từng có tin nhắn 1-1 trong messages.json.
     @Override
     public List<PeerInfo> getDirectConversationPeers() {
         return localMessageRepo.findDirectConversationPeers();
     }
 
-    /**
-     * Merge messages.json vao cache runtime de UI khong mat tin cu khi cache da co tin moi.
-     */
+    // Merge messages.json vào cache runtime để UI không mất tin cũ khi cache đã có tin mới.
     private void mergeLocalMessages(String key, List<Message> localMessages) {
         List<Message> cachedMessages = messageHistory.computeIfAbsent(key,
                 ignored -> Collections.synchronizedList(new ArrayList<>()));
@@ -120,7 +107,7 @@ public class MessageHistoryImpl implements MessageHistoryService {
             }
             cachedMessages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
         }
-        System.out.println("[DEBUG] Đã merge tin nhắn local vào cache runtime. peerKey=" + key
+        LOGGER.debug("Đã merge tin nhắn local vào cache runtime. peerKey=" + key
                 + ", localCount=" + localMessages.size()
                 + ", cachedCount=" + cachedMessages.size());
     }

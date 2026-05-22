@@ -1,8 +1,6 @@
 package dungcony.ds.models;
 
-/**
- * DTO riêng của bootstrap-server để module tracker không phụ thuộc vào peer-node.
- */
+// DTO riêng của bootstrap-server để module tracker không phụ thuộc vào peer-node.
 public class PeerInfo {
     private String id;
     private String name;

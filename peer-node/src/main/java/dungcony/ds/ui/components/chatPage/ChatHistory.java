@@ -1,5 +1,8 @@
 package dungcony.ds.ui.components.chatPage;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.model.Message;
 import dungcony.ds.ui.components.ModernScrollBarUI;
 import dungcony.ds.ui.utils.ColorPalette;
@@ -9,11 +12,11 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Component lịch sử chat với bong bóng tin nhắn hiện đại
- */
+// Component lịch sử chat với bong bóng tin nhắn hiện đại
 public class ChatHistory extends JPanel {
-    private JPanel messagesPanel;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatHistory.class);
+private JPanel messagesPanel;
     private JScrollPane scrollPane;
 
     public ChatHistory() {
@@ -21,8 +24,8 @@ public class ChatHistory extends JPanel {
             initializeComponents();
             setupLayout();
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo lịch sử chat\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo lịch sử chat\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
@@ -47,8 +50,8 @@ public class ChatHistory extends JPanel {
             scrollPane.getVerticalScrollBar().setBackground(ColorPalette.BACKGROUND);
             scrollPane.getVerticalScrollBar().setUI(new ModernScrollBarUI());
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
@@ -57,8 +60,8 @@ public class ChatHistory extends JPanel {
             setLayout(new BorderLayout());
             add(scrollPane, BorderLayout.CENTER);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
@@ -96,13 +99,13 @@ public class ChatHistory extends JPanel {
                     JScrollBar vertical = scrollPane.getVerticalScrollBar();
                     vertical.setValue(vertical.getMaximum());
                 } catch (Exception ex) {
-                    System.out.println("[ERROR] Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
-                    ex.printStackTrace();
+                    LOGGER.error("Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
+                    LOGGER.error("Chi tiết lỗi", ex);
                 }
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể hiển thị tất cả tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể hiển thị tất cả tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
@@ -135,13 +138,13 @@ public class ChatHistory extends JPanel {
                     JScrollBar vertical = scrollPane.getVerticalScrollBar();
                     vertical.setValue(vertical.getMaximum());
                 } catch (Exception ex) {
-                    System.out.println("[ERROR] Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
-                    ex.printStackTrace();
+                    LOGGER.error("Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
+                    LOGGER.error("Chi tiết lỗi", ex);
                 }
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể hiển thị tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể hiển thị tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
@@ -151,8 +154,8 @@ public class ChatHistory extends JPanel {
             messagesPanel.revalidate();
             messagesPanel.repaint();
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể xóa danh sách tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể xóa danh sách tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 }

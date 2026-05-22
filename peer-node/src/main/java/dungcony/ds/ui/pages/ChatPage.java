@@ -1,5 +1,8 @@
 package dungcony.ds.ui.pages;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.App;
 import dungcony.ds.ui.components.chatPage.ChatList;
 import dungcony.ds.ui.components.chatPage.ChatScreen;
@@ -10,33 +13,33 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-/** 
- * Page for Chat section
- * @author Shoyeb Ansari
- */
+// Trang khu vực chat
+// @author Shoyeb Ansari
 public class ChatPage extends JPanel {
-    private static final int MEDIUM_WIDTH = 768;
-    /** Component to hold all the chat list */
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatPage.class);
+private static final int MEDIUM_WIDTH = 768;
+    // Component chứa toàn bộ danh sách chat
     private ChatList chatList;
-    /** Component to hold the current chatscreen */
+    // Component chứa màn hình chat hiện tại
     private ChatScreen chatScreen;
-    /** Split pane for effectively showing both chat screen and chat list */
+    // SplitPane hiển thị đồng thời màn hình chat và danh sách chat
     private JSplitPane splitPane;
-    /** Card Layout for dynamic rendering between the chat screen and chat list in mobile mode */
+    // CardLayout chuyển đổi động giữa màn hình chat và danh sách chat ở chế độ mobile
     private CardLayout cardLayout;
-    /** Panel cho chế độ mobile */
+    // Panel cho chế độ mobile
     private JPanel mobileView;
-    /** Main container to switch between desktop and mobile views */
+    // Container chính để chuyển giữa giao diện desktop và mobile
     private JPanel mainContainer;
-    /** Layout on the page will be seen */  
+    // Layout hiển thị trên trang
     private CardLayout mainLayout;
-    /** Cờ cho biết có đang ở chế độ mobile không */
+    // Cờ cho biết có đang ở chế độ mobile không
     private boolean isMobileMode = false;
     
     public ChatPage() {
         try {
             setLayout(new BorderLayout());
-            // Initialize components first
+            // Khởi tạo component trước
             initializeComponents();
             
             // Thiết lập bố cục
@@ -48,12 +51,12 @@ public class ChatPage extends JPanel {
             // Lắng nghe sự kiện thay đổi kích thước
             addResizeListener();
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo trang chat\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo trang chat\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /** Khởi tạo các thành phần */    
+    // Khởi tạo các thành phần
     private void initializeComponents() {
         try {
             chatList = new ChatList();
@@ -63,19 +66,19 @@ public class ChatPage extends JPanel {
             chatList.setParentChatPage(this);
             chatScreen.setParentChatPage(this);
             
-            // Ensure components are visible and have preferred sizes
+            // Đảm bảo component hiển thị và có kích thước ưu tiên
             chatList.setPreferredSize(new Dimension(300, 400));
             chatScreen.setPreferredSize(new Dimension(500, 400));
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /** Thiết lập bố cục */
+    // Thiết lập bố cục
     private void setupLayouts() {
         try {
-            // Main container with CardLayout to switch between desktop and mobile
+            // Container chính dùng CardLayout để chuyển giữa desktop và mobile
             mainLayout = new CardLayout();
             mainContainer = new JPanel(mainLayout);
             
@@ -92,30 +95,30 @@ public class ChatPage extends JPanel {
             // Thêm container vào trang
             add(mainContainer, BorderLayout.CENTER);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /** Initial state of the page, i.e., desktop mode */
+    // Trạng thái ban đầu của trang là chế độ desktop
     private void setInitialState() {
         try {
-            // Show desktop view initially
+            // Hiển thị desktop lúc khởi tạo
             mainLayout.show(mainContainer, "DESKTOP");
             chatScreen.setMobileMode(false);
             
-            // Force initial layout
+            // Ép layout ban đầu cập nhật
             SwingUtilities.invokeLater(() -> {
                 revalidate();
                 repaint();
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể set initial state\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể set initial state\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /** Thiết lập bố cục khi thay đổi kích thước */
+    // Thiết lập bố cục khi thay đổi kích thước
     private void addResizeListener() {
         try {
             addComponentListener(new ComponentAdapter() {
@@ -125,20 +128,18 @@ public class ChatPage extends JPanel {
                         // Use SwingUtilities.invokeLater to ensure proper event handling
                         SwingUtilities.invokeLater(() -> checkAndUpdateLayout());
                     } catch (Exception ex) {
-                        System.out.println("[ERROR] Không thể xử lý sự kiện đổi kích thước\nChi tiết lỗi: " + ex.getMessage());
-                        ex.printStackTrace();
+                        LOGGER.error("Không thể xử lý sự kiện đổi kích thước\nChi tiết lỗi: " + ex.getMessage());
+                        LOGGER.error("Chi tiết lỗi", ex);
                     }
                 }
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể thêm listener đổi kích thước\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể thêm listener đổi kích thước\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Thiết lập chế độ desktop
-     */
+    // Thiết lập chế độ desktop
     private void setupDesktopView() {
         try {
             splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -153,14 +154,12 @@ public class ChatPage extends JPanel {
             chatList.setMinimumSize(new Dimension(250, 0));
             chatScreen.setMinimumSize(new Dimension(300, 0));
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể thiết lập giao diện desktop\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể thiết lập giao diện desktop\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Thiết lập chế độ mobile
-     */
+    // Thiết lập chế độ mobile
     private void setupMobileView() {
         try {
             cardLayout = new CardLayout();
@@ -173,14 +172,12 @@ public class ChatPage extends JPanel {
             mobileView.add(chatListWrapper, "CHAT_LIST");
             mobileView.add(chatScreenWrapper, "CHAT_SCREEN");
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể thiết lập giao diện mobile\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể thiết lập giao diện mobile\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Phương thức điều chỉnh bố cục theo kích thước cửa sổ
-     */
+    // Phương thức điều chỉnh bố cục theo kích thước cửa sổ
     private void checkAndUpdateLayout() {
         try {
             if (!isDisplayable()) {
@@ -196,12 +193,12 @@ public class ChatPage extends JPanel {
                 switchToDesktopMode();
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể kiểm tra và cập nhật bố cục\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể kiểm tra và cập nhật bố cục\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /** Chuyển sang chế độ mobile */
+    // Chuyển sẵng chế độ mobile
     private void switchToMobileMode() {
         try {
             isMobileMode = true;
@@ -220,7 +217,7 @@ public class ChatPage extends JPanel {
             chatListWrapper.add(chatList, BorderLayout.CENTER);
             chatScreenWrapper.add(chatScreen, BorderLayout.CENTER);
             
-            // Switch to mobile view
+            // Chuyển sang giao diện mobile
             mainLayout.show(mainContainer, "MOBILE");
             
             // Show chat list by default in mobile mode
@@ -237,12 +234,12 @@ public class ChatPage extends JPanel {
                 mainContainer.repaint();
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể chuyển sang chế độ mobile\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể chuyển sang chế độ mobile\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /** Chuyển sang chế độ desktop */
+    // Chuyển sẵng chế độ desktop
     private void switchToDesktopMode() {
         try {
             isMobileMode = false;
@@ -258,7 +255,7 @@ public class ChatPage extends JPanel {
             splitPane.setLeftComponent(chatList);
             splitPane.setRightComponent(chatScreen);
             
-            // Switch to desktop view
+            // Chuyển sang giao diện desktop
             mainLayout.show(mainContainer, "DESKTOP");
             
             // Update components for desktop mode
@@ -272,57 +269,51 @@ public class ChatPage extends JPanel {
                 mainContainer.repaint();
             });
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể chuyển sang chế độ desktop\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể chuyển sang chế độ desktop\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
     
-    /**
-     * Hiển thị danh sách chat
-     */
+    // Hiển thị danh sách chat
     public void showChatList() {
         try {
             if (isMobileMode) {
                 cardLayout.show(mobileView, "CHAT_LIST");
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể hiển thị danh sách chat\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể hiển thị danh sách chat\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
     
-    /**
-     * Hiển thị màn hình chat
-     */
+    // Hiển thị màn hình chat
     public void showChatScreen() {
         try {
             if (isMobileMode) {
                 cardLayout.show(mobileView, "CHAT_SCREEN");
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể hiển thị màn hình chat\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể hiển thị màn hình chat\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
     
-    /**
-     * return if the current window is mobile mode or not
-     * @return boolean indicating mobile mode status
-     */
+    // Trả về trạng thái cửa sổ hiện tại có đang ở chế độ mobile hay không
+    // @return boolean indicating mobile mode status
     public boolean isMobileMode() {
         try {
             return isMobileMode;
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể kiểm tra trạng thái chế độ mobile\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể kiểm tra trạng thái chế độ mobile\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
             return false;
         }
     }
     
-    /** Xử lý khi chọn một cuộc chat từ ChatList */
+    // Xử lý khi chọn một cuộc chat từ ChatList
     public void onChatSelected(String username, String ipAddress) {
         try {
-            System.out.println("[INFO] UI đã chọn chat. user=" + username + ", peer=" + ipAddress);
+            LOGGER.info("UI đã chọn chat. user=" + username + ", peer=" + ipAddress);
             chatScreen.setSelectedUser(username);
             chatScreen.setIpAddress(ipAddress);
             chatScreen.setMessages(App.peerNode == null ? java.util.Collections.emptyList() : App.peerNode.getMessagesWithPeer(ipAddress));
@@ -331,7 +322,7 @@ public class ChatPage extends JPanel {
                 new SwingWorker<Boolean, Void>() {
                     @Override
                     protected Boolean doInBackground() {
-                        System.out.println("[DEBUG] Đang kiểm tra trạng thái peer đã chọn: " + ipAddress);
+                        LOGGER.debug("Đang kiểm tra trạng thái peer đã chọn: " + ipAddress);
                         return App.peerNode.checkUserIsOnline(ipAddress);
                     }
 
@@ -351,17 +342,15 @@ public class ChatPage extends JPanel {
             chatScreen.revalidate();
             chatScreen.repaint();
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể xử lý chọn chat\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể xử lý chọn chat\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Xu ly khi chon group chat tu ChatList.
-     */
+    // Xử lý khi chọn group chat từ ChatList.
     public void onGroupSelected(String groupName, String groupId) {
         try {
-            System.out.println("[INFO] UI đã chọn nhóm. nhóm=" + groupName + ", groupId=" + groupId);
+            LOGGER.info("UI đã chọn nhóm. nhóm=" + groupName + ", groupId=" + groupId);
             chatScreen.setSelectedGroup(groupName, groupId);
             chatScreen.setMessages(App.peerNode == null
                     ? java.util.Collections.emptyList()
@@ -372,8 +361,8 @@ public class ChatPage extends JPanel {
             chatScreen.revalidate();
             chatScreen.repaint();
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể xử lý chọn nhóm\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể xử lý chọn nhóm\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 }

@@ -11,7 +11,7 @@ import java.awt.event.ComponentEvent;
 public class HeadingPanel extends JPanel {
     private static final int SMALL_WIDTH = 576;
     private static final int MEDIUM_WIDTH = 768;
-    /** Nhãn chứa chữ */
+    // Nhãn chứa chữ
     private JLabel textLabel;
     
     public HeadingPanel(String text) {
@@ -34,10 +34,8 @@ public class HeadingPanel extends JPanel {
         });
     }
 
-    /**
-     * Điều chỉnh cỡ chữ theo chiều rộng
-     * @param width chiều rộng cửa sổ
-     */
+    // Điều chỉnh cỡ chữ theo chiều rộng
+    // @param width chiều rộng cửa sổ
     private void adjustFontSize(int width) {
         int fontSize;
         if (width < SMALL_WIDTH) {         // sm

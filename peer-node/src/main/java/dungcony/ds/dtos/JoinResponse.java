@@ -13,16 +13,12 @@ public record JoinResponse(
         return new JoinResponse(Collections.emptyList(), Collections.emptyList());
     }
 
-    /**
-     * Lay danh sach peer online bootstrap tra ve sau khi JOIN.
-     */
+    // Lấy danh sách peer online bootstrap trả về sau khi JOIN.
     public Collection<PeerInfo> getOnlinePeers() {
         return onlinePeers == null ? Collections.emptyList() : onlinePeers;
     }
 
-    /**
-     * Lay cac offline message bootstrap dang giu cho peer.
-     */
+    // Lấy các offline message bootstrap đang giu cho peer.
     public Collection<OfflineMessage> getOfflineMessages() {
         return offlineMessages == null ? Collections.emptyList() : offlineMessages;
     }

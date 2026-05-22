@@ -8,9 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Arc2D;
 
-/**
- * Component loading cho các thao tác mất thời gian như quét mạng
- */
+// Component loading cho các thao tác mất thời gian như quét mạng
 public class LoadingComponent extends JPanel {
     private Timer timer;
     private int angle = 0;

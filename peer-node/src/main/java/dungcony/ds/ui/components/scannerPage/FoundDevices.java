@@ -13,30 +13,30 @@ import java.awt.*;
 
 public class FoundDevices extends JPanel {
 
-    /** Container hiển thị các thiết bị gần đây */
+    // Container hiển thị các thiết bị gần đây
     private JPanel devicesContainer;
-    /** Thanh cuộn */
+    // Thanh cuộn
     private JScrollPane scrollPane;
-    /** Nhãn tiêu đề */
+    // Nhãn tiêu đề
     private JLabel statusLabel;
-    /** Panel khi không tìm thấy thiết bị */
+    // Panel khi không tìm thấy thiết bị
     private NoDevicePanel noDeviceFoundPanel;
 
-    /** Component loading */
+    // Component loading
     private JPanel loader;
 
     private LoadingComponent loadingComponent;
-    /** Danh sách thiết bị tìm thấy */
+    // Danh sách thiết bị tìm thấy
     String[] foundDevices;
 
-    /** Khởi tạo lớp {@code FoundDevices} */
+    // Khởi tạo lớp {@code FoundDevices}
     public FoundDevices()  {
         initializeComponents();
         setupLayout();
         addFoundDevices();
     }
     
-    /** Khởi tạo các thành phần */
+    // Khởi tạo các thành phần
     private void initializeComponents() {
         // Thiết lập container chính
         this.setBackground(ColorPalette.BACKGROUND);
@@ -77,17 +77,13 @@ public class FoundDevices extends JPanel {
     }
 
 
-    /**
-     * Thiết lập bố cục
-     */
+    // Thiết lập bố cục
     private void setupLayout() {
         add(statusLabel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
     }
     
-    /**
-     * Thêm các thiết bị tìm thấy vào container
-     */
+    // Thêm các thiết bị tìm thấy vào container
     private void addFoundDevices() {
         if (foundDevices == null) {
             // Panel không tìm thấy thiết bị
@@ -101,10 +97,8 @@ public class FoundDevices extends JPanel {
         }
     }
     
-    /**
-     * Cập nhật danh sách thiết bị tìm thấy
-     * @param foundDevices mảng thiết bị mới
-     */
+    // Cập nhật danh sách thiết bị tìm thấy
+    // @param foundDevices mảng thiết bị mới
     public void setFoundDevices(String[] foundDevices) {
         // Xóa hiển thị cũ
         devicesContainer.removeAll();
@@ -117,17 +111,15 @@ public class FoundDevices extends JPanel {
 
     
 
-    /** Thêm panel không tìm thấy thiết bị */
+    // Thêm panel không tìm thấy thiết bị
     private void addNoDevicesFoundPanel() {
         devicesContainer.add(noDeviceFoundPanel);
     }
 
 
-    /**
-     * Thêm thiết bị vào container
-     * @param deviceName Tên thiết bị
-     * @param ipAddress  Địa chỉ IP
-     */
+    // Thêm thiết bị vào container
+    // @param deviceName Tên thiết bị
+    // @param ipAddress  Địa chỉ IP
     public void addDevice(String deviceName, String ipAddress)  {
         
         JPanel deviceInfo = createDeviceInfoPanel(deviceName, ipAddress);
@@ -143,11 +135,9 @@ public class FoundDevices extends JPanel {
         devicesContainer.repaint();
     }
     
-    /**
-     * Tạo panel thông tin thiết bị
-     * @param deviceName Tên thiết bị
-     * @param ipAddress  Địa chỉ IP
-     */
+    // Tạo panel thông tin thiết bị
+    // @param deviceName Tên thiết bị
+    // @param ipAddress  Địa chỉ IP
     private JPanel createDeviceInfoPanel(String deviceName, String ipAddress) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(ColorPalette.PANEL_BACKGROUND);
@@ -187,10 +177,8 @@ public class FoundDevices extends JPanel {
         return panel;
     }
 
-    /**
-     * Thêm người dùng vào cơ sở dữ liệu
-     * @param ip Địa chỉ IP
-     */
+    // Thêm người dùng vào cơ sở dữ liệu
+    // @param ip Địa chỉ IP
     private void addUser(String ip) {
         String response = Dialog.showInputDialog(this, "Nhập tên peer", "Thêm peer", Dialog.QUESTION_MESSAGE);
         if (response != null && response.isBlank()) {
@@ -211,7 +199,7 @@ public class FoundDevices extends JPanel {
     }
 }
 
-/** Component hiển thị khi không tìm thấy thiết bị */
+// Component hiển thị khi không tìm thấy thiết bị
 class NoDevicePanel extends JPanel {
     JLabel label;
     public NoDevicePanel() {

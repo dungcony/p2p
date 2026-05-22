@@ -1,5 +1,8 @@
 package dungcony.ds.services;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.dtos.GroupMemberPayload;
 import dungcony.ds.dtos.GroupPayload;
 import dungcony.ds.interfaces.BootstrapGroupService;
@@ -12,7 +15,9 @@ import java.util.Collection;
 import java.util.List;
 
 public class BootstrapGroupImpl implements BootstrapGroupService {
-    private final BootstrapClient bootstrapClient;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapGroupImpl.class);
+private final BootstrapClient bootstrapClient;
     private final PeerInfo localPeer;
 
     public BootstrapGroupImpl(BootstrapClient bootstrapClient, PeerInfo localPeer) {
@@ -23,27 +28,27 @@ public class BootstrapGroupImpl implements BootstrapGroupService {
     @Override
     public void publishGroup(Group group) {
         if (bootstrapClient == null) {
-            System.out.println("[WARN] Không thể publish nhóm vì bootstrap đang tắt. groupId="
+            LOGGER.warn("Không thể publish nhóm vì bootstrap đang tắt. groupId="
                     + group.getGroupId());
             return;
         }
         boolean created = bootstrapClient.createGroup(group, localPeer.getId());
         if (!created) {
-            System.out.println("[WARN] Bootstrap CREATE_GROUP thất bại. groupId=" + group.getGroupId());
+            LOGGER.warn("Bootstrap CREATE_GROUP thất bại. groupId=" + group.getGroupId());
             return;
         }
         bootstrapClient.addGroupMember(group.getGroupId(), localPeer.getId());
         for (PeerInfo member : group.getMembers()) {
             bootstrapClient.addGroupMember(group.getGroupId(), member.getId());
         }
-        System.out.println("[INFO] Đã publish nhóm lên bootstrap. groupId=" + group.getGroupId()
+        LOGGER.info("Đã publish nhóm lên bootstrap. groupId=" + group.getGroupId()
                 + ", sốThànhViên=" + group.getMembers().size());
     }
 
     @Override
     public void addMembersToGroup(String groupId, Collection<PeerInfo> members) {
         if (bootstrapClient == null) {
-            System.out.println("[WARN] Không thể thêm thành viên nhóm lên bootstrap vì bootstrap đang tắt. groupId="
+            LOGGER.warn("Không thể thêm thành viên nhóm lên bootstrap vì bootstrap đang tắt. groupId="
                     + groupId);
             return;
         }
@@ -58,7 +63,7 @@ public class BootstrapGroupImpl implements BootstrapGroupService {
                 }
             }
         }
-        System.out.println("[INFO] Đã đồng bộ thêm thành viên nhóm lên bootstrap. groupId=" + groupId
+        LOGGER.info("Đã đồng bộ thêm thành viên nhóm lên bootstrap. groupId=" + groupId
                 + ", sốThànhViênThêm=" + added);
     }
 
@@ -79,16 +84,14 @@ public class BootstrapGroupImpl implements BootstrapGroupService {
             joinedGroups.add(toGroup(groupPayload, memberPayloads, knownPeers));
         }
 
-        System.out.println("[INFO] Đồng bộ nhóm từ bootstrap lấy được số nhóm đã tham gia=" + joinedGroups.size());
+        LOGGER.info("Đồng bộ nhóm từ bootstrap lấy được số nhóm đã tham gia=" + joinedGroups.size());
         return joinedGroups;
     }
 
 
-    //----------------------------------------- PRIVATE -----------------------------------//
+    // ----------------------------------------- PRIVATE -----------------------------------//
 
-    /**
-     * Chuyen DTO bootstrap thanh Group runtime cua peer-node.
-     */
+    // Chuyển DTO bootstrap thành Group runtime của peer-node.
     private Group toGroup(GroupPayload groupPayload, Collection<GroupMemberPayload> memberPayloads,
                           Collection<PeerInfo> knownPeers) {
         List<PeerInfo> members = new ArrayList<>();
@@ -105,9 +108,7 @@ public class BootstrapGroupImpl implements BootstrapGroupService {
         return new Group(groupPayload.groupId(), groupPayload.name(), members);
     }
 
-    /**
-     * Tim peer runtime theo user_id on dinh do bootstrap cap.
-     */
+    // Tìm peer runtime theo user_id ổn định do bootstrap cấp.
     private PeerInfo findKnownPeerById(Collection<PeerInfo> knownPeers, String peerId) {
         if (peerId == null || peerId.isBlank() || knownPeers == null) {
             return null;

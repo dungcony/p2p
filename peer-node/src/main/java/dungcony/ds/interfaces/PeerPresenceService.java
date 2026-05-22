@@ -1,6 +1,6 @@
 package dungcony.ds.interfaces;
 
 public interface PeerPresenceService {
-    // kiếm tra trạng thái onl
+    // Kiểm tra trạng thái online
     boolean checkUserIsOnline(String hostAndMaybePort);
 }

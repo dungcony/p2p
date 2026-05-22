@@ -1,5 +1,8 @@
 package dungcony.ds.ui.components.chatPage;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.ui.components.ChatProfile;
 import dungcony.ds.ui.components.ModernButton;
 import dungcony.ds.ui.utils.ColorPalette;
@@ -11,42 +14,38 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
-/**
- * Component tiêu đề hiển thị thông tin người dùng được chọn
- */
+// Component tiêu đề hiển thị thông tin người dùng được chọn
 public class ChatHeader extends JPanel {
-    /** Nút quay lại ở chế độ mobile */
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatHeader.class);
+// Nút quay lại ở chế độ mobile
     private ModernButton backButton;
-    /** Nhãn tên người dùng */
+    // Nhãn tên người dùng
     private JLabel userNameLabel;
-    /** Component ChatProfile bao ngoài */
+    // Component ChatProfile bao ngoài
     private ChatProfile chatProfile;
-    /** Panel thông tin người dùng */
+    // Panel thông tin người dùng
     private JPanel userInformation;
-    /** Nhãn trạng thái online/offline */
+    // Nhãn trạng thái online/offline
     private JLabel statusLabel;
 
 
     private boolean isMobileMode = false;
 
-    /**
-     * Khởi tạo ChatHeader
-     * @param userName Tên người dùng
-     */
+    // Khởi tạo ChatHeader
+    // @param userName Tên người dùng
     public ChatHeader(String userName, String ipAddress) {
         try {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             initializeComponents(userName, ipAddress);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo header chat\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo header chat\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Khởi tạo các thành phần
-     * @param userName Tên người dùng
-     */
+    // Khởi tạo các thành phần
+    // @param userName Tên người dùng
     private void initializeComponents(String userName, String ipAdress) {
         try {
             // Panel thông tin
@@ -66,28 +65,24 @@ public class ChatHeader extends JPanel {
 
             setBackground(Color.WHITE);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Đặt tên người dùng
-     * @param userName Tên người dùng
-     */
+    // Đặt tên người dùng
+    // @param userName Tên người dùng
     public void setUserName(String userName) {
         try {
             userNameLabel.setText(userName);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể cập nhật tên người dùng\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể cập nhật tên người dùng\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Đặt trạng thái của người dùng
-     * @param isOnline true nếu người dùng đang online
-     */
+    // Đặt trạng thái của người dùng
+    // @param isOnline true nếu người dùng đang online
     public void setStatus(boolean isOnline) {
         try {
             if (isOnline) {
@@ -98,30 +93,26 @@ public class ChatHeader extends JPanel {
             statusLabel.setText("● Ngoại tuyến");
             statusLabel.setForeground(ColorPalette.ERROR);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể cập nhật trạng thái\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể cập nhật trạng thái\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Hien thi header khi dang mo group chat.
-     */
+    // Hiển thị header khi đang mở group chat.
     public void setGroupStatus() {
         try {
             statusLabel.setText("Nhóm");
             statusLabel.setForeground(ColorPalette.PRIMARY);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể cập nhật trạng thái nhóm\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể cập nhật trạng thái nhóm\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
-    /**
-     * Tạo panel thông tin người dùng
-     * @param userName Tên người dùng
-     * @param isOnline Trạng thái online
-     * @return Panel thông tin với tên và trạng thái
-     */
+    // Tạo panel thông tin người dùng
+    // @param userName Tên người dùng
+    // @param isOnline Trạng thái online
+    // @return Panel thông tin với tên và trạng thái
     private JPanel createDeviceInfoPanel(String userName, boolean isOnline) {
         try {
             JPanel panel = new JPanel(new GridBagLayout());
@@ -159,8 +150,8 @@ public class ChatHeader extends JPanel {
 
             return panel;
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể tạo panel thông tin thiết bị\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể tạo panel thông tin thiết bị\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
             return new JPanel();
         }
     }
@@ -171,8 +162,8 @@ public class ChatHeader extends JPanel {
         try {
             backButton.addActionListener(backFunctionality);
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể thêm chức năng quay lại\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể thêm chức năng quay lại\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
@@ -185,8 +176,8 @@ public class ChatHeader extends JPanel {
             revalidate();
             repaint();
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể thiết lập chế độ mobile\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể thiết lập chế độ mobile\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
@@ -194,8 +185,8 @@ public class ChatHeader extends JPanel {
         try {
             return backButton;
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể lấy nút quay lại\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể lấy nút quay lại\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
             return null;
         }
     }

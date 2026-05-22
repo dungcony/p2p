@@ -1,5 +1,8 @@
 package dungcony.ds.services;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.dtos.JoinResponse;
 import dungcony.ds.dtos.OfflineMessage;
 import dungcony.ds.enums.MessageType;
@@ -7,18 +10,15 @@ import dungcony.ds.interfaces.BootstrapGroupService;
 import dungcony.ds.interfaces.BootstrapSyncService;
 import dungcony.ds.interfaces.MessageHistoryService;
 import dungcony.ds.interfaces.PeerDirectoryService;
-import dungcony.ds.model.BootstrapClient;
-import dungcony.ds.model.Group;
-import dungcony.ds.model.Message;
-import dungcony.ds.model.PeerInfo;
-import dungcony.ds.peer.GroupManager;
+import dungcony.ds.model.*;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class BootstrapSyncImpl implements BootstrapSyncService {
-    private static final String GROUP_CHAT_PREFIX = "group:";
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapSyncImpl.class);
+private static final String GROUP_CHAT_PREFIX = "group:";
 
     private final BootstrapClient bootstrapClient;
     private final PeerInfo localPeer;
@@ -29,9 +29,7 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
     private final Runnable peerChangeNotifier;
     private final Consumer<Message> messageNotifier;
 
-    /**
-     * Khoi tao service xu ly REGISTER/JOIN/offline/group sync voi bootstrap.
-     */
+    // Khởi tạo service xử lý REGISTER/JOIN/offline/group sync với bootstrap.
     public BootstrapSyncImpl(BootstrapClient bootstrapClient, PeerInfo localPeer,
                              PeerDirectoryService peerDirectoryService,
                              MessageHistoryService messageHistoryService,
@@ -49,16 +47,14 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
         this.messageNotifier = messageNotifier;
     }
 
-    /**
-     * Dang ky user voi bootstrap, join vao mang, nap peer/group va offline message.
-     */
+    // Đăng ký user với bootstrap, join vào mạng, nạp peer/group và offline message.
     @Override
     public void registerAndJoinBootstrap() {
-        System.out.println("[INFO] Đang đăng ký peer local với bootstrap. peerId=" + localPeer.getId()
+        LOGGER.info("Đang đăng ký peer local với bootstrap. peerId=" + localPeer.getId()
                 + ", tên=" + localPeer.getName());
         boolean registered = bootstrapClient.register(localPeer);
         if (!registered) {
-            System.out.println("[WARN] Bootstrap REGISTER thất bại. Peer vẫn chạy ở chế độ TCP trực tiếp.");
+            LOGGER.warn("Bootstrap REGISTER thất bại. Peer vẫn chạy ở chế độ TCP trực tiếp.");
             return;
         }
 
@@ -67,18 +63,16 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
         syncGroupsFromBootstrap();
         handleOfflineMessages(joinResponse);
         peerChangeNotifier.run();
-        System.out.println("[INFO] Đồng bộ bootstrap xong. peerThêm=" + added
+        LOGGER.info("Đồng bộ bootstrap xong. peerThêm=" + added
                 + ", knownPeers=" + peerDirectoryService.size());
     }
 
-    /**
-     * Lam moi danh sach peer online va group tu bootstrap-server.
-     */
+    // Làm mới danh sách peer online và group từ bootstrap-server.
     @Override
     public void refreshFromBootstrap() {
         JoinResponse joinResponse = bootstrapClient.joinOrNull(localPeer);
         if (joinResponse == null) {
-            System.out.println("[WARN] Bỏ qua refresh bootstrap vì tracker không khả dụng. "
+            LOGGER.warn("Bỏ qua refresh bootstrap vì tracker không khả dụng. "
                     + "Giữ nguyên trạng thái peer local hiện tại.");
             return;
         }
@@ -86,22 +80,18 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
         syncGroupsFromBootstrap();
         handleOfflineMessages(joinResponse);
         peerChangeNotifier.run();
-        System.out.println("[INFO] Refresh bootstrap xong. peerTrựcTuyến=" + onlineCount
+        LOGGER.info("Refresh bootstrap xong. peerTrựcTuyến=" + onlineCount
                 + ", knownPeers=" + peerDirectoryService.size());
     }
 
-    /**
-     * Load group membership tu bootstrap va cache lai vao groups.json cua profile hien tai.
-     */
+    // Load group membership từ bootstrap và cache lại vào groups.json của profile hiện tại.
     private void syncGroupsFromBootstrap() {
         List<Group> joinedGroups = bootstrapGroupService.fetchJoinedGroups(peerDirectoryService.list());
         groupManager.replaceAll(joinedGroups);
-        System.out.println("[INFO] Đồng bộ nhóm bootstrap xong. nhómĐãThamGia=" + joinedGroups.size());
+        LOGGER.info("Đồng bộ nhóm bootstrap xong. nhómĐãThamGia=" + joinedGroups.size());
     }
 
-    /**
-     * Dua cac tin offline bootstrap tra ve vao history neu tim duoc peer gui trong danh sach da biet.
-     */
+    // Đưa các tin offline bootstrap trả về vào history nếu tìm được peer gửi trong danh sách đã biết.
     private void handleOfflineMessages(JoinResponse joinResponse) {
         for (OfflineMessage offlineMessage : joinResponse.getOfflineMessages()) {
             PeerInfo sender = peerDirectoryService.findKnownPeerById(offlineMessage.senderId());
@@ -109,8 +99,8 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
             PeerInfo conversationPeer = isGroupMessage
                     ? groupConversationPeer(offlineMessage.groupId())
                     : sender == null
-                    ? new PeerInfo(offlineMessage.senderId(), offlineMessage.senderId(), "", 0, false)
-                    : sender;
+                      ? new PeerInfo(offlineMessage.senderId(), offlineMessage.senderId(), "", 0, false)
+                      : sender;
             String historyKey = isGroupMessage
                     ? GROUP_CHAT_PREFIX + offlineMessage.groupId()
                     : sender == null ? offlineMessage.senderId() : sender.addressKey();
@@ -130,15 +120,13 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
             );
             messageHistoryService.addAndSave(historyKey, conversationPeer, message);
             messageNotifier.accept(message);
-            System.out.println("[INFO] Đã nạp tin offline. messageId=" + offlineMessage.messageId()
+            LOGGER.info("Đã nạp tin offline. messageId=" + offlineMessage.messageId()
                     + ", senderId=" + offlineMessage.senderId()
                     + ", historyKey=" + historyKey);
         }
     }
 
-    /**
-     * Tao conversation peer dai dien group de message offline group duoc luu dung history.
-     */
+    // Tạo conversation peer đại diện group để message offline group được lưu đúng history.
     private PeerInfo groupConversationPeer(String groupId) {
         Group group = groupManager.getGroup(groupId);
         String name = group == null ? groupId : group.getName();

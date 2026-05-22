@@ -1,6 +1,9 @@
 package dungcony.ds.ui.components.navBar;
 
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.ui.components.Button;
 import dungcony.ds.ui.router.RouterManager;
 import dungcony.ds.ui.utils.ColorPalette;
@@ -10,22 +13,22 @@ import org.kordamp.ikonli.swing.FontIcon;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * Thanh điều hướng với các nút chuyển trang
- * @author Shoyeb Ansari
- */
+// Thanh điều hướng với các nút chuyển trang
+// @author Shoyeb Ansari
 public class NavBar extends JPanel {
 
-    // Các nút
-    /** Nút menu */
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(NavBar.class);
+// Các nút
+    // Nút menu
     private Button menuButton;  
-    /** Nút chat */
+    // Nút chat
     private Button chatButton;
-    /** Nút mở chat trực tiếp */
+    // Nút mở chat trực tiếp
     private Button addFriendButton;
-    /** Nút quét thiết bị */
+    // Nút quét thiết bị
     private Button scanButton;
-    /** Cờ cho biết thanh điều hướng có đang mở rộng không */
+    // Cờ cho biết thanh điều hướng có đang mở rộng không
     private boolean isExpanded = false;
 
     
@@ -44,19 +47,17 @@ public class NavBar extends JPanel {
         addButtons();
     }
 
-    /** Thêm các nút vào thanh điều hướng */
+    // Thêm các nút vào thanh điều hướng
     private void addButtons() {
         add(menuButton);
-        add(Box.createRigidArea(new Dimension(0, 20)));  // add gap between menu and rest of the buttons
+        add(Box.createRigidArea(new Dimension(0, 20)));  // thêm khoảng cách giữa menu và các nút còn lại
         add(chatButton);
         add(addFriendButton);
         add(scanButton);
         add(Box.createVerticalGlue());
     }
 
-    /**
-     * Khởi tạo các nút với icon, kích thước và tooltip
-     */
+    // Khởi tạo các nút với icon, kích thước và tooltip
     private void initialiseButtons() {
         try {
             // Đặt icon
@@ -72,7 +73,7 @@ public class NavBar extends JPanel {
             scanButton = new Button(icon);
             
             // Thêm sự kiện click
-            menuButton.addActionListener(e -> toggleNav());   // add logic of expanding the navbar
+            menuButton.addActionListener(e -> toggleNav());   // thêm logic mở rộng thanh điều hướng
             chatButton.addActionListener(e -> openChatsPage());
             scanButton.addActionListener(e -> openScannerPage());
             addFriendButton.addActionListener(e -> openAddFriendPage());
@@ -98,43 +99,41 @@ public class NavBar extends JPanel {
                 button.setIconTextGap(8);
             }
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo nút trên thanh điều hướng\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo nút trên thanh điều hướng\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     } 
 
-    /** Thêm tiêu đề cho các nút khi mở rộng */
+    // Thêm tiêu đề cho các nút khi mở rộng
     public void setTitleToButtons() {
         chatButton.setText("Tin nhắn");
         addFriendButton.setText("Chat trực tiếp");
         scanButton.setText("Quét peer gần đây");
     }
     
-    /** Xóa tiêu đề các nút khi thu gọn */
+    // Xóa tiêu đề các nút khi thu gọn
     public void removeTitleToButtons() {
         chatButton.setText("");
         addFriendButton.setText("");
         scanButton.setText("");
     }
 
-    /** Mở trang chat */
+    // Mở trang chat
     private void openChatsPage() {
         RouterManager.getInstance().navigateTo("chats");
     }
     
-    /** Mở trang quét mạng */
+    // Mở trang quét mạng
     private void openScannerPage() {
         RouterManager.getInstance().navigateTo("scanner");
     }
     
-    /** Mở trang thêm bạn bè */
+    // Mở trang thêm bạn bè
     private void openAddFriendPage() {
         RouterManager.getInstance().navigateTo("addFriend");
     }
 
-    /**
-     * Đóng/mở rộng thanh điều hướng
-     */
+    // Đóng/mở rộng thanh điều hướng
     private void toggleNav() {
         isExpanded = !isExpanded;
 

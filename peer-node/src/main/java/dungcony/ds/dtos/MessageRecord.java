@@ -1,12 +1,17 @@
 package dungcony.ds.dtos;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.enums.MessageType;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 
 public class MessageRecord {
-    private String messageId;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageRecord.class);
+private String messageId;
     private String conversationPeerId;
     private String conversationPeerName;
     private String conversationPeerKey;
@@ -24,9 +29,7 @@ public class MessageRecord {
     private long timestamp;
     private boolean fromCurrentUser;
 
-    /**
-     * Chuyen Message runtime thanh DTO phang de ghi JSON.
-     */
+    // Chuyển Message runtime thành DTO phẳng để ghi JSON.
     public static MessageRecord from(PeerInfo conversationPeer, Message message) {
         MessageRecord record = new MessageRecord();
         record.messageId = message.getId();
@@ -49,9 +52,7 @@ public class MessageRecord {
         return record;
     }
 
-    /**
-     * Phuc hoi Message runtime tu DTO JSON.
-     */
+    // Phục hồi Message runtime từ DTO JSON.
     public Message toMessage() {
         return Message.restore(
                 messageId,
@@ -71,9 +72,7 @@ public class MessageRecord {
         );
     }
 
-    /**
-     * Doc status tu JSON cu/moi, mac dinh SENT de tuong thich voi file cu chua co field status.
-     */
+    // Đọc status từ JSON cũ/mới, mặc định SENT để tương thích với file cũ chưa có field status.
     private MessageStatus parseStatus() {
         if (status == null || status.isBlank()) {
             return MessageStatus.SENT;
@@ -81,7 +80,7 @@ public class MessageRecord {
         try {
             return MessageStatus.valueOf(status);
         } catch (IllegalArgumentException e) {
-            System.out.println("[WARN] Trạng thái tin nhắn trong JSON không hợp lệ. messageId="
+            LOGGER.warn("Trạng thái tin nhắn trong JSON không hợp lệ. messageId="
                     + messageId + ", status=" + status + ". Dùng SENT.");
             return MessageStatus.SENT;
         }

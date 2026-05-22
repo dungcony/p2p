@@ -2,9 +2,7 @@ package dungcony.ds.ui.components;
 
 import java.awt.*;
 
-/**
- * Viền bo tròn tùy chỉnh
- */
+// Viền bo tròn tùy chỉnh
 public class RoundedBorder implements javax.swing.border.Border {
     private int radius;
     private Color color;

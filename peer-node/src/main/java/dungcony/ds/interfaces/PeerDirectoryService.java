@@ -6,58 +6,36 @@ import dungcony.ds.model.PeerInfo;
 import java.util.Collection;
 
 public interface PeerDirectoryService {
-    /**
-     * Them peer vao danh ba theo addressKey.
-     */
+    // Thêm peer vào danh bạ theo addressKey.
     void put(PeerInfo peerInfo);
 
-    /**
-     * Lay danh sach peer runtime hien tai.
-     */
+    // Lấy danh sách peer runtime hiện tại.
     Collection<PeerInfo> list();
 
-    /**
-     * Merge danh sach peer nhan tu bootstrap hoac peer khac vao danh ba runtime.
-     */
+    // Merge danh sách peer nhận từ bootstrap hoặc peer khác vào danh bạ runtime.
     int mergeKnownPeers(Collection<PeerInfo> peers);
 
-    /**
-     * Lay so peer da biet.
-     */
+    // Lấy số peer đã biết.
     int size();
 
-    /**
-     * Them mot peer tu input name va host/port.
-     */
+    // Thêm một peer từ input name và host/port.
     PeerInfo addKnownPeer(String name, String hostAndMaybePort);
 
-    /**
-     * Tim peer da biet hoac phan tich dia chi dau vao thanh PeerInfo tam thoi.
-     */
+    // Tìm peer đã biết hoặc phân tích địa chỉ đầu vào thành PeerInfo tạm thời.
     PeerInfo resolvePeer(String hostAndMaybePort);
 
-    /**
-     * Chuyen chuoi host hoac host:port thanh PeerInfo voi port mac dinh neu khong nhap port.
-     */
+    // Chuyển chuỗi host hoặc host:port thành PeerInfo với port mặc định nếu không nhập port.
     PeerInfo parsePeer(String name, String hostAndMaybePort);
 
-    /**
-     * Tim peer runtime theo user_id on dinh do bootstrap cap.
-     */
+    // Tìm peer runtime theo user_id ổn định do bootstrap cấp.
     PeerInfo findKnownPeerById(String peerId);
 
-    /**
-     * Tao PeerInfo tu message den va giu lai ten hien thi neu peer da co trong map.
-     */
+    // Tạo PeerInfo từ message đến và giữ lại tên hiển thị nếu peer đã có trong map.
     PeerInfo mergeSenderFromKnownPeers(Message message);
 
-    /**
-     * Dong bo danh sach online bootstrap tra ve, danh dau peer vang mat la offline.
-     */
+    // Đồng bộ danh sách online bootstrap trả về, đánh dấu peer vắng mặt là offline.
     int syncOnlinePeers(Collection<PeerInfo> onlinePeers);
 
-    /**
-     * Kiem tra peer co tro ve local peer hay khong.
-     */
+    // Kiểm tra peer có trỏ về local peer hay không.
     boolean isSelfPeer(PeerInfo peerInfo);
 }

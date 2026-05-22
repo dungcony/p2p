@@ -1,10 +1,13 @@
 package dungcony.ds.ui.components.chatPage;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import dungcony.ds.App;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.peer.PeerNode;
+import dungcony.ds.model.PeerNode;
 import dungcony.ds.ui.components.ChatProfile;
 import dungcony.ds.ui.components.ModernScrollBarUI;
 import dungcony.ds.ui.pages.ChatPage;
@@ -22,7 +25,9 @@ import java.util.List;
 import java.util.Set;
 
 public class ChatList extends JPanel {
-    private static final Color ONLINE_COLOR = new Color(46, 125, 50);
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatList.class);
+private static final Color ONLINE_COLOR = new Color(46, 125, 50);
     private static final Color OFFLINE_COLOR = new Color(211, 47, 47);
 
     private JPanel devicesContainer;
@@ -42,8 +47,8 @@ public class ChatList extends JPanel {
             add(scrollPane, BorderLayout.CENTER);
             renderFriends();
         } catch (Exception e) {
-            System.out.println("[ERROR] Không thể khởi tạo danh sách chat\nChi tiết lỗi: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Không thể khởi tạo danh sách chat\nChi tiết lỗi: " + e.getMessage());
+            LOGGER.error("Chi tiết lỗi", e);
         }
     }
 
@@ -104,8 +109,8 @@ public class ChatList extends JPanel {
                 devicesContainer.revalidate();
                 devicesContainer.repaint();
             } catch (Exception e) {
-                System.out.println("[ERROR] Không thể hiển thị danh sách chat\nChi tiết lỗi: " + e.getMessage());
-                e.printStackTrace();
+                LOGGER.error("Không thể hiển thị danh sách chat\nChi tiết lỗi: " + e.getMessage());
+                LOGGER.error("Chi tiết lỗi", e);
             }
         });
     }
@@ -131,9 +136,7 @@ public class ChatList extends JPanel {
         devicesContainer.add(chatProfile);
     }
 
-    /**
-     * Them item peer vao danh sach chat.
-     */
+    // Thêm item peer vào danh sách chat.
     private void addPeerProfile(PeerInfo peerInfo) {
         String peerKey = peerInfo.addressKey();
         Message message = App.peerNode.getLastMessage(peerKey);
@@ -149,9 +152,7 @@ public class ChatList extends JPanel {
         addProfile(peerInfo.getName(), lastMessage, lastTime, peerKey, peerInfo.isOnline());
     }
 
-    /**
-     * Them item group vao danh sach chat.
-     */
+    // Thêm item group vào danh sách chat.
     private void addGroupProfile(Group group, Message message) {
         String lastMessage = "";
         String lastTime = "";
@@ -252,9 +253,7 @@ public class ChatList extends JPanel {
         }
     }
 
-    /**
-     * Hien dialog tao group voi cac peer dang online.
-     */
+    // Hiển thị dialog tạo group với các peer đang online.
     private void openCreateGroupDialog() {
         if (App.peerNode == null) {
             return;
@@ -271,7 +270,7 @@ public class ChatList extends JPanel {
                 try {
                     showCreateGroupDialog(get());
                 } catch (Exception e) {
-                    System.out.println("[ERROR] Không thể mở hộp thoại tạo nhóm: " + e.getMessage());
+                    LOGGER.error("Không thể mở hộp thoại tạo nhóm: " + e.getMessage());
                 } finally {
                     createGroupButton.setEnabled(true);
                 }
@@ -323,7 +322,7 @@ public class ChatList extends JPanel {
                             result.failed() == 0 ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE
                     );
                 } catch (Exception e) {
-                    System.out.println("[ERROR] Không thể broadcast toàn mạng: " + e.getMessage());
+                    LOGGER.error("Không thể broadcast toàn mạng: " + e.getMessage());
                     JOptionPane.showMessageDialog(ChatList.this, "Không thể broadcast toàn mạng.", "Broadcast",
                             JOptionPane.ERROR_MESSAGE);
                 } finally {
@@ -349,15 +348,13 @@ public class ChatList extends JPanel {
                 try {
                     showAddMembersDialog(group, get());
                 } catch (Exception e) {
-                    System.out.println("[ERROR] Không thể mở hộp thoại thêm peer vào nhóm: " + e.getMessage());
+                    LOGGER.error("Không thể mở hộp thoại thêm peer vào nhóm: " + e.getMessage());
                 }
             }
         }.execute();
     }
 
-    /**
-     * Lay danh sach peer co uid va refresh online/offline truoc khi hien dialog.
-     */
+    // Lấy danh sách peer có uid và refresh online/offline trước khi hiển thị dialog.
     private List<PeerInfo> loadGroupCandidatesWithFreshStatus() {
         return loadGroupCandidatesWithFreshStatus(null);
     }
@@ -392,9 +389,7 @@ public class ChatList extends JPanel {
         return ids;
     }
 
-    /**
-     * Hien dialog tao group sau khi trang thai peer da duoc refresh.
-     */
+    // Hiển thị dialog tạo group sau khi trạng thái peer đã được refresh.
     private void showCreateGroupDialog(List<PeerInfo> groupCandidates) {
         JTextField groupNameField = new JTextField("Nhóm mới");
         JTextField peerIdField = new JTextField();
@@ -440,7 +435,7 @@ public class ChatList extends JPanel {
         }
 
         Group group = App.peerNode.createGroup(groupNameField.getText(), selectedPeers);
-        System.out.println("[INFO] UI đã tạo nhóm. groupId=" + group.getGroupId()
+        LOGGER.info("UI đã tạo nhóm. groupId=" + group.getGroupId()
                 + ", sốThànhViên=" + group.getMembers().size());
         renderFriends();
     }
@@ -494,7 +489,7 @@ public class ChatList extends JPanel {
         }
 
         App.peerNode.addMembersToGroup(group.getGroupId(), selectedPeers);
-        System.out.println("[INFO] UI đã thêm peer vào nhóm. groupId=" + group.getGroupId()
+        LOGGER.info("UI đã thêm peer vào nhóm. groupId=" + group.getGroupId()
                 + ", sốPeerThêm=" + selectedPeers.size());
         renderFriends();
     }
@@ -575,9 +570,7 @@ public class ChatList extends JPanel {
         return null;
     }
 
-    /**
-     * Khi bootstrap-server tat, group chi duoc tao voi peer dang TCP reachable.
-     */
+    // Khi bootstrap-server tắt, group chỉ được tạo với peer đang TCP reachable.
     private boolean validateDirectGroupMembers(List<PeerInfo> selectedPeers) {
         List<String> offlinePeers = new ArrayList<>();
         for (PeerInfo peerInfo : selectedPeers) {
@@ -598,7 +591,7 @@ public class ChatList extends JPanel {
                     "Không tìm thấy peer",
                     JOptionPane.WARNING_MESSAGE
             );
-            System.out.println("[WARN] Đã chặn tạo nhóm vì bootstrap không khả dụng và có peer ngoại tuyến: "
+            LOGGER.warn("Đã chặn tạo nhóm vì bootstrap không khả dụng và có peer ngoại tuyến: "
                     + offlinePeers);
             return false;
         }

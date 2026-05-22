@@ -1,17 +1,20 @@
 package dungcony.ds.ui;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 
 public class PeerPortDialog extends JDialog {
-    private final JTextField portField;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(PeerPortDialog.class);
+private final JTextField portField;
     private final int bootstrapPort;
     private boolean confirmed;
     private int peerPort;
 
-    /**
-     * Tao dialog nhap port lang nghe cho profile moi.
-     */
+    // Tạo dialog nhập port lắng nghe cho profile mới.
     public PeerPortDialog(int defaultPeerPort, int bootstrapPort) {
         this.bootstrapPort = bootstrapPort;
         this.peerPort = defaultPeerPort;
@@ -43,9 +46,7 @@ public class PeerPortDialog extends JDialog {
         setLocationRelativeTo(null);
     }
 
-    /**
-     * Kiem tra port hop le va khong trung cong bootstrap-server.
-     */
+    // Kiểm tra port hợp lệ và không trùng cổng bootstrap-server.
     private void confirm() {
         try {
             int port = Integer.parseInt(portField.getText().trim());
@@ -61,10 +62,10 @@ public class PeerPortDialog extends JDialog {
             }
             this.peerPort = port;
             this.confirmed = true;
-            System.out.println("[INFO] Đã xác nhận cổng peer. cổng=" + peerPort);
+            LOGGER.info("Đã xác nhận cổng peer. cổng=" + peerPort);
             dispose();
         } catch (NumberFormatException e) {
-            System.out.println("[WARN] Đã từ chối cổng peer: " + portField.getText());
+            LOGGER.warn("Đã từ chối cổng peer: " + portField.getText());
             JOptionPane.showMessageDialog(this,
                     "Cổng phải là số từ 1 đến 65535.",
                     "Cổng peer không hợp lệ",
@@ -72,16 +73,12 @@ public class PeerPortDialog extends JDialog {
         }
     }
 
-    /**
-     * Cho biet nguoi dung da bam Save hay huy dialog.
-     */
+    // Cho biết người dùng đã bấm Save hay hủy dialog.
     public boolean isConfirmed() {
         return confirmed;
     }
 
-    /**
-     * Lay peer port da xac nhan de luu vao profile.
-     */
+    // Lấy peer port đã xác nhận để lưu vào profile.
     public int getPeerPort() {
         return peerPort;
     }

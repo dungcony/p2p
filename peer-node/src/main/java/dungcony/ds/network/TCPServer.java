@@ -30,16 +30,15 @@ private final int port;
         running = true;
         try (ServerSocket openedSocket = new ServerSocket(port)) {
             serverSocket = openedSocket;
-            log.info("TCPServer đang lắng nghe trên cổng " + port);
+            log.info("TCPServer đang lắng nghe trên cổng {}", port);
             while (running) {
                 Socket socket = openedSocket.accept();
-                log.debug("TCPServer đã nhận kết nối từ "
-                        + socket.getRemoteSocketAddress());
+                log.debug("TCPServer đã nhận kết nối từ {}", socket.getRemoteSocketAddress());
                 connectionPool.submit(new ConnectionHandler(socket, receiver));
             }
         } catch (IOException e) {
             if (running) {
-                log.error("TCP server đã dừng: " + e.getMessage());
+                log.error("TCP server đã dừng: {}", e.getMessage());
             }
         } finally {
             running = false;
@@ -50,7 +49,7 @@ private final int port;
     public void stop() {
         running = false;
         connectionPool.shutdownNow();
-        log.info("TCPServer đang dừng trên cổng " + port);
+        log.info("TCPServer đang dừng trên cổng {}", port);
         if (serverSocket != null) {
             try {
                 serverSocket.close();

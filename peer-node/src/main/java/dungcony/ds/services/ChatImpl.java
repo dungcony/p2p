@@ -51,13 +51,12 @@ private final PeerInfo localPeer;
             return false;
         }
         if (peerDirectoryService.isSelfPeer(receiver)) {
-            log.warn("Từ chối gửi tin tới peer hiện tại: " + receiver.addressKey());
+            log.warn("Từ chối gửi tin tới peer hiện tại: {}", receiver.addressKey());
             return false;
         }
 
         Message message = Message.chat(localPeer, receiver, content);
-        log.info("Đang gửi tin nhắn CHAT id=" + message.getId()
-                + " tới=" + receiver.addressKey());
+        log.info("Đang gửi tin nhắn CHAT id={} tới={}", message.getId(), receiver.addressKey());
         boolean sent = messageSender.send(receiver, message);
         receiver.setOnline(sent);
         if (sent) {
@@ -70,10 +69,9 @@ private final PeerInfo localPeer;
         messageHistoryService.addAndSave(receiver, message);
         messageNotifier.accept(message);
         if (sent) {
-            log.info("Tin nhắn CHAT đã được giao và lưu. id=" + message.getId());
+            log.info("Tin nhắn CHAT đã được giao và lưu. id={}", message.getId());
         } else {
-            log.warn("Tin nhắn CHAT thất bại sau khi retry. id=" + message.getId()
-                    + ", tới=" + receiver.addressKey() + ", status=" + message.getStatus());
+            log.warn("Tin nhắn CHAT thất bại sau khi retry. id={}, tới={}, status={}", message.getId(), receiver.addressKey(), message.getStatus());
         }
         peerChangeNotifier.run();
         return sent;
@@ -82,12 +80,11 @@ private final PeerInfo localPeer;
     // Lưu tin offline lên bootstrap-server để receiver nhận lại khi JOIN.
     private boolean storeOfflineIfPossible(Message message) {
         if (bootstrapClient == null) {
-            log.warn("Không thể lưu tin nhắn offline vì bootstrap đang tắt. messageId="
-                    + message.getId());
+            log.warn("Không thể lưu tin nhắn offline vì bootstrap đang tắt. messageId={}", message.getId());
             return false;
         }
         boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
-        log.info("Đã lưu fallback offline=" + stored + ", messageId=" + message.getId());
+        log.info("Đã lưu fallback offline={}, messageId={}", stored, message.getId());
         return stored;
     }
 }

@@ -15,10 +15,9 @@ public record UserRepo(Conn conn) {
     public void upsert(UserEntity userEntity) {
         try (Connection connection = conn.getConnection()) {
             upsert(userEntity, connection);
-            log.info("SQLite đã upsert user=" + userEntity.getUserId()
-                    + ", tênHiểnThị=" + userEntity.getDisplayName());
+            log.info("SQLite đã upsert user={}, tênHiểnThị={}", userEntity.getUserId(), userEntity.getDisplayName());
         } catch (SQLException e) {
-            log.error("Không thể upsert user: " + e.getMessage());
+            log.error("Không thể upsert user: {}", e.getMessage());
         }
     }
 

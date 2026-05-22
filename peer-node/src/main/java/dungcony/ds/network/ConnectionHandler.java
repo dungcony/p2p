@@ -32,28 +32,24 @@ private final Socket socket;
              BufferedReader reader = new BufferedReader(new InputStreamReader(acceptedSocket.getInputStream(), StandardCharsets.UTF_8));
              PrintWriter writer = new PrintWriter(acceptedSocket.getOutputStream(), true, StandardCharsets.UTF_8)) {
 
-            log.debug("Đang xử lý kết nối TCP từ "
-                    + acceptedSocket.getRemoteSocketAddress());
+            log.debug("Đang xử lý kết nối TCP từ {}", acceptedSocket.getRemoteSocketAddress());
             String payload = reader.readLine();
             if (payload == null || payload.isBlank()) {
-                log.warn("Payload TCP rỗng từ "
-                        + acceptedSocket.getRemoteSocketAddress());
+                log.warn("Payload TCP rỗng từ {}", acceptedSocket.getRemoteSocketAddress());
                 return;
             }
 
             Message incoming = protocol.deserialize(payload);
-            log.debug("Đã deserialize payload đến. messageId="
-                    + (incoming == null ? "null" : incoming.getId()));
+            log.debug("Đã deserialize payload đến. messageId={}", (incoming == null ? "null" : incoming.getId()));
             Message response = receiver.receive(incoming);
             if (response != null) {
                 writer.println(protocol.serialize(response));
-                log.debug("Đã gửi phản hồi. messageId=" + response.getId()
-                        + ", type=" + response.getType());
+                log.debug("Đã gửi phản hồi. messageId={}, type={}", response.getId(), response.getType());
             } else {
                 log.warn("Receiver trả về phản hồi null.");
             }
         } catch (IOException e) {
-            log.warn("Không thể xử lý kết nối đến: " + e.getMessage());
+            log.warn("Không thể xử lý kết nối đến: {}", e.getMessage());
         }
     }
 }

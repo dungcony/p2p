@@ -52,7 +52,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
         try {
             return showingPlaceholder ? "" : super.getText();
         } catch (Exception e) {
-            log.error("Lỗi khi lấy văn bản\nThông báo lỗi: " + e.getMessage());
+            log.error("Lỗi khi lấy văn bản\nThông báo lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
             return "";
         }
@@ -77,7 +77,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 setForeground(normalColor);
             }
         } catch (Exception e) {
-            log.error("Lỗi khi thiết lập văn bản\nThông báo lỗi: " + e.getMessage());
+            log.error("Lỗi khi thiết lập văn bản\nThông báo lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -92,7 +92,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 setForeground(placeholderColor);
             }
         } catch (Exception e) {
-            log.error("Lỗi khi hiển thị placeholder\nThông báo lỗi: " + e.getMessage());
+            log.error("Lỗi khi hiển thị placeholder\nThông báo lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -106,7 +106,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 setForeground(normalColor);
             }
         } catch (Exception e) {
-            log.error("Lỗi khi ẩn placeholder\nThông báo lỗi: " + e.getMessage());
+            log.error("Lỗi khi ẩn placeholder\nThông báo lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -128,7 +128,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                         }
                         wasDisabled = false;
                     } catch (Exception ex) {
-                        log.error("Lỗi khi xử lý hiển thị placeholder sau khi bật lại\nThông báo lỗi: " + ex.getMessage());
+                        log.error("Lỗi khi xử lý hiển thị placeholder sau khi bật lại\nThông báo lỗi: {}", ex.getMessage());
                         log.error("Chi tiết lỗi", ex);
                     }
                 });
@@ -137,7 +137,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 wasDisabled = true;
             }
         } catch (Exception e) {
-            log.error("Lỗi khi thiết lập trạng thái bật/tắt\nThông báo lỗi: " + e.getMessage());
+            log.error("Lỗi khi thiết lập trạng thái bật/tắt\nThông báo lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -148,7 +148,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
         try {
             return placeholder;
         } catch (Exception e) {
-            log.error("Lỗi khi lấy placeholder\nThông báo lỗi: " + e.getMessage());
+            log.error("Lỗi khi lấy placeholder\nThông báo lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
             return "";
         }
@@ -163,7 +163,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 super.setText(placeholder);
             }
         } catch (Exception e) {
-            log.error("Không thể đặt placeholder\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể đặt placeholder\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -174,7 +174,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
         try {
             return placeholderColor;
         } catch (Exception e) {
-            log.error("Không thể lấy màu placeholder\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể lấy màu placeholder\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
             return Color.GRAY;
         }
@@ -189,7 +189,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 setForeground(placeholderColor);
             }
         } catch (Exception e) {
-            log.error("Không thể đặt placeholder color\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể đặt placeholder color\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -201,7 +201,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 hidePlaceholder();
             }
         } catch (Exception ex) {
-            log.error("Không thể xử lý focus vào ô nhập\nChi tiết lỗi: " + ex.getMessage());
+            log.error("Không thể xử lý focus vào ô nhập\nChi tiết lỗi: {}", ex.getMessage());
             log.error("Chi tiết lỗi", ex);
         }
     }
@@ -213,7 +213,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
                 showPlaceholder();
             }
         } catch (Exception ex) {
-            log.error("Không thể xử lý rời focus khỏi ô nhập\nChi tiết lỗi: " + ex.getMessage());
+            log.error("Không thể xử lý rời focus khỏi ô nhập\nChi tiết lỗi: {}", ex.getMessage());
             log.error("Chi tiết lỗi", ex);
         }
     }
@@ -223,7 +223,7 @@ public class SendMessageTextField extends JTextField implements FocusListener {
         try {
             return showingPlaceholder;
         } catch (Exception e) {
-            log.error("Không thể kiểm tra trạng thái hiển thị placeholder\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể kiểm tra trạng thái hiển thị placeholder\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
             return false;
         }

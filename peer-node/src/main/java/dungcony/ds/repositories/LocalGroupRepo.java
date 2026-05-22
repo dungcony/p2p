@@ -42,9 +42,9 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
             if (!Files.exists(groupFilePath)) {
                 Files.writeString(groupFilePath, "[]", StandardCharsets.UTF_8);
             }
-            log.info("Kho JSON nhóm local đã sẵn sàng. path=" + groupFilePath.toAbsolutePath());
+            log.info("Kho JSON nhóm local đã sẵn sàng. path={}", groupFilePath.toAbsolutePath());
         } catch (IOException e) {
-            log.error("Không thể khởi tạo kho JSON nhóm local: " + e.getMessage());
+            log.error("Không thể khởi tạo kho JSON nhóm local: {}", e.getMessage());
         }
     }
 
@@ -58,8 +58,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
         groups.removeIf(existingGroup -> group.getGroupId().equals(existingGroup.getGroupId()));
         groups.add(group);
         saveAll(groups);
-        log.info("Đã lưu nhóm local. groupId=" + group.getGroupId()
-                + ", tên=" + group.getName());
+        log.info("Đã lưu nhóm local. groupId={}, tên={}", group.getGroupId(), group.getName());
     }
 
     // Ghi lại toàn bộ danh sách group của profile hiện tại.
@@ -68,9 +67,9 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
         sortedGroups.sort(Comparator.comparing(Group::getName).thenComparing(Group::getGroupId));
         try {
             Files.writeString(groupFilePath, gson.toJson(sortedGroups), StandardCharsets.UTF_8);
-            log.debug("Đã ghi nhóm local. sốLượng=" + sortedGroups.size());
+            log.debug("Đã ghi nhóm local. sốLượng={}", sortedGroups.size());
         } catch (IOException e) {
-            log.error("Không thể ghi JSON nhóm local: " + e.getMessage());
+            log.error("Không thể ghi JSON nhóm local: {}", e.getMessage());
         }
     }
 
@@ -86,10 +85,10 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
             }
             List<Group> groups = gson.fromJson(json, GROUP_LIST_TYPE);
             List<Group> result = groups == null ? new ArrayList<>() : new ArrayList<>(groups);
-            log.debug("Đã nạp nhóm local. sốLượng=" + result.size());
+            log.debug("Đã nạp nhóm local. sốLượng={}", result.size());
             return result;
         } catch (IOException | RuntimeException e) {
-            log.error("Không thể đọc JSON nhóm local: " + e.getMessage());
+            log.error("Không thể đọc JSON nhóm local: {}", e.getMessage());
             return new ArrayList<>();
         }
     }

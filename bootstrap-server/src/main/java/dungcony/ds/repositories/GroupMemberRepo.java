@@ -28,10 +28,9 @@ public record GroupMemberRepo(Conn conn) {
             statement.setString(2, memberEntity.getUserId());
             statement.setLong(3, memberEntity.getJoinedAt());
             statement.executeUpdate();
-            log.info("Đã thêm thành viên nhóm groupId=" + memberEntity.getGroupId()
-                    + ", userId=" + memberEntity.getUserId());
+            log.info("Đã thêm thành viên nhóm groupId={}, userId={}", memberEntity.getGroupId(), memberEntity.getUserId());
         } catch (SQLException e) {
-            log.error("Không thể thêm thành viên nhóm: " + e.getMessage());
+            log.error("Không thể thêm thành viên nhóm: {}", e.getMessage());
         }
     }
 
@@ -45,10 +44,9 @@ public record GroupMemberRepo(Conn conn) {
             statement.setString(1, groupId);
             statement.setString(2, userId);
             int deleted = statement.executeUpdate();
-            log.info("Đã xóa thành viên nhóm groupId=" + groupId
-                    + ", userId=" + userId + ", đãXóa=" + deleted);
+            log.info("Đã xóa thành viên nhóm groupId={}, userId={}, đãXóa={}", groupId, userId, deleted);
         } catch (SQLException e) {
-            log.error("Không thể xóa thành viên nhóm: " + e.getMessage());
+            log.error("Không thể xóa thành viên nhóm: {}", e.getMessage());
         }
     }
 
@@ -73,7 +71,7 @@ public record GroupMemberRepo(Conn conn) {
                 }
             }
         } catch (SQLException e) {
-            log.error("Không thể liệt kê thành viên nhóm: " + e.getMessage());
+            log.error("Không thể liệt kê thành viên nhóm: {}", e.getMessage());
         }
         return members;
     }

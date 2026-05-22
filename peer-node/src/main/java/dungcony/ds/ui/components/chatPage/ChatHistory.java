@@ -23,7 +23,7 @@ private JPanel messagesPanel;
             initializeComponents();
             setupLayout();
         } catch (Exception e) {
-            log.error("Không thể khởi tạo lịch sử chat\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể khởi tạo lịch sử chat\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -49,7 +49,7 @@ private JPanel messagesPanel;
             scrollPane.getVerticalScrollBar().setBackground(ColorPalette.BACKGROUND);
             scrollPane.getVerticalScrollBar().setUI(new ModernScrollBarUI());
         } catch (Exception e) {
-            log.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể khởi tạo component\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -59,7 +59,7 @@ private JPanel messagesPanel;
             setLayout(new BorderLayout());
             add(scrollPane, BorderLayout.CENTER);
         } catch (Exception e) {
-            log.error("Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể thiết lập bố cục\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -98,12 +98,12 @@ private JPanel messagesPanel;
                     JScrollBar vertical = scrollPane.getVerticalScrollBar();
                     vertical.setValue(vertical.getMaximum());
                 } catch (Exception ex) {
-                    log.error("Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
+                    log.error("Không thể tự cuộn xuống cuối\nChi tiết lỗi: {}", ex.getMessage());
                     log.error("Chi tiết lỗi", ex);
                 }
             });
         } catch (Exception e) {
-            log.error("Không thể hiển thị tất cả tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể hiển thị tất cả tin nhắn\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -137,12 +137,12 @@ private JPanel messagesPanel;
                     JScrollBar vertical = scrollPane.getVerticalScrollBar();
                     vertical.setValue(vertical.getMaximum());
                 } catch (Exception ex) {
-                    log.error("Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
+                    log.error("Không thể tự cuộn xuống cuối\nChi tiết lỗi: {}", ex.getMessage());
                     log.error("Chi tiết lỗi", ex);
                 }
             });
         } catch (Exception e) {
-            log.error("Không thể hiển thị tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể hiển thị tin nhắn\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -153,7 +153,7 @@ private JPanel messagesPanel;
             messagesPanel.revalidate();
             messagesPanel.repaint();
         } catch (Exception e) {
-            log.error("Không thể xóa danh sách tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể xóa danh sách tin nhắn\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }

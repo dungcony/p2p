@@ -52,18 +52,17 @@ private final int port;
     public void start() {
         running = true;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            log.info("Bootstrap server đang lắng nghe trên cổng " + port);
+            log.info("Bootstrap server đang lắng nghe trên cổng {}", port);
             while (running) {
                 Socket socket = serverSocket.accept();
-                log.debug("Bootstrap đã nhận kết nối từ "
-                        + socket.getRemoteSocketAddress());
+                log.debug("Bootstrap đã nhận kết nối từ {}", socket.getRemoteSocketAddress());
                 Thread handler = new Thread(() -> handle(socket), "BootstrapHandler");
                 handler.setDaemon(true);
                 handler.start();
             }
         } catch (IOException e) {
             if (running) {
-                log.error("Bootstrap server đã dừng: " + e.getMessage());
+                log.error("Bootstrap server đã dừng: {}", e.getMessage());
             }
         }
     }
@@ -71,7 +70,7 @@ private final int port;
     // Đánh dấu server dừng nhận request mới.
     public void stop() {
         running = false;
-        log.info("Bootstrap server đã được đánh dấu dừng trên cổng " + port);
+        log.info("Bootstrap server đã được đánh dấu dừng trên cổng {}", port);
     }
 
     // Xử lý một request tracker: REGISTER để lưu user, JOIN để online, LEAVE để rời mạng, LIST để lấy danh sách peer.
@@ -89,15 +88,13 @@ private final int port;
             String[] parts = line.split(" ", 2);
             String command = parts[0].toUpperCase(Locale.ROOT);
             String payload = parts.length > 1 ? parts[1] : "";
-            log.info("Bootstrap nhận command=" + command);
+            log.info("Bootstrap nhận command={}", command);
 
             switch (command) {
                 case "REGISTER" -> {
                     PeerInfo peerInfo = gson.fromJson(payload, PeerInfo.class);
                     registry.register(peerInfo);
-                    log.info("Bootstrap REGISTER userId="
-                            + (peerInfo == null ? "null" : peerInfo.getId())
-                            + ", tênHiểnThị=" + (peerInfo == null ? "null" : peerInfo.getName()));
+                    log.info("Bootstrap REGISTER userId={}, tênHiểnThị={}", (peerInfo == null ? "null" : peerInfo.getId()), (peerInfo == null ? "null" : peerInfo.getName()));
                     writer.println("OK");
                     return;
                 }
@@ -106,9 +103,7 @@ private final int port;
                     registry.join(peerInfo);
                     String receiverId = peerInfo == null ? "" : peerInfo.getId();
                     Collection<OfflineMessageEntity> offlineMessages = registry.drainOfflineMessages(receiverId);
-                    log.info("Bootstrap JOIN peer="
-                            + (peerInfo == null ? "null" : peerInfo.addressKey())
-                            + ", tổngPeer=" + registry.list().size());
+                    log.info("Bootstrap JOIN peer={}, tổngPeer={}", (peerInfo == null ? "null" : peerInfo.addressKey()), registry.list().size());
                     writer.println(gson.toJson(new JoinResponse(registry.list(), offlineMessages)));
                     return;
                 }
@@ -146,23 +141,22 @@ private final int port;
                 }
                 case "LEAVE" -> {
                     registry.leave(payload.trim());
-                    log.info("Bootstrap LEAVE peerKey=" + payload.trim()
-                            + ", tổngPeer=" + registry.list().size());
+                    log.info("Bootstrap LEAVE peerKey={}, tổngPeer={}", payload.trim(), registry.list().size());
                     writer.println("OK");
                     return;
                 }
                 case "LIST" -> {
                     Collection<PeerInfo> peers = registry.list();
-                    log.info("Bootstrap LIST tổngPeer=" + peers.size());
+                    log.info("Bootstrap LIST tổngPeer={}", peers.size());
                     writer.println(gson.toJson(peers));
                     return;
                 }
             }
 
-            log.warn("Bootstrap nhận command không hỗ trợ=" + command);
+            log.warn("Bootstrap nhận command không hỗ trợ={}", command);
             writer.println("UNKNOWN_COMMAND");
         } catch (IOException e) {
-            log.warn("Bootstrap xử lý request thất bại: " + e.getMessage());
+            log.warn("Bootstrap xử lý request thất bại: {}", e.getMessage());
         }
     }
 }

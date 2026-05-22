@@ -19,7 +19,7 @@ private final PeerRegistry registry;
         while (running) {
             try {
                 Thread.sleep(10_000);
-                log.trace("HeartbeatMonitor tick. kíchThướcRegistry=" + registry.list().size());
+                log.trace("HeartbeatMonitor tick. kíchThướcRegistry={}", registry.list().size());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 running = false;

@@ -60,12 +60,9 @@ private final PeerInfo localPeer;
             );
             put(normalized);
             merged++;
-            log.debug("Đã merge peer từ discovery. id=" + normalized.getId()
-                    + ", địaChỉ=" + normalized.addressKey()
-                    + ", online=" + normalized.isOnline());
+            log.debug("Đã merge peer từ discovery. id={}, địaChỉ={}, online={}", normalized.getId(), normalized.addressKey(), normalized.isOnline());
         }
-        log.info("Merge danh sách peer xong. sốPeerMerge=" + merged
-                + ", knownCount=" + peers.size());
+        log.info("Merge danh sách peer xong. sốPeerMerge={}, knownCount={}", merged, peers.size());
         return merged;
     }
 
@@ -84,18 +81,16 @@ private final PeerInfo localPeer;
             return null;
         }
         if (isSelfPeer(peerInfo)) {
-            log.warn("Đã bỏ qua thêm peer vì đích là peer local: " + peerInfo.addressKey());
+            log.warn("Đã bỏ qua thêm peer vì đích là peer local: {}", peerInfo.addressKey());
             return null;
         }
         PeerInfo existingPeer = peers.get(peerInfo.addressKey());
         if (existingPeer != null) {
-            log.info("Peer đã tồn tại. Dùng lại peer id=" + existingPeer.getId()
-                    + ", địaChỉ=" + existingPeer.addressKey());
+            log.info("Peer đã tồn tại. Dùng lại peer id={}, địaChỉ={}", existingPeer.getId(), existingPeer.addressKey());
             return existingPeer;
         }
         put(peerInfo);
-        log.info("Đã thêm peer đã biết: id=" + peerInfo.getId()
-                + ", địaChỉ=" + peerInfo.addressKey());
+        log.info("Đã thêm peer đã biết: id={}, địaChỉ={}", peerInfo.getId(), peerInfo.addressKey());
         return peerInfo;
     }
 
@@ -129,8 +124,7 @@ private final PeerInfo localPeer;
             try {
                 port = Integer.parseInt(value.substring(colonIndex + 1));
             } catch (NumberFormatException ignored) {
-                log.warn("Cổng peer không hợp lệ trong địa chỉ '" + value
-                        + "'. Chuyển về cổng local " + localPeer.getPort());
+                log.warn("Cổng peer không hợp lệ trong địa chỉ '{}'. Chuyển về cổng local {}", value, localPeer.getPort());
                 port = localPeer.getPort();
             }
         }
@@ -175,11 +169,9 @@ private final PeerInfo localPeer;
             peerInfo.setOnline(true);
             put(peerInfo);
             addedOrUpdated++;
-            log.debug("Danh bạ đã đồng bộ peer online id=" + peerInfo.getId()
-                    + ", địaChỉ=" + peerInfo.addressKey());
+            log.debug("Danh bạ đã đồng bộ peer online id={}, địaChỉ={}", peerInfo.getId(), peerInfo.addressKey());
         }
-        log.info("Đồng bộ trạng thái online trong danh bạ xong. sốOnline=" + addedOrUpdated
-                + ", knownCount=" + peers.size());
+        log.info("Đồng bộ trạng thái online trong danh bạ xong. sốOnline={}, knownCount={}", addedOrUpdated, peers.size());
         return addedOrUpdated;
     }
 

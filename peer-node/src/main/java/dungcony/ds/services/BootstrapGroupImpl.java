@@ -27,28 +27,25 @@ private final BootstrapClient bootstrapClient;
     @Override
     public void publishGroup(Group group) {
         if (bootstrapClient == null) {
-            log.warn("Không thể publish nhóm vì bootstrap đang tắt. groupId="
-                    + group.getGroupId());
+            log.warn("Không thể publish nhóm vì bootstrap đang tắt. groupId={}", group.getGroupId());
             return;
         }
         boolean created = bootstrapClient.createGroup(group, localPeer.getId());
         if (!created) {
-            log.warn("Bootstrap CREATE_GROUP thất bại. groupId=" + group.getGroupId());
+            log.warn("Bootstrap CREATE_GROUP thất bại. groupId={}", group.getGroupId());
             return;
         }
         bootstrapClient.addGroupMember(group.getGroupId(), localPeer.getId());
         for (PeerInfo member : group.getMembers()) {
             bootstrapClient.addGroupMember(group.getGroupId(), member.getId());
         }
-        log.info("Đã publish nhóm lên bootstrap. groupId=" + group.getGroupId()
-                + ", sốThànhViên=" + group.getMembers().size());
+        log.info("Đã publish nhóm lên bootstrap. groupId={}, sốThànhViên={}", group.getGroupId(), group.getMembers().size());
     }
 
     @Override
     public void addMembersToGroup(String groupId, Collection<PeerInfo> members) {
         if (bootstrapClient == null) {
-            log.warn("Không thể thêm thành viên nhóm lên bootstrap vì bootstrap đang tắt. groupId="
-                    + groupId);
+            log.warn("Không thể thêm thành viên nhóm lên bootstrap vì bootstrap đang tắt. groupId={}", groupId);
             return;
         }
         int added = 0;
@@ -62,8 +59,7 @@ private final BootstrapClient bootstrapClient;
                 }
             }
         }
-        log.info("Đã đồng bộ thêm thành viên nhóm lên bootstrap. groupId=" + groupId
-                + ", sốThànhViênThêm=" + added);
+        log.info("Đã đồng bộ thêm thành viên nhóm lên bootstrap. groupId={}, sốThànhViênThêm={}", groupId, added);
     }
 
     @Override
@@ -83,7 +79,7 @@ private final BootstrapClient bootstrapClient;
             joinedGroups.add(toGroup(groupPayload, memberPayloads, knownPeers));
         }
 
-        log.info("Đồng bộ nhóm từ bootstrap lấy được số nhóm đã tham gia=" + joinedGroups.size());
+        log.info("Đồng bộ nhóm từ bootstrap lấy được số nhóm đã tham gia={}", joinedGroups.size());
         return joinedGroups;
     }
 

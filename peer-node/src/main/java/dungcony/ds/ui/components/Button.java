@@ -26,7 +26,7 @@ public class Button extends JButton {
 
 
     public void setIsActive(boolean isActive) {
-        log.debug("Đã cập nhật trạng thái active của nút: " + isActive);
+        log.debug("Đã cập nhật trạng thái active của nút: {}", isActive);
         this.isActive = isActive;
         if (isActive) {
             this.setBorder(new MatteBorder(0, 0, 0, 2, ColorPalette.PRIMARY));

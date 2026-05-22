@@ -62,12 +62,6 @@ public class Message {
     }
 
 
-    // Tạo message chat nhóm gắn với groupId.
-    public static Message groupChat(PeerInfo sender, String groupId, String content) {
-        return Mes.groupChat(sender, groupId, null, content);
-    }
-
-
     // Tạo message chat nhóm cho một receiver cụ thể để bootstrap có thể lưu offline theo user_id.
     public static Message groupChat(PeerInfo sender, PeerInfo receiver, String groupId, String groupName, String content) {
         Message message = Mes.groupChat(sender, groupId, groupName, content);
@@ -75,11 +69,6 @@ public class Message {
         message.receiverHost = receiver.getHost();
         message.receiverPort = receiver.getPort();
         return message;
-    }
-
-    // Tạo message chat nhóm cho một receiver cụ thể để bootstrap có thể lưu offline theo user_id.
-    public static Message groupChat(PeerInfo sender, PeerInfo receiver, String groupId, String content) {
-        return groupChat(sender, receiver, groupId, null, content);
     }
 
     // Tạo message broadcast toàn mạng cho một receiver cụ thể.

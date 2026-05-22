@@ -25,7 +25,7 @@ public class GroupManager {
             for (Group group : localGroupRepo.findAll()) {
                 groups.put(group.getGroupId(), group);
             }
-            log.info("GroupManager đã nạp nhóm local. sốLượng=" + groups.size());
+            log.info("GroupManager đã nạp nhóm local. sốLượng={}", groups.size());
         }
     }
 
@@ -38,8 +38,7 @@ public class GroupManager {
         groups.put(group.getGroupId(), group);
         saveGroup(group);
         publishGroup(group);
-        log.info("Đã tạo nhóm id=" + group.getGroupId()
-                + ", tên=" + group.getName() + ", sốThànhViên=" + group.getMembers().size());
+        log.info("Đã tạo nhóm id={}, tên={}, sốThànhViên={}", group.getGroupId(), group.getName(), group.getMembers().size());
         return group;
     }
 
@@ -47,7 +46,7 @@ public class GroupManager {
     public Group addMembers(String groupId, Collection<PeerInfo> members) {
         Group group = groups.get(groupId);
         if (group == null) {
-            log.warn("Không thể thêm thành viên vì không tìm thấy groupId=" + groupId);
+            log.warn("Không thể thêm thành viên vì không tìm thấy groupId={}", groupId);
             return null;
         }
         int before = group.getMembers().size();
@@ -56,8 +55,7 @@ public class GroupManager {
         }
         int added = group.getMembers().size() - before;
         saveGroup(group);
-        log.info("Đã thêm thành viên vào nhóm local. groupId=" + groupId
-                + ", sốThànhViênThêm=" + added);
+        log.info("Đã thêm thành viên vào nhóm local. groupId={}, sốThànhViênThêm={}", groupId, added);
         return group;
     }
 
@@ -68,12 +66,10 @@ public class GroupManager {
         if (group == null) {
             group = new Group(groupId, name, members);
             groups.put(group.getGroupId(), group);
-            log.info("Đã tạo nhóm local từ tin nhắn nhận vào. groupId=" + group.getGroupId()
-                    + ", tên=" + group.getName());
+            log.info("Đã tạo nhóm local từ tin nhắn nhận vào. groupId={}, tên={}", group.getGroupId(), group.getName());
         } else if (members != null) {
             members.forEach(group::addMember);
-            log.debug("Đã refresh thành viên nhóm local từ tin nhắn nhận vào. groupId="
-                    + group.getGroupId() + ", sốThànhViên=" + group.getMembers().size());
+            log.debug("Đã refresh thành viên nhóm local từ tin nhắn nhận vào. groupId={}, sốThànhViên={}", group.getGroupId(), group.getMembers().size());
         }
         saveGroup(group);
         return group;
@@ -85,12 +81,10 @@ public class GroupManager {
         if (group == null) {
             group = new Group(groupId, name, members);
             groups.put(group.getGroupId(), group);
-            log.info("Đã tạo nhóm local từ GROUP_MEMBERS_SYNC. groupId=" + group.getGroupId()
-                    + ", tên=" + group.getName());
+            log.info("Đã tạo nhóm local từ GROUP_MEMBERS_SYNC. groupId={}, tên={}", group.getGroupId(), group.getName());
         } else {
             group.replaceMembers(members);
-            log.info("Đã cập nhật membership nhóm từ GROUP_MEMBERS_SYNC. groupId=" + groupId
-                    + ", sốThànhViên=" + group.getMembers().size());
+            log.info("Đã cập nhật membership nhóm từ GROUP_MEMBERS_SYNC. groupId={}, sốThànhViên={}", groupId, group.getMembers().size());
         }
         saveGroup(group);
         return group;
@@ -117,7 +111,7 @@ public class GroupManager {
         if (localGroupRepo != null) {
             localGroupRepo.saveAll(groups.values());
         }
-        log.info("GroupManager đã thay nhóm bằng dữ liệu bootstrap. sốLượng=" + groups.size());
+        log.info("GroupManager đã thay nhóm bằng dữ liệu bootstrap. sốLượng={}", groups.size());
     }
 
     // Lưu group mới/cập nhật xuống groups.json nếu local repo được cấu hình.

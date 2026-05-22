@@ -62,7 +62,7 @@ public class RouterManager {
             cardLayout.show(contentPanel, routeName);
             currentRoute = routeName;
         } else {
-            log.error("Không tìm thấy route: " + routeName);
+            log.error("Không tìm thấy route: {}", routeName);
         }
     }
 

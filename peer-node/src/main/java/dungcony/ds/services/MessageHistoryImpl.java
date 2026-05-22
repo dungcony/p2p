@@ -55,8 +55,7 @@ private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<
             }
             messages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
         }
-        log.debug("Đã cập nhật message trong lịch sử. peerKey=" + peerKey
-                + ", messageId=" + message.getId() + ", status=" + message.getStatus());
+        log.debug("Đã cập nhật message trong lịch sử. peerKey={}, messageId={}, status={}", peerKey, message.getId(), message.getStatus());
     }
 
     // Lưu lại message đã thay đổi trạng thái vào cache runtime và JSON local.
@@ -106,9 +105,7 @@ private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<
             }
             cachedMessages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
         }
-        log.debug("Đã merge tin nhắn local vào cache runtime. peerKey=" + key
-                + ", localCount=" + localMessages.size()
-                + ", cachedCount=" + cachedMessages.size());
+        log.debug("Đã merge tin nhắn local vào cache runtime. peerKey={}, localCount={}, cachedCount={}", key, localMessages.size(), cachedMessages.size());
     }
 
     private int findMessageIndex(List<Message> messages, String messageId) {

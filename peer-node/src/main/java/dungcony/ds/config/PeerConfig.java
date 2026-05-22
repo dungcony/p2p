@@ -39,16 +39,16 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         Properties globalProperties = loadGlobalProperties(dataRoot);
         try {
             Files.createDirectories(dataRoot);
-            log.info("Thư mục dữ liệu peer đã sẵn sàng: " + dataRoot.toAbsolutePath());
+            log.info("Thư mục dữ liệu peer đã sẵn sàng: {}", dataRoot.toAbsolutePath());
         } catch (IOException e) {
-            log.error("Không thể tạo thư mục dữ liệu peer: " + e.getMessage());
+            log.error("Không thể tạo thư mục dữ liệu peer: {}", e.getMessage());
         }
         if (loadedConfigPath != null && Files.exists(loadedConfigPath)) {
             try (InputStream inputStream = Files.newInputStream(loadedConfigPath)) {
                 profileProperties.load(inputStream);
-                log.info("Đã nạp cấu hình peer từ " + loadedConfigPath.toAbsolutePath());
+                log.info("Đã nạp cấu hình peer từ {}", loadedConfigPath.toAbsolutePath());
             } catch (IOException e) {
-                log.warn("Không thể nạp cấu hình peer. Dùng mặc định. lỗi=" + e.getMessage());
+                log.warn("Không thể nạp cấu hình peer. Dùng mặc định. lỗi={}", e.getMessage());
             }
         }
 
@@ -60,7 +60,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         config.bootstrapHost = readString(globalProperties, "bootstrap.host", "localhost");
         config.bootstrapPort = readInt(globalProperties, "bootstrap.port", 9000);
         config.refreshStoragePaths();
-        log.info("Đã chọn thư mục dữ liệu peer: " + config.dataDir.toAbsolutePath());
+        log.info("Đã chọn thư mục dữ liệu peer: {}", config.dataDir.toAbsolutePath());
         return config;
     }
 
@@ -76,8 +76,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         config.bootstrapHost = readString(globalProperties, "bootstrap.host", "localhost");
         config.bootstrapPort = readInt(globalProperties, "bootstrap.port", 9000);
         config.refreshStoragePaths();
-        log.info("Đã tạo nháp profile peer mới. peerId=" + config.peerId
-                + ", thưMụcDữLiệu=" + config.dataDir.toAbsolutePath());
+        log.info("Đã tạo nháp profile peer mới. peerId={}, thưMụcDữLiệu={}", config.peerId, config.dataDir.toAbsolutePath());
         return config;
     }
 
@@ -105,10 +104,9 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
                 profiles.add(loadFromConfigPath(resolvedDataRoot, legacyConfigPath));
             }
         } catch (IOException e) {
-            log.warn("Không thể liệt kê profile peer: " + e.getMessage());
+            log.warn("Không thể liệt kê profile peer: {}", e.getMessage());
         }
-        log.info("Số profile peer tìm thấy=" + profiles.size()
-                + ", dataRoot=" + resolvedDataRoot.toAbsolutePath());
+        log.info("Số profile peer tìm thấy={}, dataRoot={}", profiles.size(), resolvedDataRoot.toAbsolutePath());
         return profiles;
     }
 
@@ -130,11 +128,11 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
     // Cập nhật port lắng nghe của peer khi tạo profile mới.
     public boolean updatePeerPort(int peerPort) {
         if (peerPort < 1 || peerPort > 65535) {
-            log.warn("Đã bỏ qua cổng peer không hợp lệ=" + peerPort);
+            log.warn("Đã bỏ qua cổng peer không hợp lệ={}", peerPort);
             return false;
         }
         if (peerPort == bootstrapPort) {
-            log.warn("Từ chối cổng peer vì trùng với cổng bootstrap=" + bootstrapPort);
+            log.warn("Từ chối cổng peer vì trùng với cổng bootstrap={}", bootstrapPort);
             return false;
         }
         this.peerPort = peerPort;
@@ -148,8 +146,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
             return;
         }
         if (runtimePeerPort < 1 || runtimePeerPort > 65535) {
-            log.warn("Đã bỏ qua cổng peer runtime không hợp lệ=" + runtimePeerPort
-                    + ". Giữ cổng=" + peerPort);
+            log.warn("Đã bỏ qua cổng peer runtime không hợp lệ={}. Giữ cổng={}", runtimePeerPort, peerPort);
             protectBootstrapPort();
             return;
         }
@@ -170,11 +167,9 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
                 profileProperties.store(outputStream, "Local peer identity profile");
             }
             saveGlobalConfig();
-            log.info("Đã lưu cấu hình peer. peerId=" + peerId
-                    + ", tênPeer=" + peerName + ", cổng=" + peerPort
-                    + ", thưMụcDữLiệu=" + dataDir.toAbsolutePath());
+            log.info("Đã lưu cấu hình peer. peerId={}, tênPeer={}, cổng={}, thưMụcDữLiệu={}", peerId, peerName, peerPort, dataDir.toAbsolutePath());
         } catch (IOException e) {
-            log.error("Không thể lưu cấu hình peer: " + e.getMessage());
+            log.error("Không thể lưu cấu hình peer: {}", e.getMessage());
         }
     }
 
@@ -221,8 +216,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
     // Nếu peer.port trùng bootstrap.port thì không cho PeerNode chiếm cổng tracker.
     private void protectBootstrapPort() {
         if (peerPort == bootstrapPort) {
-            log.warn("peer.port trùng với cổng bootstrap=" + bootstrapPort
-                    + ". Chuyển về cổng mặc định của peer=" + PeerNode.DEFAULT_PORT);
+            log.warn("peer.port trùng với cổng bootstrap={}. Chuyển về cổng mặc định của peer={}", bootstrapPort, PeerNode.DEFAULT_PORT);
             peerPort = PeerNode.DEFAULT_PORT;
         }
     }
@@ -238,7 +232,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         try {
             return Integer.parseInt(readString(properties, key, String.valueOf(defaultValue)));
         } catch (NumberFormatException e) {
-            log.warn("Config số nguyên không hợp lệ. key=" + key + ". fallback=" + defaultValue);
+            log.warn("Config số nguyên không hợp lệ. key={}. fallback={}", key, defaultValue);
             return defaultValue;
         }
     }
@@ -261,8 +255,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
                             .sorted(Comparator.comparing(path -> path.getParent().getFileName().toString()))
                             .toList();
                     if (configPaths.size() > 1) {
-                        log.warn("Tìm thấy nhiều thư mục UUID peer trong data root. "
-                                + "Using first folder by name: " + configPaths.get(0).getParent().getFileName());
+                        log.warn("Tìm thấy nhiều thư mục UUID peer trong data root. Using first folder by name: {}", configPaths.get(0).getParent().getFileName());
                     }
                     if (!configPaths.isEmpty()) {
                         return configPaths.get(0);
@@ -270,7 +263,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
                 }
             }
         } catch (IOException e) {
-            log.warn("Không thể quét thư mục dữ liệu peer: " + e.getMessage());
+            log.warn("Không thể quét thư mục dữ liệu peer: {}", e.getMessage());
         }
 
         Path legacyConfigPath = dataRoot.resolve("config.properties");
@@ -288,8 +281,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         try (InputStream inputStream = Files.newInputStream(configPath)) {
             properties.load(inputStream);
         } catch (IOException e) {
-            log.warn("Không thể nạp cấu hình profile=" + configPath
-                    + ", lỗi=" + e.getMessage());
+            log.warn("Không thể nạp cấu hình profile={}, lỗi={}", configPath, e.getMessage());
         }
 
         PeerConfig config = new PeerConfig();
@@ -300,8 +292,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         config.bootstrapHost = readString(globalProperties, "bootstrap.host", "localhost");
         config.bootstrapPort = readInt(globalProperties, "bootstrap.port", 9000);
         config.refreshStoragePaths();
-        log.info("Đã nạp profile peer. " + config.getDisplayLabel()
-                + ", thưMụcDữLiệu=" + config.dataDir.toAbsolutePath());
+        log.info("Đã nạp profile peer. {}, thưMụcDữLiệu={}", config.getDisplayLabel(), config.dataDir.toAbsolutePath());
         return config;
     }
 
@@ -323,7 +314,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         try (OutputStream outputStream = Files.newOutputStream(globalConfigPath)) {
             globalProperties.store(outputStream, "Peer-node shared bootstrap config");
         }
-        log.info("Đã lưu cấu hình bootstrap dùng chung. path=" + globalConfigPath.toAbsolutePath());
+        log.info("Đã lưu cấu hình bootstrap dùng chung. path={}", globalConfigPath.toAbsolutePath());
     }
 
     // Đọc bootstrap config chung từ dataRoot/config.properties.
@@ -335,9 +326,9 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         }
         try (InputStream inputStream = Files.newInputStream(globalConfigPath)) {
             properties.load(inputStream);
-            log.info("Đã nạp cấu hình bootstrap dùng chung từ " + globalConfigPath.toAbsolutePath());
+            log.info("Đã nạp cấu hình bootstrap dùng chung từ {}", globalConfigPath.toAbsolutePath());
         } catch (IOException e) {
-            log.warn("Không thể nạp cấu hình bootstrap dùng chung: " + e.getMessage());
+            log.warn("Không thể nạp cấu hình bootstrap dùng chung: {}", e.getMessage());
         }
         return properties;
     }
@@ -352,7 +343,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
             properties.load(inputStream);
             return properties.getProperty("peer.id") != null;
         } catch (IOException e) {
-            log.warn("Không thể kiểm tra cấu hình peer cũ: " + e.getMessage());
+            log.warn("Không thể kiểm tra cấu hình peer cũ: {}", e.getMessage());
             return false;
         }
     }

@@ -60,22 +60,22 @@ private ModernButton checkConnectionButton;
     private boolean connectAndOpenChat() {
         String name = nameField.getTextField().getText();
         String address = ipField.getTextField().getText();
-        log.info("Yêu cầu chat trực tiếp. tên=" + name + ", địaChỉ=" + address);
+        log.info("Yêu cầu chat trực tiếp. tên={}, địaChỉ={}", name, address);
 
         if (!isValidPeerAddress(address)) {
-            log.warn("Từ chối chat trực tiếp: địa chỉ không hợp lệ=" + address);
+            log.warn("Từ chối chat trực tiếp: địa chỉ không hợp lệ={}", address);
             Dialog.showMessageDialog(null, "Vui lòng nhập địa chỉ IP hoặc host:port hợp lệ", "Địa chỉ không hợp lệ", Dialog.ERROR_MESSAGE);
             return false;
         }
         if (App.peerNode != null && App.peerNode.isSelfAddress(address)) {
-            log.warn("Từ chối chat trực tiếp: địa chỉ trỏ về peer hiện tại=" + address);
+            log.warn("Từ chối chat trực tiếp: địa chỉ trỏ về peer hiện tại={}", address);
             Dialog.showMessageDialog(null, "Bạn không thể kết nối tới chính peer hiện tại.", "Peer không hợp lệ", Dialog.WARNING_MESSAGE);
             return false;
         }
 
         boolean online = App.peerNode != null && App.peerNode.checkUserIsOnline(address);
         if (!online) {
-            log.warn("Chat trực tiếp thất bại heartbeat. địa chỉ=" + address);
+            log.warn("Chat trực tiếp thất bại heartbeat. địa chỉ={}", address);
             Dialog.showMessageDialog(null, "Peer không phản hồi heartbeat.", "Peer ngoại tuyến", Dialog.WARNING_MESSAGE);
             return false;
         }
@@ -90,7 +90,7 @@ private ModernButton checkConnectionButton;
         openChat(peerInfo);
         nameField.getTextField().setText("");
         ipField.getTextField().setText("");
-        log.info("Đã mở chat trực tiếp. peer=" + peerInfo.addressKey());
+        log.info("Đã mở chat trực tiếp. peer={}", peerInfo.addressKey());
         return true;
     }
 

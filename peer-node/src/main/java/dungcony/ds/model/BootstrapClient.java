@@ -40,8 +40,7 @@ private static final int CONNECT_TIMEOUT_MS = 3000;
     public boolean register(PeerInfo peerInfo) {
         String response = request("REGISTER", peerInfo);
         boolean success = "OK".equalsIgnoreCase(response);
-        log.info("Kết quả Bootstrap REGISTER=" + success
-                + ", peerId=" + peerInfo.getId() + ", response=" + response);
+        log.info("Kết quả Bootstrap REGISTER={}, peerId={}, response={}", success, peerInfo.getId(), response);
         return success;
     }
 
@@ -60,12 +59,10 @@ private static final int CONNECT_TIMEOUT_MS = 3000;
         }
         try {
             JoinResponse joinResponse = gson.fromJson(response, JoinResponse.class);
-            log.info("Bootstrap JOIN nhận sốPeer="
-                    + joinResponse.getOnlinePeers().size()
-                    + ", tinOffline=" + joinResponse.getOfflineMessages().size());
+            log.info("Bootstrap JOIN nhận sốPeer={}, tinOffline={}", joinResponse.getOnlinePeers().size(), joinResponse.getOfflineMessages().size());
             return joinResponse;
         } catch (RuntimeException e) {
-            log.error("Không thể parse Bootstrap JOIN response: " + e.getMessage());
+            log.error("Không thể parse Bootstrap JOIN response: {}", e.getMessage());
             return null;
         }
     }
@@ -74,9 +71,7 @@ private static final int CONNECT_TIMEOUT_MS = 3000;
     public boolean storeOffline(OfflineMessage message) {
         String response = request("STORE_OFFLINE", message);
         boolean success = "OK".equalsIgnoreCase(response);
-        log.info("Kết quả Bootstrap STORE_OFFLINE=" + success
-                + ", messageId=" + message.messageId()
-                + ", receiverId=" + message.receiverId());
+        log.info("Kết quả Bootstrap STORE_OFFLINE={}, messageId={}, receiverId={}", success, message.messageId(), message.receiverId());
         return success;
     }
 
@@ -90,8 +85,7 @@ private static final int CONNECT_TIMEOUT_MS = 3000;
         );
         String response = request("CREATE_GROUP", payload);
         boolean success = "OK".equalsIgnoreCase(response);
-        log.info("Kết quả Bootstrap CREATE_GROUP=" + success
-                + ", groupId=" + group.getGroupId() + ", response=" + response);
+        log.info("Kết quả Bootstrap CREATE_GROUP={}, groupId={}, response={}", success, group.getGroupId(), response);
         return success;
     }
 
@@ -100,8 +94,7 @@ private static final int CONNECT_TIMEOUT_MS = 3000;
         GroupMemberPayload payload = new GroupMemberPayload(groupId, userId, System.currentTimeMillis());
         String response = request("ADD_GROUP_MEMBER", payload);
         boolean success = "OK".equalsIgnoreCase(response);
-        log.info("Kết quả Bootstrap ADD_GROUP_MEMBER=" + success
-                + ", groupId=" + groupId + ", userId=" + userId);
+        log.info("Kết quả Bootstrap ADD_GROUP_MEMBER={}, groupId={}, userId={}", success, groupId, userId);
         return success;
     }
 
@@ -113,7 +106,7 @@ private static final int CONNECT_TIMEOUT_MS = 3000;
         }
         GroupPayload[] groups = gson.fromJson(response, GroupPayload[].class);
         List<GroupPayload> result = groups == null ? Collections.emptyList() : Arrays.asList(groups);
-        log.info("Bootstrap LIST_GROUPS sốLượng=" + result.size());
+        log.info("Bootstrap LIST_GROUPS sốLượng={}", result.size());
         return result;
     }
 
@@ -125,15 +118,14 @@ private static final int CONNECT_TIMEOUT_MS = 3000;
         }
         GroupMemberPayload[] members = gson.fromJson(response, GroupMemberPayload[].class);
         List<GroupMemberPayload> result = members == null ? Collections.emptyList() : Arrays.asList(members);
-        log.info("Bootstrap LIST_GROUP_MEMBERS groupId=" + groupId
-                + ", sốLượng=" + result.size());
+        log.info("Bootstrap LIST_GROUP_MEMBERS groupId={}, sốLượng={}", groupId, result.size());
         return result;
     }
 
     // Gửi LEAVE để bootstrap-server xóa địa chỉ online của peer hiện tại.
     public void leave(String peerKey) {
         String response = requestRaw("LEAVE", peerKey);
-        log.info("Bootstrap LEAVE peerKey=" + peerKey + ", response=" + response);
+        log.info("Bootstrap LEAVE peerKey={}, response={}", peerKey, response);
     }
 
     // Lấy danh sách peer online từ bootstrap-server khi cần refresh thủ công.
@@ -164,19 +156,18 @@ private static final int CONNECT_TIMEOUT_MS = 3000;
     private String requestRaw(String command, String payload) {
         String line = payload == null || payload.isBlank() ? command : command + " " + payload;
         try (Socket socket = new Socket()) {
-            log.debug("Bắt đầu kết nối bootstrap " + host + ":" + port + ", command=" + command);
+            log.debug("Bắt đầu kết nối bootstrap {}:{}, command={}", host, port, command);
             socket.connect(new InetSocketAddress(host, port), CONNECT_TIMEOUT_MS);
             socket.setSoTimeout(READ_TIMEOUT_MS);
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
                  PrintWriter writer = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8)) {
                 writer.println(line);
                 String response = reader.readLine();
-                log.debug("Bootstrap response command=" + command + ", response=" + response);
+                log.debug("Bootstrap response command={}, response={}", command, response);
                 return response;
             }
         } catch (IOException e) {
-            log.warn("Request bootstrap thất bại. command=" + command
-                    + ", địaChỉ=" + host + ":" + port + ", lỗi=" + e.getMessage());
+            log.warn("Request bootstrap thất bại. command={}, địaChỉ={}:{}, lỗi={}", command, host, port, e.getMessage());
             return null;
         }
     }

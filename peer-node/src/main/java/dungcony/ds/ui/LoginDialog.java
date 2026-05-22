@@ -52,8 +52,7 @@ private final JTextField idField;
     // Đóng dialog khi người dùng xác nhận thông tin profile.
     private void confirm() {
         confirmed = true;
-        log.info("Đã xác nhận đăng nhập. peerId=" + getPeerId()
-                + ", tênPeer=" + getPeerName());
+        log.info("Đã xác nhận đăng nhập. peerId={}, tênPeer={}", getPeerId(), getPeerName());
         dispose();
     }
 

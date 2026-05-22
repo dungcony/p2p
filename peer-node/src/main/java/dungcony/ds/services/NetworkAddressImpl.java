@@ -29,16 +29,16 @@ public class NetworkAddressImpl implements NetworkAddressService {
                 while (addresses.hasMoreElements()) {
                     InetAddress address = addresses.nextElement();
                     if (address instanceof Inet4Address && !address.isLoopbackAddress() && !address.isLinkLocalAddress()) {
-                        log.info("Đã tìm thấy địa chỉ IPv4 local: " + address.getHostAddress());
+                        log.info("Đã tìm thấy địa chỉ IPv4 local: {}", address.getHostAddress());
                         return address.getHostAddress();
                     }
                 }
             }
             String fallback = InetAddress.getLocalHost().getHostAddress();
-            log.warn("Chuyển sang dùng InetAddress.getLocalHost(): " + fallback);
+            log.warn("Chuyển sang dùng InetAddress.getLocalHost(): {}", fallback);
             return fallback;
         } catch (IOException e) {
-            log.warn("Không thể xác định host local. Chuyển sang 127.0.0.1. Lỗi=" + e.getMessage());
+            log.warn("Không thể xác định host local. Chuyển sang 127.0.0.1. Lỗi={}", e.getMessage());
             return "127.0.0.1";
         }
     }
@@ -74,8 +74,7 @@ public class NetworkAddressImpl implements NetworkAddressService {
             InetAddress localAddress = InetAddress.getByName(localHost);
             return candidateAddress.isLoopbackAddress() || candidateAddress.equals(localAddress);
         } catch (UnknownHostException e) {
-            log.warn("Không thể so sánh host với peer local. host="
-                    + candidateHost + ", lỗi=" + e.getMessage());
+            log.warn("Không thể so sánh host với peer local. host={}, lỗi={}", candidateHost, e.getMessage());
             return false;
         }
     }

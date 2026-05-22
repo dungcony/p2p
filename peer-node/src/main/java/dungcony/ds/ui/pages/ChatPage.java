@@ -31,7 +31,7 @@ public class ChatPage extends JPanel {
             // Thiết lập bố cục
             setupLayouts();
         } catch (Exception e) {
-            log.error("Không thể khởi tạo trang chat\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể khởi tạo trang chat\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -49,7 +49,7 @@ public class ChatPage extends JPanel {
             chatList.setPreferredSize(new Dimension(300, 400));
             chatScreen.setPreferredSize(new Dimension(500, 400));
         } catch (Exception e) {
-            log.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể khởi tạo component\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -60,7 +60,7 @@ public class ChatPage extends JPanel {
             setupSplitPane();
             add(splitPane, BorderLayout.CENTER);
         } catch (Exception e) {
-            log.error("Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể thiết lập bố cục\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -80,7 +80,7 @@ public class ChatPage extends JPanel {
             chatList.setMinimumSize(new Dimension(250, 0));
             chatScreen.setMinimumSize(new Dimension(300, 0));
         } catch (Exception e) {
-            log.error("Không thể thiết lập bố cục chia đôi\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể thiết lập bố cục chia đôi\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -88,7 +88,7 @@ public class ChatPage extends JPanel {
     // Xử lý khi chọn một cuộc chat từ ChatList
     public void onChatSelected(String username, String ipAddress) {
         try {
-            log.info("UI đã chọn chat. user=" + username + ", peer=" + ipAddress);
+            log.info("UI đã chọn chat. user={}, peer={}", username, ipAddress);
             chatScreen.setSelectedUser(username);
             chatScreen.setIpAddress(ipAddress);
             chatScreen.setMessages(App.peerNode == null ? java.util.Collections.emptyList() : App.peerNode.getMessagesWithPeer(ipAddress));
@@ -97,7 +97,7 @@ public class ChatPage extends JPanel {
                 new SwingWorker<Boolean, Void>() {
                     @Override
                     protected Boolean doInBackground() {
-                        log.debug("Đang kiểm tra trạng thái peer đã chọn: " + ipAddress);
+                        log.debug("Đang kiểm tra trạng thái peer đã chọn: {}", ipAddress);
                         return App.peerNode.checkUserIsOnline(ipAddress);
                     }
 
@@ -114,7 +114,7 @@ public class ChatPage extends JPanel {
             chatScreen.revalidate();
             chatScreen.repaint();
         } catch (Exception e) {
-            log.error("Không thể xử lý chọn chat\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể xử lý chọn chat\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -122,7 +122,7 @@ public class ChatPage extends JPanel {
     // Xử lý khi chọn group chat từ ChatList.
     public void onGroupSelected(String groupName, String groupId) {
         try {
-            log.info("UI đã chọn nhóm. nhóm=" + groupName + ", groupId=" + groupId);
+            log.info("UI đã chọn nhóm. nhóm={}, groupId={}", groupName, groupId);
             chatScreen.setSelectedGroup(groupName, groupId);
             chatScreen.setMessages(App.peerNode == null
                     ? java.util.Collections.emptyList()
@@ -130,7 +130,7 @@ public class ChatPage extends JPanel {
             chatScreen.revalidate();
             chatScreen.repaint();
         } catch (Exception e) {
-            log.error("Không thể xử lý chọn nhóm\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể xử lý chọn nhóm\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }

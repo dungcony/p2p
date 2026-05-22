@@ -63,7 +63,7 @@ class IPAddressPanel extends RoundedPanel {
                 try {
                     copyIPAddressToClipboard();
                 } catch (Exception ex) {
-                    log.error("Không thể sao chép địa chỉ IP vào clipboard\nChi tiết lỗi: " + ex.getMessage());
+                    log.error("Không thể sao chép địa chỉ IP vào clipboard\nChi tiết lỗi: {}", ex.getMessage());
                     log.error("Chi tiết lỗi", ex);
                 }
             });
@@ -73,7 +73,7 @@ class IPAddressPanel extends RoundedPanel {
             add(ipAddressLabel);
             add(copyButton);
         } catch (Exception e) {
-            log.error("Không thể khởi tạo panel địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể khởi tạo panel địa chỉ IP\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -185,7 +185,7 @@ class IPAddressPanel extends RoundedPanel {
             return localHost.getHostAddress();
             
         } catch (Exception e) {
-            log.error("Không thể lấy địa chỉ IP Wi-Fi\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể lấy địa chỉ IP Wi-Fi\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
             return "Không thể lấy địa chỉ IP";
         }
@@ -210,19 +210,19 @@ class IPAddressPanel extends RoundedPanel {
                         try {
                             ipAddressLabel.setForeground(ColorPalette.PRIMARY);
                         } catch (Exception ex) {
-                            log.error("Không thể reset màu label địa chỉ IP\nChi tiết lỗi: " + ex.getMessage());
+                            log.error("Không thể reset màu label địa chỉ IP\nChi tiết lỗi: {}", ex.getMessage());
                             log.error("Chi tiết lỗi", ex);
                         }
                     });
                     timer.setRepeats(false);
                     timer.start();
                 } catch (Exception ex) {
-                    log.error("Không thể hiển thị phản hồi trực quan\nChi tiết lỗi: " + ex.getMessage());
+                    log.error("Không thể hiển thị phản hồi trực quan\nChi tiết lỗi: {}", ex.getMessage());
                     log.error("Chi tiết lỗi", ex);
                 }
             });
         } catch (Exception e) {
-            log.error("Không thể sao chép địa chỉ IP vào clipboard\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể sao chép địa chỉ IP vào clipboard\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -234,7 +234,7 @@ class IPAddressPanel extends RoundedPanel {
             this.ipAddress = newIpAddress;
             this.ipAddressLabel.setText(newIpAddress);
         } catch (Exception e) {
-            log.error("Không thể cập nhật địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể cập nhật địa chỉ IP\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -245,7 +245,7 @@ class IPAddressPanel extends RoundedPanel {
         try {
             return this.ipAddress;
         } catch (Exception e) {
-            log.error("Không thể lấy địa chỉ IP\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể lấy địa chỉ IP\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
             return null;
         }

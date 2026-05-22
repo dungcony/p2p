@@ -26,7 +26,7 @@ private final int serverPort;
                 properties.load(inputStream);
             }
         } catch (IOException e) {
-            log.warn("Không thể nạp cấu hình bootstrap: " + e.getMessage());
+            log.warn("Không thể nạp cấu hình bootstrap: {}", e.getMessage());
         }
 
         String configuredPort = firstNonBlank(

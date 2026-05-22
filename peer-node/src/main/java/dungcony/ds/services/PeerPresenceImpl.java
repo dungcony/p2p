@@ -37,7 +37,7 @@ private final PeerInfo localPeer;
             return false;
         }
         if (peerDirectoryService.isSelfPeer(peerInfo)) {
-            log.warn("Từ chối kiểm tra online với peer local: " + peerInfo.addressKey());
+            log.warn("Từ chối kiểm tra online với peer local: {}", peerInfo.addressKey());
             return false;
         }
         boolean online = bootstrapClient != null && checkByBootstrap(peerInfo);
@@ -51,11 +51,10 @@ private final PeerInfo localPeer;
 
     // Hỏi bootstrap-server danh sách peer online và so khớp theo id hoặc address.
     private boolean checkByBootstrap(PeerInfo targetPeer) {
-        log.debug("Đang kiểm tra trạng thái online qua bootstrap. target=" + targetPeer.addressKey());
+        log.debug("Đang kiểm tra trạng thái online qua bootstrap. target={}", targetPeer.addressKey());
         java.util.Collection<PeerInfo> onlinePeers = bootstrapClient.listOrNull();
         if (onlinePeers == null) {
-            log.warn("Bootstrap không khả dụng khi kiểm tra online. Chuyển sang heartbeat trực tiếp. target="
-                    + targetPeer.addressKey());
+            log.warn("Bootstrap không khả dụng khi kiểm tra online. Chuyển sang heartbeat trực tiếp. target={}", targetPeer.addressKey());
             return false;
         }
         for (PeerInfo onlinePeer : onlinePeers) {
@@ -64,25 +63,23 @@ private final PeerInfo localPeer;
             }
             peerDirectoryService.put(onlinePeer);
             if (isSamePeer(targetPeer, onlinePeer)) {
-                log.info("Bootstrap xác nhận peer online. target=" + targetPeer.addressKey()
-                        + ", matched=" + onlinePeer.addressKey());
+                log.info("Bootstrap xác nhận peer online. target={}, matched={}", targetPeer.addressKey(), onlinePeer.addressKey());
                 return true;
             }
         }
-        log.info("Bootstrap chưa xác nhận peer online. Chuyển sang heartbeat trực tiếp. target="
-                + targetPeer.addressKey());
+        log.info("Bootstrap chưa xác nhận peer online. Chuyển sang heartbeat trực tiếp. target={}", targetPeer.addressKey());
         return false;
     }
 
     // Gửi heartbeat trực tiếp tới host:port để xác minh peer có TCP reachable không.
     private boolean checkByDirectHeartbeat(PeerInfo peerInfo) {
-        log.debug("Đang gửi heartbeat trực tiếp tới " + peerInfo.addressKey());
+        log.debug("Đang gửi heartbeat trực tiếp tới {}", peerInfo.addressKey());
         boolean online = messageSender.send(peerInfo, Message.heartbeat(localPeer));
         if (online) {
             peerInfo.setOnline(true);
             peerDirectoryService.put(peerInfo);
         }
-        log.info("Kết quả heartbeat trực tiếp. peer=" + peerInfo.addressKey() + ", online=" + online);
+        log.info("Kết quả heartbeat trực tiếp. peer={}, online={}", peerInfo.addressKey(), online);
         return online;
     }
 

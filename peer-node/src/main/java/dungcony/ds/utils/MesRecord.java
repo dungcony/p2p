@@ -1,16 +1,16 @@
-package dungcony.ds.dtos;
+package dungcony.ds.utils;
 
-import lombok.extern.slf4j.Slf4j;
-
-
-import dungcony.ds.enums.MessageType;
 import dungcony.ds.enums.MessageStatus;
+import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class MessageRecord {
-private String messageId;
+@Getter
+public class MesRecord {
+    private String messageId;
     private String conversationPeerId;
     private String conversationPeerName;
     private String conversationPeerKey;
@@ -28,9 +28,8 @@ private String messageId;
     private long timestamp;
     private boolean fromCurrentUser;
 
-    // Chuyển Message runtime thành DTO phẳng để ghi JSON.
-    public static MessageRecord from(PeerInfo conversationPeer, Message message) {
-        MessageRecord record = new MessageRecord();
+    public static MesRecord from(PeerInfo conversationPeer, Message message) {
+        MesRecord record = new MesRecord();
         record.messageId = message.getId();
         record.conversationPeerId = conversationPeer.getId();
         record.conversationPeerName = conversationPeer.getName();
@@ -79,37 +78,8 @@ private String messageId;
         try {
             return MessageStatus.valueOf(status);
         } catch (IllegalArgumentException e) {
-            log.warn("Trạng thái tin nhắn trong JSON không hợp lệ. messageId="
-                    + messageId + ", status=" + status + ". Dùng SENT.");
+            log.warn("Trạng thái tin nhắn trong JSON không hợp lệ. messageId={}, status={}. Dùng SENT.", messageId, status);
             return MessageStatus.SENT;
         }
-    }
-
-    public String getMessageId() {
-        return messageId;
-    }
-
-    public String getConversationPeerId() {
-        return conversationPeerId;
-    }
-
-    public String getConversationPeerName() {
-        return conversationPeerName;
-    }
-
-    public String getConversationPeerKey() {
-        return conversationPeerKey;
-    }
-
-    public String getGroupId() {
-        return groupId;
-    }
-
-    public String getMessageType() {
-        return messageType;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
     }
 }

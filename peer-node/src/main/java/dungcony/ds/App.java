@@ -59,14 +59,11 @@ public static PeerNode peerNode;
                 config.updateIdentity(loginDialog.getPeerId(), loginDialog.getPeerName());
                 config.save();
             } else {
-                log.info("Đang khởi động bằng profile đã chọn, không chỉnh sửa. "
-                        + config.getDisplayLabel());
+                log.info("Đang khởi động bằng profile đã chọn, không chỉnh sửa. {}", config.getDisplayLabel());
                 config.save();
             }
 
-            log.info("Đang khởi động PeerNode với tên=" + config.getPeerName()
-                    + ", cổng=" + config.getPeerPort()
-                    + ", bootstrap=" + config.getBootstrapHost() + ":" + config.getBootstrapPort());
+            log.info("Đang khởi động PeerNode với tên={}, cổng={}, bootstrap={}:{}", config.getPeerName(), config.getPeerPort(), config.getBootstrapHost(), config.getBootstrapPort());
             peerNode = new PeerNode(
                     config.getPeerId(),
                     config.getPeerName(),
@@ -106,12 +103,12 @@ public static PeerNode peerNode;
             }
             if (arg.startsWith("--data-dir=")) {
                 dataRoot = Path.of(arg.substring("--data-dir=".length()));
-                log.info("Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
+                log.info("Thư mục dữ liệu runtime={}", dataRoot.toAbsolutePath());
                 continue;
             }
             if ("--data-dir".equals(arg) && index + 1 < args.length) {
                 dataRoot = Path.of(args[index + 1]);
-                log.info("Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
+                log.info("Thư mục dữ liệu runtime={}", dataRoot.toAbsolutePath());
                 index++;
                 continue;
             }
@@ -128,9 +125,9 @@ public static PeerNode peerNode;
             }
         }
 
-        log.info("Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
+        log.info("Thư mục dữ liệu runtime={}", dataRoot.toAbsolutePath());
         if (peerPort != null) {
-            log.info("Cổng peer runtime=" + peerPort);
+            log.info("Cổng peer runtime={}", peerPort);
         }
         return new RuntimeOptions(dataRoot, peerPort);
     }
@@ -144,7 +141,7 @@ public static PeerNode peerNode;
             }
             return port;
         } catch (NumberFormatException e) {
-            log.warn("Đã bỏ qua giá trị --peer-port không hợp lệ=" + value);
+            log.warn("Đã bỏ qua giá trị --peer-port không hợp lệ={}", value);
             return null;
         }
     }

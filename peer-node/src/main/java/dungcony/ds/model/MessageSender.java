@@ -19,15 +19,12 @@ private static final int RETRY_COUNT = 3;
     // Gửi message tới một peer, retry vài lần nếu chưa nhận ACK.
     public boolean send(PeerInfo peerInfo, Message message) {
         for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
-            log.debug("Đang gửi " + message.getType() + " message id=" + message.getId()
-                    + " tới=" + peerInfo.addressKey() + ", attempt=" + attempt + "/" + RETRY_COUNT);
+            log.debug("Đang gửi {} message id={} tới={}, attempt={}/{}", message.getType(), message.getId(), peerInfo.addressKey(), attempt, RETRY_COUNT);
             if (tcpClient.send(peerInfo, message)) {
-                log.debug("Đã nhận ACK cho message id=" + message.getId()
-                        + " từ=" + peerInfo.addressKey());
+                log.debug("Đã nhận ACK cho message id={} từ={}", message.getId(), peerInfo.addressKey());
                 return true;
             }
-            log.warn("Không nhận được ACK cho message id=" + message.getId()
-                    + " từ=" + peerInfo.addressKey() + ", attempt=" + attempt);
+            log.warn("Không nhận được ACK cho message id={} từ={}, attempt={}", message.getId(), peerInfo.addressKey(), attempt);
             sleepBeforeRetry();
         }
         return false;
@@ -36,17 +33,13 @@ private static final int RETRY_COUNT = 3;
     // Gửi request và cho response có type cụ thể, dùng cho discovery peer-to-peer.
     public Message sendForResponse(PeerInfo peerInfo, Message message, MessageType expectedType) {
         for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
-            log.debug("Đang gửi request " + message.getType() + " id=" + message.getId()
-                    + " tới=" + peerInfo.addressKey() + ", attempt=" + attempt + "/" + RETRY_COUNT);
+            log.debug("Đang gửi request {} id={} tới={}, attempt={}/{}", message.getType(), message.getId(), peerInfo.addressKey(), attempt, RETRY_COUNT);
             Message response = tcpClient.sendForResponse(peerInfo, message);
             if (response != null && response.getType() == expectedType && message.getId().equals(response.getId())) {
-                log.debug("Đã nhận response hợp lệ. requestId=" + message.getId()
-                        + ", responseType=" + response.getType());
+                log.debug("Đã nhận response hợp lệ. requestId={}, responseType={}", message.getId(), response.getType());
                 return response;
             }
-            log.warn("Response không hợp lệ hoặc timeout. requestId=" + message.getId()
-                    + ", expected=" + expectedType
-                    + ", actual=" + (response == null ? "null" : response.getType()));
+            log.warn("Response không hợp lệ hoặc timeout. requestId={}, expected={}, actual={}", message.getId(), expectedType, (response == null ? "null" : response.getType()));
             sleepBeforeRetry();
         }
         return null;
@@ -55,8 +48,7 @@ private static final int RETRY_COUNT = 3;
     // Broadcast một message tới toàn bộ thành viên của group.
     public void broadcast(Group group, Message message) {
         for (PeerInfo member : group.getMembers()) {
-            log.info("Đang broadcast message id=" + message.getId()
-                    + " tới thành viên=" + member.addressKey());
+            log.info("Đang broadcast message id={} tới thành viên={}", message.getId(), member.addressKey());
             send(member, message);
         }
     }

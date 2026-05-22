@@ -24,8 +24,6 @@ public class NavBar extends JPanel {
     private Button chatButton;
     // Nút mở chat trực tiếp
     private Button addFriendButton;
-    // Nút quét thiết bị
-    private Button scanButton;
     // Cờ cho biết thanh điều hướng có đang mở rộng không
     private boolean isExpanded = false;
 
@@ -51,7 +49,6 @@ public class NavBar extends JPanel {
         add(Box.createRigidArea(new Dimension(0, 20)));  // thêm khoảng cách giữa menu và các nút còn lại
         add(chatButton);
         add(addFriendButton);
-        add(scanButton);
         add(Box.createVerticalGlue());
     }
 
@@ -66,27 +63,21 @@ public class NavBar extends JPanel {
             chatButton = new Button(icon);
             icon = FontIcon.of(FontAwesome.USER_PLUS, 24, ColorPalette.PRIMARY);
             addFriendButton = new Button(icon);
-          
-            icon = FontIcon.of(FontAwesome.WIFI, 24, ColorPalette.PRIMARY);
-            scanButton = new Button(icon);
             
             // Thêm sự kiện click
             menuButton.addActionListener(e -> toggleNav());   // thêm logic mở rộng thanh điều hướng
             chatButton.addActionListener(e -> openChatsPage());
-            scanButton.addActionListener(e -> openScannerPage());
             addFriendButton.addActionListener(e -> openAddFriendPage());
     
             // Đặt tooltip
             menuButton.setToolTipText("Mở điều hướng");
             addFriendButton.setToolTipText("Chat trực tiếp");
             chatButton.setToolTipText("Tin nhắn");        
-            scanButton.setToolTipText("Quét peer gần đây");
     
             // Đặt padding cho các nút
             menuButton.setBorder(BorderFactory.createEmptyBorder(10, 5, 8, 12));
             chatButton.setBorder(BorderFactory.createEmptyBorder(10, 5, 8, 15));
             addFriendButton.setBorder(BorderFactory.createEmptyBorder(10, 5, 8, 11));
-            scanButton.setBorder(BorderFactory.createEmptyBorder(10, 5, 8, 11));
     
     
             Button[] buttons = {menuButton, chatButton, addFriendButton};
@@ -97,7 +88,7 @@ public class NavBar extends JPanel {
                 button.setIconTextGap(8);
             }
         } catch (Exception e) {
-            log.error("Không thể khởi tạo nút trên thanh điều hướng\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể khởi tạo nút trên thanh điều hướng\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     } 
@@ -106,24 +97,17 @@ public class NavBar extends JPanel {
     public void setTitleToButtons() {
         chatButton.setText("Tin nhắn");
         addFriendButton.setText("Chat trực tiếp");
-        scanButton.setText("Quét peer gần đây");
     }
     
     // Xóa tiêu đề các nút khi thu gọn
     public void removeTitleToButtons() {
         chatButton.setText("");
         addFriendButton.setText("");
-        scanButton.setText("");
     }
 
     // Mở trang chat
     private void openChatsPage() {
         RouterManager.getInstance().navigateTo("chats");
-    }
-    
-    // Mở trang quét mạng
-    private void openScannerPage() {
-        RouterManager.getInstance().navigateTo("scanner");
     }
     
     // Mở trang thêm bạn bè

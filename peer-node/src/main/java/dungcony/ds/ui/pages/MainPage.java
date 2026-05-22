@@ -50,9 +50,8 @@ public class MainPage extends JPanel {
             routerManager.addRoute("start", new StartPage());
             routerManager.addRoute("chats", new ChatPage());
             routerManager.addRoute("addFriend", new AddFriendPage());
-            routerManager.addRoute("scanner", new ScannerPage());
         } catch (Exception e) {
-            log.error("Không thể thêm route trong trang chính\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể thêm route trong trang chính\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }

@@ -35,10 +35,9 @@ public record OfflineMessageRepo(Conn conn) {
             statement.setLong(6, message.getCreatedAt());
             statement.setInt(7, message.isDelivered() ? 1 : 0);
             statement.executeUpdate();
-            log.info("Đã lưu tin nhắn offline id=" + message.getMessageId()
-                    + ", receiver=" + message.getReceiverId());
+            log.info("Đã lưu tin nhắn offline id={}, receiver={}", message.getMessageId(), message.getReceiverId());
         } catch (SQLException e) {
-            log.error("Không thể lưu tin nhắn offline: " + e.getMessage());
+            log.error("Không thể lưu tin nhắn offline: {}", e.getMessage());
         }
     }
 
@@ -67,7 +66,7 @@ public record OfflineMessageRepo(Conn conn) {
                 }
             }
         } catch (SQLException e) {
-            log.error("Không thể nạp tin nhắn offline: " + e.getMessage());
+            log.error("Không thể nạp tin nhắn offline: {}", e.getMessage());
         }
         return messages;
     }
@@ -88,9 +87,9 @@ public record OfflineMessageRepo(Conn conn) {
                 statement.addBatch();
             }
             int[] updated = statement.executeBatch();
-            log.info("Đã đánh dấu tin nhắn offline đã giao. sốLượng=" + updated.length);
+            log.info("Đã đánh dấu tin nhắn offline đã giao. sốLượng={}", updated.length);
         } catch (SQLException e) {
-            log.error("Không thể đánh dấu tin nhắn offline đã giao: " + e.getMessage());
+            log.error("Không thể đánh dấu tin nhắn offline đã giao: {}", e.getMessage());
         }
     }
 }

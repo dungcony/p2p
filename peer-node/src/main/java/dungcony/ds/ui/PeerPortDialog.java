@@ -61,10 +61,10 @@ private final JTextField portField;
             }
             this.peerPort = port;
             this.confirmed = true;
-            log.info("Đã xác nhận cổng peer. cổng=" + peerPort);
+            log.info("Đã xác nhận cổng peer. cổng={}", peerPort);
             dispose();
         } catch (NumberFormatException e) {
-            log.warn("Đã từ chối cổng peer: " + portField.getText());
+            log.warn("Đã từ chối cổng peer: {}", portField.getText());
             JOptionPane.showMessageDialog(this,
                     "Cổng phải là số từ 1 đến 65535.",
                     "Cổng peer không hợp lệ",

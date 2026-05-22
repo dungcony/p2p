@@ -28,7 +28,7 @@ public class ChatHeader extends JPanel {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             initializeComponents(userName);
         } catch (Exception e) {
-            log.error("Không thể khởi tạo header chat\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể khởi tạo header chat\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -47,7 +47,7 @@ public class ChatHeader extends JPanel {
 
             setBackground(Color.WHITE);
         } catch (Exception e) {
-            log.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể khởi tạo component\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -58,7 +58,7 @@ public class ChatHeader extends JPanel {
         try {
             userNameLabel.setText(userName);
         } catch (Exception e) {
-            log.error("Không thể cập nhật tên người dùng\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể cập nhật tên người dùng\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -75,7 +75,7 @@ public class ChatHeader extends JPanel {
             statusLabel.setText("● Ngoại tuyến");
             statusLabel.setForeground(ColorPalette.ERROR);
         } catch (Exception e) {
-            log.error("Không thể cập nhật trạng thái\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể cập nhật trạng thái\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -86,7 +86,7 @@ public class ChatHeader extends JPanel {
             statusLabel.setText("Nhóm");
             statusLabel.setForeground(ColorPalette.PRIMARY);
         } catch (Exception e) {
-            log.error("Không thể cập nhật trạng thái nhóm\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể cập nhật trạng thái nhóm\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
     }
@@ -132,7 +132,7 @@ public class ChatHeader extends JPanel {
 
             return panel;
         } catch (Exception e) {
-            log.error("Không thể tạo panel thông tin thiết bị\nChi tiết lỗi: " + e.getMessage());
+            log.error("Không thể tạo panel thông tin thiết bị\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
             return new JPanel();
         }

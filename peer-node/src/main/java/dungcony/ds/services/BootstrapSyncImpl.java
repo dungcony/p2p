@@ -49,8 +49,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
     // Đăng ký user với bootstrap, join vào mạng, nạp peer/group và offline message.
     @Override
     public void registerAndJoinBootstrap() {
-        log.info("Đang đăng ký peer local với bootstrap. peerId=" + localPeer.getId()
-                + ", tên=" + localPeer.getName());
+        log.info("Đang đăng ký peer local với bootstrap. peerId={}, tên={}", localPeer.getId(), localPeer.getName());
         boolean registered = bootstrapClient.register(localPeer);
         if (!registered) {
             log.warn("Bootstrap REGISTER thất bại. Peer vẫn chạy ở chế độ TCP trực tiếp.");
@@ -62,8 +61,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
         syncGroupsFromBootstrap();
         handleOfflineMessages(joinResponse);
         peerChangeNotifier.run();
-        log.info("Đồng bộ bootstrap xong. peerThêm=" + added
-                + ", knownPeers=" + peerDirectoryService.size());
+        log.info("Đồng bộ bootstrap xong. peerThêm={}, knownPeers={}", added, peerDirectoryService.size());
     }
 
     // Làm mới danh sách peer online và group từ bootstrap-server.
@@ -79,15 +77,14 @@ private static final String GROUP_CHAT_PREFIX = "group:";
         syncGroupsFromBootstrap();
         handleOfflineMessages(joinResponse);
         peerChangeNotifier.run();
-        log.info("Refresh bootstrap xong. peerTrựcTuyến=" + onlineCount
-                + ", knownPeers=" + peerDirectoryService.size());
+        log.info("Refresh bootstrap xong. peerTrựcTuyến={}, knownPeers={}", onlineCount, peerDirectoryService.size());
     }
 
     // Load group membership từ bootstrap và cache lại vào groups.json của profile hiện tại.
     private void syncGroupsFromBootstrap() {
         List<Group> joinedGroups = bootstrapGroupService.fetchJoinedGroups(peerDirectoryService.list());
         groupManager.replaceAll(joinedGroups);
-        log.info("Đồng bộ nhóm bootstrap xong. nhómĐãThamGia=" + joinedGroups.size());
+        log.info("Đồng bộ nhóm bootstrap xong. nhómĐãThamGia={}", joinedGroups.size());
     }
 
     // Đưa các tin offline bootstrap trả về vào history nếu tìm được peer gửi trong danh sách đã biết.
@@ -119,9 +116,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
             );
             messageHistoryService.addAndSave(historyKey, conversationPeer, message);
             messageNotifier.accept(message);
-            log.info("Đã nạp tin offline. messageId=" + offlineMessage.messageId()
-                    + ", senderId=" + offlineMessage.senderId()
-                    + ", historyKey=" + historyKey);
+            log.info("Đã nạp tin offline. messageId={}, senderId={}, historyKey={}", offlineMessage.messageId(), offlineMessage.senderId(), historyKey);
         }
     }
 

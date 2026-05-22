@@ -46,8 +46,7 @@ private static final long ONLINE_TTL_MS = 15_000;
             return;
         }
         UserEntity userEntity = saveUser(peerInfo);
-        log.info("PeerRegistry đã register userId=" + userEntity.getUserId()
-                + ", tênHiểnThị=" + userEntity.getDisplayName());
+        log.info("PeerRegistry đã register userId={}, tênHiểnThị={}", userEntity.getUserId(), userEntity.getDisplayName());
     }
 
     // Đăng ký hoặc cập nhật một peer đang online trong tracker.
@@ -57,7 +56,7 @@ private static final long ONLINE_TTL_MS = 15_000;
             peerInfo.setOnline(true);
             peers.put(peerInfo.addressKey(), peerInfo);
             lastSeenByPeerKey.put(peerInfo.addressKey(), System.currentTimeMillis());
-            log.debug("PeerRegistry peer join/cache heartbeat: " + peerInfo.addressKey());
+            log.debug("PeerRegistry peer join/cache heartbeat: {}", peerInfo.addressKey());
         } else {
             log.warn("PeerRegistry bỏ qua join vì peer null.");
         }
@@ -67,7 +66,7 @@ private static final long ONLINE_TTL_MS = 15_000;
     public void leave(String addressKey) {
         peers.remove(addressKey);
         lastSeenByPeerKey.remove(addressKey);
-        log.debug("PeerRegistry peer rời mạng: " + addressKey);
+        log.debug("PeerRegistry peer rời mạng: {}", addressKey);
     }
 
     // Trả về danh sách peer online hiện được tracker biết.
@@ -77,7 +76,7 @@ private static final long ONLINE_TTL_MS = 15_000;
         onlinePeers.sort(Comparator.comparingLong(
                 (PeerInfo peerInfo) -> lastSeenByPeerKey.getOrDefault(peerInfo.addressKey(), 0L)
         ).reversed());
-        log.trace("PeerRegistry list cache online sốLượng=" + onlinePeers.size());
+        log.trace("PeerRegistry list cache online sốLượng={}", onlinePeers.size());
         return onlinePeers;
     }
 
@@ -90,8 +89,7 @@ private static final long ONLINE_TTL_MS = 15_000;
     public Collection<OfflineMessageEntity> drainOfflineMessages(String receiverId) {
         Collection<OfflineMessageEntity> messages = offlineMessageRepo.findPendingByReceiver(receiverId);
         offlineMessageRepo.markDelivered(messages);
-        log.info("Đã lấy tin nhắn offline cho receiver=" + receiverId
-                + ", count=" + messages.size());
+        log.info("Đã lấy tin nhắn offline cho receiver={}, count={}", receiverId, messages.size());
         return messages;
     }
 
@@ -146,7 +144,7 @@ private static final long ONLINE_TTL_MS = 15_000;
             }
         }
         if (expired > 0) {
-            log.info("PeerRegistry đã xóa peer quá hạn khỏi cache online. sốLượng=" + expired);
+            log.info("PeerRegistry đã xóa peer quá hạn khỏi cache online. sốLượng={}", expired);
         }
     }
 }

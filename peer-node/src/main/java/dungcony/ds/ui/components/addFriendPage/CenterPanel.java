@@ -1,9 +1,7 @@
 package dungcony.ds.ui.components.addFriendPage;
 
+import lombok.extern.slf4j.Slf4j;
 
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import dungcony.ds.ui.components.RoundedPanel;
 import dungcony.ds.ui.utils.ColorPalette;
 
@@ -13,12 +11,10 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-
-// Panel giữa của trang thêm bạn bè, chứa 2 panel trái và phải
+@Slf4j
 public class CenterPanel extends JPanel {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(CenterPanel.class);
-private static final int MEDIUM_WIDTH = 768;
+
+    private static final int MEDIUM_WIDTH = 768;
 
     // Panel bên phải
     private RightPanel rightPanel;
@@ -52,15 +48,15 @@ private static final int MEDIUM_WIDTH = 768;
                     try {
                         updateLayout();
                     } catch (Exception ex) {
-                        LOGGER.error("Chi tiết lỗi", ex);
+                        log.error("Chi tiết lỗi", ex);
                     }
                 }
             });
         } catch (Exception e) {
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Chi tiết lỗi", e);
         }
     }
-    
+
     // Cập nhật bố cục khi thay đổi kích thước
     private void updateLayout() {
         try {
@@ -88,54 +84,53 @@ private static final int MEDIUM_WIDTH = 768;
 
             // Tính toán lại kích thước panel
             rightPanel.setMaximumSize(new Dimension(
-                width < MEDIUM_WIDTH ? width - 40 : (width / 2) - 60,
-                Integer.MAX_VALUE
-            ));
+                    width < MEDIUM_WIDTH ? width - 40 : (width / 2) - 60,
+                    Integer.MAX_VALUE));
 
             rightPanel.updateInternalWrapping(
-                width < MEDIUM_WIDTH ? width - 40 : (width / 2) - 60, width
-            );
+                    width < MEDIUM_WIDTH ? width - 40 : (width / 2) - 60, width);
 
             revalidate();
             repaint();
         } catch (Exception e) {
-            LOGGER.error("Không thể cập nhật bố cục\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể cập nhật bố cục\nChi tiết lỗi: {}", e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 }
 
-
 // Panel trái của trang thêm bạn bè
+@Slf4j
 class LeftPanel extends RoundedPanel {
+
     // Nhãn logo LAN Messenger
     private JLabel logoLabel;
     // Nhãn tiêu đề
     private JLabel titleLabel;
-    
+
     public LeftPanel() {
         super(15, ColorPalette.PANEL_BACKGROUND);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(new EmptyBorder(30, 30, 30, 30));
-        
+
         // Tiêu đề
         titleLabel = new JLabel("Nhắn tin LAN");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titleLabel.setForeground(ColorPalette.PRIMARY);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         // Logo
         logoLabel = new JLabel();
         loadImage();
         logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         // Thêm các component
         add(Box.createVerticalGlue());
         add(titleLabel);
         add(Box.createVerticalStrut(20));
         add(logoLabel);
         add(Box.createVerticalStrut(10));
-        
+
         // Dòng slogan
         JLabel taglineLabel = new JLabel("Kết nối an toàn với các peer của bạn");
         taglineLabel.setFont(new Font("Segoe UI", Font.ITALIC, 16));
@@ -152,8 +147,8 @@ class LeftPanel extends RoundedPanel {
             image = new ImageIcon(image.getImage().getScaledInstance(280, 280, Image.SCALE_SMOOTH));
             logoLabel.setIcon(image);
         } catch (Exception e) {
-            LOGGER.error("Không thể tải ảnh\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể tải ảnh\nChi tiết lỗi: {}", e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 }
@@ -170,7 +165,7 @@ class RightPanel extends RoundedPanel {
         super(15, ColorPalette.PANEL_BACKGROUND);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(new EmptyBorder(30, 30, 30, 30));
-        
+
         // Tiêu đề panel
         JLabel titleLabel = new JLabel("Chia sẻ kết nối của bạn");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
@@ -181,8 +176,7 @@ class RightPanel extends RoundedPanel {
         add(Box.createVerticalStrut(20));
         ipAddressPanel = new IPAddressPanel();
         add(ipAddressPanel);
-       
- 
+
         textPanel = new TextLabelForRightPanel();
         add(textPanel);
     }
@@ -203,15 +197,14 @@ class RightPanel extends RoundedPanel {
 class TextLabelForRightPanel extends JPanel {
     // Ô text hướng dẫn có thể wrap
     private JTextArea instructionLabel;
-    
+
     public TextLabelForRightPanel() {
         setLayout(new BorderLayout());
         setOpaque(false);
-        
+
         instructionLabel = new JTextArea(
-            "Gửi địa chỉ IP này cho peer khác để thiết lập kết nối. " +
-            "Khi họ nhập địa chỉ này, hai bên có thể bắt đầu chat."
-        );
+                "Gửi địa chỉ IP này cho peer khác để thiết lập kết nối. " +
+                        "Khi họ nhập địa chỉ này, hai bên có thể bắt đầu chat.");
         instructionLabel.setLineWrap(true);
         instructionLabel.setWrapStyleWord(true);
         instructionLabel.setEditable(false);
@@ -220,7 +213,7 @@ class TextLabelForRightPanel extends JPanel {
         instructionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         instructionLabel.setForeground(ColorPalette.TEXT);
         instructionLabel.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
-        
+
         add(instructionLabel, BorderLayout.CENTER);
     }
 

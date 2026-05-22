@@ -1,8 +1,8 @@
 package dungcony.ds.services;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.dtos.JoinResponse;
 import dungcony.ds.dtos.OfflineMessage;
 import dungcony.ds.enums.MessageType;
@@ -15,9 +15,8 @@ import dungcony.ds.model.*;
 import java.util.List;
 import java.util.function.Consumer;
 
+@Slf4j
 public class BootstrapSyncImpl implements BootstrapSyncService {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapSyncImpl.class);
 private static final String GROUP_CHAT_PREFIX = "group:";
 
     private final BootstrapClient bootstrapClient;
@@ -50,11 +49,11 @@ private static final String GROUP_CHAT_PREFIX = "group:";
     // Đăng ký user với bootstrap, join vào mạng, nạp peer/group và offline message.
     @Override
     public void registerAndJoinBootstrap() {
-        LOGGER.info("Đang đăng ký peer local với bootstrap. peerId=" + localPeer.getId()
+        log.info("Đang đăng ký peer local với bootstrap. peerId=" + localPeer.getId()
                 + ", tên=" + localPeer.getName());
         boolean registered = bootstrapClient.register(localPeer);
         if (!registered) {
-            LOGGER.warn("Bootstrap REGISTER thất bại. Peer vẫn chạy ở chế độ TCP trực tiếp.");
+            log.warn("Bootstrap REGISTER thất bại. Peer vẫn chạy ở chế độ TCP trực tiếp.");
             return;
         }
 
@@ -63,7 +62,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
         syncGroupsFromBootstrap();
         handleOfflineMessages(joinResponse);
         peerChangeNotifier.run();
-        LOGGER.info("Đồng bộ bootstrap xong. peerThêm=" + added
+        log.info("Đồng bộ bootstrap xong. peerThêm=" + added
                 + ", knownPeers=" + peerDirectoryService.size());
     }
 
@@ -72,7 +71,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
     public void refreshFromBootstrap() {
         JoinResponse joinResponse = bootstrapClient.joinOrNull(localPeer);
         if (joinResponse == null) {
-            LOGGER.warn("Bỏ qua refresh bootstrap vì tracker không khả dụng. "
+            log.warn("Bỏ qua refresh bootstrap vì tracker không khả dụng. "
                     + "Giữ nguyên trạng thái peer local hiện tại.");
             return;
         }
@@ -80,7 +79,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
         syncGroupsFromBootstrap();
         handleOfflineMessages(joinResponse);
         peerChangeNotifier.run();
-        LOGGER.info("Refresh bootstrap xong. peerTrựcTuyến=" + onlineCount
+        log.info("Refresh bootstrap xong. peerTrựcTuyến=" + onlineCount
                 + ", knownPeers=" + peerDirectoryService.size());
     }
 
@@ -88,7 +87,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
     private void syncGroupsFromBootstrap() {
         List<Group> joinedGroups = bootstrapGroupService.fetchJoinedGroups(peerDirectoryService.list());
         groupManager.replaceAll(joinedGroups);
-        LOGGER.info("Đồng bộ nhóm bootstrap xong. nhómĐãThamGia=" + joinedGroups.size());
+        log.info("Đồng bộ nhóm bootstrap xong. nhómĐãThamGia=" + joinedGroups.size());
     }
 
     // Đưa các tin offline bootstrap trả về vào history nếu tìm được peer gửi trong danh sách đã biết.
@@ -120,7 +119,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
             );
             messageHistoryService.addAndSave(historyKey, conversationPeer, message);
             messageNotifier.accept(message);
-            LOGGER.info("Đã nạp tin offline. messageId=" + offlineMessage.messageId()
+            log.info("Đã nạp tin offline. messageId=" + offlineMessage.messageId()
                     + ", senderId=" + offlineMessage.senderId()
                     + ", historyKey=" + historyKey);
         }

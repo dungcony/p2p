@@ -1,9 +1,9 @@
 package dungcony.ds.ui.components.navBar;
 
+import lombok.extern.slf4j.Slf4j;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.ui.components.Button;
 import dungcony.ds.ui.router.RouterManager;
 import dungcony.ds.ui.utils.ColorPalette;
@@ -15,10 +15,8 @@ import java.awt.*;
 
 // Thanh điều hướng với các nút chuyển trang
 // @author Shoyeb Ansari
+@Slf4j
 public class NavBar extends JPanel {
-
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(NavBar.class);
 // Các nút
     // Nút menu
     private Button menuButton;  
@@ -99,8 +97,8 @@ public class NavBar extends JPanel {
                 button.setIconTextGap(8);
             }
         } catch (Exception e) {
-            LOGGER.error("Không thể khởi tạo nút trên thanh điều hướng\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể khởi tạo nút trên thanh điều hướng\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     } 
 

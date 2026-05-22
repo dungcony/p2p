@@ -1,11 +1,13 @@
 package dungcony.ds.model;
 
-import dungcony.ds.enums.MessageType;
 import lombok.extern.slf4j.Slf4j;
+
+import dungcony.ds.enums.MessageType;
 
 // Xử lý message nhận được.
 @Slf4j
 public class MessageReceiver {
+
     private final PeerNode peerNode;
 
     // Khởi tạo receiver gắn với PeerNode để cập nhật trạng thái và lịch sử khi nhận tin.

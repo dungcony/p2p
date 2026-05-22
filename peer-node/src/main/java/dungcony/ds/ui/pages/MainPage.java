@@ -1,19 +1,17 @@
 package dungcony.ds.ui.pages;
 
+import lombok.extern.slf4j.Slf4j;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.ui.router.RouterManager;
 
 import javax.swing.*;
 import java.awt.*;
 
 // Trang chính chứa thanh điều hướng bên trái và nội dung động bên phải
+@Slf4j
 public class MainPage extends JPanel {
-
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(MainPage.class);
 // Trang điều hướng của ứng dụng
     private NavigationPage navigationPage;
     // Quản lý route, khởi tạo và chuyển trang
@@ -54,8 +52,8 @@ public class MainPage extends JPanel {
             routerManager.addRoute("addFriend", new AddFriendPage());
             routerManager.addRoute("scanner", new ScannerPage());
         } catch (Exception e) {
-            LOGGER.error("Không thể thêm route trong trang chính\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể thêm route trong trang chính\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 }

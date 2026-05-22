@@ -1,7 +1,7 @@
 package dungcony.ds.repositories;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,18 +11,18 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 
+@Slf4j
 public class Conn {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Conn.class);
     private final String jdbcUrl;
 
     public Conn(Path databasePath) {
         ensureParentDirectory(databasePath);
         this.jdbcUrl = "jdbc:sqlite:" + databasePath.toAbsolutePath();
-        LOGGER.info("Đã cấu hình kết nối database bootstrap. url={}", jdbcUrl);
+        log.info("Đã cấu hình kết nối database bootstrap. url={}", jdbcUrl);
     }
 
     public Connection getConnection() throws SQLException {
-        LOGGER.debug("Đang mở kết nối SQLite. url={}", jdbcUrl);
+        log.debug("Đang mở kết nối SQLite. url={}", jdbcUrl);
         return DriverManager.getConnection(jdbcUrl);
     }
 
@@ -37,7 +37,7 @@ public class Conn {
         }
         try {
             Files.createDirectories(parent);
-            LOGGER.debug("Đã đảm bảo thư mục database tồn tại: {}", parent);
+            log.debug("Đã đảm bảo thư mục database tồn tại: {}", parent);
         } catch (IOException e) {
             throw new IllegalStateException("Không thể tạo thư mục database: " + parent, e);
         }

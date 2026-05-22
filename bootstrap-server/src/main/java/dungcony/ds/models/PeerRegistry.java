@@ -1,8 +1,8 @@
 package dungcony.ds.models;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.entities.GroupEntity;
 import dungcony.ds.entities.GroupMemberEntity;
 import dungcony.ds.entities.OfflineMessageEntity;
@@ -20,9 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class PeerRegistry {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(PeerRegistry.class);
 private static final long ONLINE_TTL_MS = 15_000;
 
     private final Map<String, PeerInfo> peers = new ConcurrentHashMap<>();
@@ -37,17 +36,17 @@ private static final long ONLINE_TTL_MS = 15_000;
         this.offlineMessageRepo = new OfflineMessageRepo(conn);
         this.groupRepo = new GroupRepo(conn);
         this.groupMemberRepo = new GroupMemberRepo(conn);
-        LOGGER.info("PeerRegistry khởi tạo cache peer online trong RAM.");
+        log.info("PeerRegistry khởi tạo cache peer online trong RAM.");
     }
 
     // Đăng ký hoặc cập nhật thông tin user/peer trong bảng users, chưa đánh dấu online.
     public void register(PeerInfo peerInfo) {
         if (peerInfo == null) {
-            LOGGER.warn("PeerRegistry bỏ qua register vì peer null.");
+            log.warn("PeerRegistry bỏ qua register vì peer null.");
             return;
         }
         UserEntity userEntity = saveUser(peerInfo);
-        LOGGER.info("PeerRegistry đã register userId=" + userEntity.getUserId()
+        log.info("PeerRegistry đã register userId=" + userEntity.getUserId()
                 + ", tênHiểnThị=" + userEntity.getDisplayName());
     }
 
@@ -58,9 +57,9 @@ private static final long ONLINE_TTL_MS = 15_000;
             peerInfo.setOnline(true);
             peers.put(peerInfo.addressKey(), peerInfo);
             lastSeenByPeerKey.put(peerInfo.addressKey(), System.currentTimeMillis());
-            LOGGER.debug("PeerRegistry peer join/cache heartbeat: " + peerInfo.addressKey());
+            log.debug("PeerRegistry peer join/cache heartbeat: " + peerInfo.addressKey());
         } else {
-            LOGGER.warn("PeerRegistry bỏ qua join vì peer null.");
+            log.warn("PeerRegistry bỏ qua join vì peer null.");
         }
     }
 
@@ -68,7 +67,7 @@ private static final long ONLINE_TTL_MS = 15_000;
     public void leave(String addressKey) {
         peers.remove(addressKey);
         lastSeenByPeerKey.remove(addressKey);
-        LOGGER.debug("PeerRegistry peer rời mạng: " + addressKey);
+        log.debug("PeerRegistry peer rời mạng: " + addressKey);
     }
 
     // Trả về danh sách peer online hiện được tracker biết.
@@ -78,7 +77,7 @@ private static final long ONLINE_TTL_MS = 15_000;
         onlinePeers.sort(Comparator.comparingLong(
                 (PeerInfo peerInfo) -> lastSeenByPeerKey.getOrDefault(peerInfo.addressKey(), 0L)
         ).reversed());
-        LOGGER.trace("PeerRegistry list cache online sốLượng=" + onlinePeers.size());
+        log.trace("PeerRegistry list cache online sốLượng=" + onlinePeers.size());
         return onlinePeers;
     }
 
@@ -91,7 +90,7 @@ private static final long ONLINE_TTL_MS = 15_000;
     public Collection<OfflineMessageEntity> drainOfflineMessages(String receiverId) {
         Collection<OfflineMessageEntity> messages = offlineMessageRepo.findPendingByReceiver(receiverId);
         offlineMessageRepo.markDelivered(messages);
-        LOGGER.info("Đã lấy tin nhắn offline cho receiver=" + receiverId
+        log.info("Đã lấy tin nhắn offline cho receiver=" + receiverId
                 + ", count=" + messages.size());
         return messages;
     }
@@ -109,7 +108,7 @@ private static final long ONLINE_TTL_MS = 15_000;
     // Thêm peer/user vào group.
     public void addGroupMember(GroupMemberEntity memberEntity) {
         if (memberEntity == null || memberEntity.getUserId() == null || memberEntity.getUserId().isBlank()) {
-            LOGGER.warn("Bỏ qua thêm thành viên nhóm vì userId rỗng.");
+            log.warn("Bỏ qua thêm thành viên nhóm vì userId rỗng.");
             return;
         }
         long now = System.currentTimeMillis();
@@ -147,7 +146,7 @@ private static final long ONLINE_TTL_MS = 15_000;
             }
         }
         if (expired > 0) {
-            LOGGER.info("PeerRegistry đã xóa peer quá hạn khỏi cache online. sốLượng=" + expired);
+            log.info("PeerRegistry đã xóa peer quá hạn khỏi cache online. sốLượng=" + expired);
         }
     }
 }

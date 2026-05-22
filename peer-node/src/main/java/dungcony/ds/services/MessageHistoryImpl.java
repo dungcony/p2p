@@ -1,8 +1,8 @@
 package dungcony.ds.services;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.interfaces.MessageHistoryService;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
@@ -14,9 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class MessageHistoryImpl implements MessageHistoryService {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageHistoryImpl.class);
 private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<>();
     private final LocalMessageRepo localMessageRepo;
 
@@ -56,7 +55,7 @@ private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<
             }
             messages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
         }
-        LOGGER.debug("Đã cập nhật message trong lịch sử. peerKey=" + peerKey
+        log.debug("Đã cập nhật message trong lịch sử. peerKey=" + peerKey
                 + ", messageId=" + message.getId() + ", status=" + message.getStatus());
     }
 
@@ -107,7 +106,7 @@ private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<
             }
             cachedMessages.sort(java.util.Comparator.comparingLong(Message::getTimestamp));
         }
-        LOGGER.debug("Đã merge tin nhắn local vào cache runtime. peerKey=" + key
+        log.debug("Đã merge tin nhắn local vào cache runtime. peerKey=" + key
                 + ", localCount=" + localMessages.size()
                 + ", cachedCount=" + cachedMessages.size());
     }

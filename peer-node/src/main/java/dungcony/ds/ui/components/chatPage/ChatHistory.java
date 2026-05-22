@@ -1,8 +1,8 @@
 package dungcony.ds.ui.components.chatPage;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.model.Message;
 import dungcony.ds.ui.components.ModernScrollBarUI;
 import dungcony.ds.ui.utils.ColorPalette;
@@ -13,9 +13,8 @@ import java.awt.*;
 import java.util.List;
 
 // Component lịch sử chat với bong bóng tin nhắn hiện đại
+@Slf4j
 public class ChatHistory extends JPanel {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChatHistory.class);
 private JPanel messagesPanel;
     private JScrollPane scrollPane;
 
@@ -24,8 +23,8 @@ private JPanel messagesPanel;
             initializeComponents();
             setupLayout();
         } catch (Exception e) {
-            LOGGER.error("Không thể khởi tạo lịch sử chat\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể khởi tạo lịch sử chat\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -50,8 +49,8 @@ private JPanel messagesPanel;
             scrollPane.getVerticalScrollBar().setBackground(ColorPalette.BACKGROUND);
             scrollPane.getVerticalScrollBar().setUI(new ModernScrollBarUI());
         } catch (Exception e) {
-            LOGGER.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -60,8 +59,8 @@ private JPanel messagesPanel;
             setLayout(new BorderLayout());
             add(scrollPane, BorderLayout.CENTER);
         } catch (Exception e) {
-            LOGGER.error("Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -99,13 +98,13 @@ private JPanel messagesPanel;
                     JScrollBar vertical = scrollPane.getVerticalScrollBar();
                     vertical.setValue(vertical.getMaximum());
                 } catch (Exception ex) {
-                    LOGGER.error("Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
-                    LOGGER.error("Chi tiết lỗi", ex);
+                    log.error("Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
+                    log.error("Chi tiết lỗi", ex);
                 }
             });
         } catch (Exception e) {
-            LOGGER.error("Không thể hiển thị tất cả tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể hiển thị tất cả tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -138,13 +137,13 @@ private JPanel messagesPanel;
                     JScrollBar vertical = scrollPane.getVerticalScrollBar();
                     vertical.setValue(vertical.getMaximum());
                 } catch (Exception ex) {
-                    LOGGER.error("Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
-                    LOGGER.error("Chi tiết lỗi", ex);
+                    log.error("Không thể tự cuộn xuống cuối\nChi tiết lỗi: " + ex.getMessage());
+                    log.error("Chi tiết lỗi", ex);
                 }
             });
         } catch (Exception e) {
-            LOGGER.error("Không thể hiển thị tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể hiển thị tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -154,8 +153,8 @@ private JPanel messagesPanel;
             messagesPanel.revalidate();
             messagesPanel.repaint();
         } catch (Exception e) {
-            LOGGER.error("Không thể xóa danh sách tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể xóa danh sách tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 }

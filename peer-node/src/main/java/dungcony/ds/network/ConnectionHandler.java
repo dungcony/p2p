@@ -1,8 +1,8 @@
 package dungcony.ds.network;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.model.Message;
 import dungcony.ds.model.MessageReceiver;
 
@@ -13,9 +13,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+@Slf4j
 public class ConnectionHandler implements Runnable {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionHandler.class);
 private final Socket socket;
     private final MessageReceiver receiver;
     private final MessageProtocol protocol = new MessageProtocol();
@@ -33,28 +32,28 @@ private final Socket socket;
              BufferedReader reader = new BufferedReader(new InputStreamReader(acceptedSocket.getInputStream(), StandardCharsets.UTF_8));
              PrintWriter writer = new PrintWriter(acceptedSocket.getOutputStream(), true, StandardCharsets.UTF_8)) {
 
-            LOGGER.debug("Đang xử lý kết nối TCP từ "
+            log.debug("Đang xử lý kết nối TCP từ "
                     + acceptedSocket.getRemoteSocketAddress());
             String payload = reader.readLine();
             if (payload == null || payload.isBlank()) {
-                LOGGER.warn("Payload TCP rỗng từ "
+                log.warn("Payload TCP rỗng từ "
                         + acceptedSocket.getRemoteSocketAddress());
                 return;
             }
 
             Message incoming = protocol.deserialize(payload);
-            LOGGER.debug("Đã deserialize payload đến. messageId="
+            log.debug("Đã deserialize payload đến. messageId="
                     + (incoming == null ? "null" : incoming.getId()));
             Message response = receiver.receive(incoming);
             if (response != null) {
                 writer.println(protocol.serialize(response));
-                LOGGER.debug("Đã gửi phản hồi. messageId=" + response.getId()
+                log.debug("Đã gửi phản hồi. messageId=" + response.getId()
                         + ", type=" + response.getType());
             } else {
-                LOGGER.warn("Receiver trả về phản hồi null.");
+                log.warn("Receiver trả về phản hồi null.");
             }
         } catch (IOException e) {
-            LOGGER.warn("Không thể xử lý kết nối đến: " + e.getMessage());
+            log.warn("Không thể xử lý kết nối đến: " + e.getMessage());
         }
     }
 }

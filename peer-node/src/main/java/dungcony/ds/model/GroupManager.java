@@ -1,8 +1,7 @@
 package dungcony.ds.model;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import dungcony.ds.repositories.LocalGroupRepo;
 
 import java.util.Collection;
@@ -11,15 +10,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+@Slf4j
 public class GroupManager {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(GroupManager.class);
-private final Map<String, Group> groups = new ConcurrentHashMap<>();
+    private final Map<String, Group> groups = new ConcurrentHashMap<>();
     private final LocalGroupRepo localGroupRepo;
     private final Consumer<Group> groupCreatedPublisher;
 
-
-    // Khởi tạo GroupManager có local repo và publisher để đồng bộ group mới lên bootstrap.
+    // Khởi tạo GroupManager có local repo và publisher để đồng bộ group mới lên
+    // bootstrap.
     public GroupManager(LocalGroupRepo localGroupRepo, Consumer<Group> groupCreatedPublisher) {
         this.localGroupRepo = localGroupRepo;
         this.groupCreatedPublisher = groupCreatedPublisher;
@@ -27,7 +25,7 @@ private final Map<String, Group> groups = new ConcurrentHashMap<>();
             for (Group group : localGroupRepo.findAll()) {
                 groups.put(group.getGroupId(), group);
             }
-            LOGGER.info("GroupManager đã nạp nhóm local. sốLượng=" + groups.size());
+            log.info("GroupManager đã nạp nhóm local. sốLượng=" + groups.size());
         }
     }
 
@@ -40,7 +38,7 @@ private final Map<String, Group> groups = new ConcurrentHashMap<>();
         groups.put(group.getGroupId(), group);
         saveGroup(group);
         publishGroup(group);
-        LOGGER.info("Đã tạo nhóm id=" + group.getGroupId()
+        log.info("Đã tạo nhóm id=" + group.getGroupId()
                 + ", tên=" + group.getName() + ", sốThànhViên=" + group.getMembers().size());
         return group;
     }
@@ -49,7 +47,7 @@ private final Map<String, Group> groups = new ConcurrentHashMap<>();
     public Group addMembers(String groupId, Collection<PeerInfo> members) {
         Group group = groups.get(groupId);
         if (group == null) {
-            LOGGER.warn("Không thể thêm thành viên vì không tìm thấy groupId=" + groupId);
+            log.warn("Không thể thêm thành viên vì không tìm thấy groupId=" + groupId);
             return null;
         }
         int before = group.getMembers().size();
@@ -58,22 +56,23 @@ private final Map<String, Group> groups = new ConcurrentHashMap<>();
         }
         int added = group.getMembers().size() - before;
         saveGroup(group);
-        LOGGER.info("Đã thêm thành viên vào nhóm local. groupId=" + groupId
+        log.info("Đã thêm thành viên vào nhóm local. groupId=" + groupId
                 + ", sốThànhViênThêm=" + added);
         return group;
     }
 
-    // Tạo hoặc cập nhật group local khi nhận được GROUP_CHAT trực tiếp từ peer khác.
+    // Tạo hoặc cập nhật group local khi nhận được GROUP_CHAT trực tiếp từ peer khác
+
     public Group ensureLocalGroup(String groupId, String name, Collection<PeerInfo> members) {
         Group group = groups.get(groupId);
         if (group == null) {
             group = new Group(groupId, name, members);
             groups.put(group.getGroupId(), group);
-            LOGGER.info("Đã tạo nhóm local từ tin nhắn nhận vào. groupId=" + group.getGroupId()
+            log.info("Đã tạo nhóm local từ tin nhắn nhận vào. groupId=" + group.getGroupId()
                     + ", tên=" + group.getName());
         } else if (members != null) {
             members.forEach(group::addMember);
-            LOGGER.debug("Đã refresh thành viên nhóm local từ tin nhắn nhận vào. groupId="
+            log.debug("Đã refresh thành viên nhóm local từ tin nhắn nhận vào. groupId="
                     + group.getGroupId() + ", sốThànhViên=" + group.getMembers().size());
         }
         saveGroup(group);
@@ -86,11 +85,11 @@ private final Map<String, Group> groups = new ConcurrentHashMap<>();
         if (group == null) {
             group = new Group(groupId, name, members);
             groups.put(group.getGroupId(), group);
-            LOGGER.info("Đã tạo nhóm local từ GROUP_MEMBERS_SYNC. groupId=" + group.getGroupId()
+            log.info("Đã tạo nhóm local từ GROUP_MEMBERS_SYNC. groupId=" + group.getGroupId()
                     + ", tên=" + group.getName());
         } else {
             group.replaceMembers(members);
-            LOGGER.info("Đã cập nhật membership nhóm từ GROUP_MEMBERS_SYNC. groupId=" + groupId
+            log.info("Đã cập nhật membership nhóm từ GROUP_MEMBERS_SYNC. groupId=" + groupId
                     + ", sốThànhViên=" + group.getMembers().size());
         }
         saveGroup(group);
@@ -118,7 +117,7 @@ private final Map<String, Group> groups = new ConcurrentHashMap<>();
         if (localGroupRepo != null) {
             localGroupRepo.saveAll(groups.values());
         }
-        LOGGER.info("GroupManager đã thay nhóm bằng dữ liệu bootstrap. sốLượng=" + groups.size());
+        log.info("GroupManager đã thay nhóm bằng dữ liệu bootstrap. sốLượng=" + groups.size());
     }
 
     // Lưu group mới/cập nhật xuống groups.json nếu local repo được cấu hình.

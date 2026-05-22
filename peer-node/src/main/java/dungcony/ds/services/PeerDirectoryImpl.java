@@ -1,8 +1,8 @@
 package dungcony.ds.services;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.interfaces.NetworkAddressService;
 import dungcony.ds.interfaces.PeerDirectoryService;
 import dungcony.ds.model.Message;
@@ -13,9 +13,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class PeerDirectoryImpl implements PeerDirectoryService {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(PeerDirectoryImpl.class);
 private final PeerInfo localPeer;
     private final NetworkAddressService networkAddressService;
     private final Map<String, PeerInfo> peers = new ConcurrentHashMap<>();
@@ -61,11 +60,11 @@ private final PeerInfo localPeer;
             );
             put(normalized);
             merged++;
-            LOGGER.debug("Đã merge peer từ discovery. id=" + normalized.getId()
+            log.debug("Đã merge peer từ discovery. id=" + normalized.getId()
                     + ", địaChỉ=" + normalized.addressKey()
                     + ", online=" + normalized.isOnline());
         }
-        LOGGER.info("Merge danh sách peer xong. sốPeerMerge=" + merged
+        log.info("Merge danh sách peer xong. sốPeerMerge=" + merged
                 + ", knownCount=" + peers.size());
         return merged;
     }
@@ -81,21 +80,21 @@ private final PeerInfo localPeer;
     public PeerInfo addKnownPeer(String name, String hostAndMaybePort) {
         PeerInfo peerInfo = parsePeer(name, hostAndMaybePort);
         if (peerInfo == null) {
-            LOGGER.warn("Đã bỏ qua thêm peer vì địa chỉ rỗng.");
+            log.warn("Đã bỏ qua thêm peer vì địa chỉ rỗng.");
             return null;
         }
         if (isSelfPeer(peerInfo)) {
-            LOGGER.warn("Đã bỏ qua thêm peer vì đích là peer local: " + peerInfo.addressKey());
+            log.warn("Đã bỏ qua thêm peer vì đích là peer local: " + peerInfo.addressKey());
             return null;
         }
         PeerInfo existingPeer = peers.get(peerInfo.addressKey());
         if (existingPeer != null) {
-            LOGGER.info("Peer đã tồn tại. Dùng lại peer id=" + existingPeer.getId()
+            log.info("Peer đã tồn tại. Dùng lại peer id=" + existingPeer.getId()
                     + ", địaChỉ=" + existingPeer.addressKey());
             return existingPeer;
         }
         put(peerInfo);
-        LOGGER.info("Đã thêm peer đã biết: id=" + peerInfo.getId()
+        log.info("Đã thêm peer đã biết: id=" + peerInfo.getId()
                 + ", địaChỉ=" + peerInfo.addressKey());
         return peerInfo;
     }
@@ -104,7 +103,7 @@ private final PeerInfo localPeer;
     @Override
     public PeerInfo resolvePeer(String hostAndMaybePort) {
         if (hostAndMaybePort == null || hostAndMaybePort.isBlank()) {
-            LOGGER.warn("resolvePeer được gọi với địa chỉ rỗng.");
+            log.warn("resolvePeer được gọi với địa chỉ rỗng.");
             return null;
         }
         PeerInfo existing = peers.get(hostAndMaybePort.trim());
@@ -130,7 +129,7 @@ private final PeerInfo localPeer;
             try {
                 port = Integer.parseInt(value.substring(colonIndex + 1));
             } catch (NumberFormatException ignored) {
-                LOGGER.warn("Cổng peer không hợp lệ trong địa chỉ '" + value
+                log.warn("Cổng peer không hợp lệ trong địa chỉ '" + value
                         + "'. Chuyển về cổng local " + localPeer.getPort());
                 port = localPeer.getPort();
             }
@@ -176,10 +175,10 @@ private final PeerInfo localPeer;
             peerInfo.setOnline(true);
             put(peerInfo);
             addedOrUpdated++;
-            LOGGER.debug("Danh bạ đã đồng bộ peer online id=" + peerInfo.getId()
+            log.debug("Danh bạ đã đồng bộ peer online id=" + peerInfo.getId()
                     + ", địaChỉ=" + peerInfo.addressKey());
         }
-        LOGGER.info("Đồng bộ trạng thái online trong danh bạ xong. sốOnline=" + addedOrUpdated
+        log.info("Đồng bộ trạng thái online trong danh bạ xong. sốOnline=" + addedOrUpdated
                 + ", knownCount=" + peers.size());
         return addedOrUpdated;
     }

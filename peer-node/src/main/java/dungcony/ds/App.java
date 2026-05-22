@@ -1,8 +1,8 @@
 package dungcony.ds;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.config.PeerConfig;
 import dungcony.ds.dtos.ProfileSelection;
 import dungcony.ds.interfaces.ProfileSelectionService;
@@ -17,9 +17,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.file.Path;
 
+@Slf4j
 public class App {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 public static PeerNode peerNode;
 
     // Điểm vào của ứng dụng: lấy thông tin peer từ LoginDialog, khởi động PeerNode,
@@ -31,7 +30,7 @@ public static PeerNode peerNode;
             ProfileSelectionService profileSelectionService = new ProfileSelectionImpl(dataRoot);
             ProfileSelection selection = profileSelectionService.selectProfile();
             if (selection == null) {
-                LOGGER.info("Đã hủy chọn profile. Ứng dụng sẽ không khởi động PeerNode.");
+                log.info("Đã hủy chọn profile. Ứng dụng sẽ không khởi động PeerNode.");
                 return;
             }
 
@@ -41,11 +40,11 @@ public static PeerNode peerNode;
                 PeerPortDialog peerPortDialog = new PeerPortDialog(config.getPeerPort(), config.getBootstrapPort());
                 peerPortDialog.setVisible(true);
                 if (!peerPortDialog.isConfirmed()) {
-                    LOGGER.info("Đã hủy chọn cổng peer. Ứng dụng sẽ không khởi động PeerNode.");
+                    log.info("Đã hủy chọn cổng peer. Ứng dụng sẽ không khởi động PeerNode.");
                     return;
                 }
                 if (!config.updatePeerPort(peerPortDialog.getPeerPort())) {
-                    LOGGER.warn("Cổng peer không hợp lệ. Ứng dụng sẽ không khởi động PeerNode.");
+                    log.warn("Cổng peer không hợp lệ. Ứng dụng sẽ không khởi động PeerNode.");
                     return;
                 }
                 config.save();
@@ -54,18 +53,18 @@ public static PeerNode peerNode;
                 LoginDialog loginDialog = new LoginDialog(config.getPeerId(), config.getPeerName());
                 loginDialog.setVisible(true);
                 if (!loginDialog.isConfirmed()) {
-                    LOGGER.info("Đã hủy sửa profile. Ứng dụng sẽ không khởi động PeerNode.");
+                    log.info("Đã hủy sửa profile. Ứng dụng sẽ không khởi động PeerNode.");
                     return;
                 }
                 config.updateIdentity(loginDialog.getPeerId(), loginDialog.getPeerName());
                 config.save();
             } else {
-                LOGGER.info("Đang khởi động bằng profile đã chọn, không chỉnh sửa. "
+                log.info("Đang khởi động bằng profile đã chọn, không chỉnh sửa. "
                         + config.getDisplayLabel());
                 config.save();
             }
 
-            LOGGER.info("Đang khởi động PeerNode với tên=" + config.getPeerName()
+            log.info("Đang khởi động PeerNode với tên=" + config.getPeerName()
                     + ", cổng=" + config.getPeerPort()
                     + ", bootstrap=" + config.getBootstrapHost() + ":" + config.getBootstrapPort());
             peerNode = new PeerNode(
@@ -78,12 +77,12 @@ public static PeerNode peerNode;
             );
             peerNode.start();
 
-            LOGGER.info("Đang mở cửa sổ chat chính.");
+            log.info("Đang mở cửa sổ chat chính.");
             Main mainWindow = new Main();
             mainWindow.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    LOGGER.info("Cửa sổ chính đang đóng. Đang dừng PeerNode.");
+                    log.info("Cửa sổ chính đang đóng. Đang dừng PeerNode.");
                     peerNode.stop();
                 }
             });
@@ -107,12 +106,12 @@ public static PeerNode peerNode;
             }
             if (arg.startsWith("--data-dir=")) {
                 dataRoot = Path.of(arg.substring("--data-dir=".length()));
-                LOGGER.info("Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
+                log.info("Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
                 continue;
             }
             if ("--data-dir".equals(arg) && index + 1 < args.length) {
                 dataRoot = Path.of(args[index + 1]);
-                LOGGER.info("Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
+                log.info("Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
                 index++;
                 continue;
             }
@@ -129,9 +128,9 @@ public static PeerNode peerNode;
             }
         }
 
-        LOGGER.info("Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
+        log.info("Thư mục dữ liệu runtime=" + dataRoot.toAbsolutePath());
         if (peerPort != null) {
-            LOGGER.info("Cổng peer runtime=" + peerPort);
+            log.info("Cổng peer runtime=" + peerPort);
         }
         return new RuntimeOptions(dataRoot, peerPort);
     }
@@ -145,7 +144,7 @@ public static PeerNode peerNode;
             }
             return port;
         } catch (NumberFormatException e) {
-            LOGGER.warn("Đã bỏ qua giá trị --peer-port không hợp lệ=" + value);
+            log.warn("Đã bỏ qua giá trị --peer-port không hợp lệ=" + value);
             return null;
         }
     }

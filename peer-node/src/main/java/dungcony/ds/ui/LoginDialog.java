@@ -1,14 +1,13 @@
 package dungcony.ds.ui;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import java.awt.*;
 
+@Slf4j
 public class LoginDialog extends JDialog {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(LoginDialog.class);
 private final JTextField idField;
     private final JTextField nameField;
     private boolean confirmed;
@@ -53,7 +52,7 @@ private final JTextField idField;
     // Đóng dialog khi người dùng xác nhận thông tin profile.
     private void confirm() {
         confirmed = true;
-        LOGGER.info("Đã xác nhận đăng nhập. peerId=" + getPeerId()
+        log.info("Đã xác nhận đăng nhập. peerId=" + getPeerId()
                 + ", tênPeer=" + getPeerName());
         dispose();
     }

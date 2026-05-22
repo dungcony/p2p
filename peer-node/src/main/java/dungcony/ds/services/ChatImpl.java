@@ -1,8 +1,8 @@
 package dungcony.ds.services;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.interfaces.ChatService;
 import dungcony.ds.interfaces.MessageHistoryService;
@@ -15,9 +15,8 @@ import dungcony.ds.utils.Mes;
 
 import java.util.function.Consumer;
 
+@Slf4j
 public class ChatImpl implements ChatService {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChatImpl.class);
 private final PeerInfo localPeer;
     private final MessageSender messageSender;
     private final BootstrapClient bootstrapClient;
@@ -43,21 +42,21 @@ private final PeerInfo localPeer;
     @Override
     public boolean sendMessage(String content, String hostAndMaybePort) {
         if (content == null || content.isBlank()) {
-            LOGGER.warn("Từ chối gửi tin nhắn rỗng.");
+            log.warn("Từ chối gửi tin nhắn rỗng.");
             return false;
         }
         PeerInfo receiver = peerDirectoryService.resolvePeer(hostAndMaybePort);
         if (receiver == null) {
-            LOGGER.warn("Từ chối gửi tin vì peer đích rỗng.");
+            log.warn("Từ chối gửi tin vì peer đích rỗng.");
             return false;
         }
         if (peerDirectoryService.isSelfPeer(receiver)) {
-            LOGGER.warn("Từ chối gửi tin tới peer hiện tại: " + receiver.addressKey());
+            log.warn("Từ chối gửi tin tới peer hiện tại: " + receiver.addressKey());
             return false;
         }
 
         Message message = Message.chat(localPeer, receiver, content);
-        LOGGER.info("Đang gửi tin nhắn CHAT id=" + message.getId()
+        log.info("Đang gửi tin nhắn CHAT id=" + message.getId()
                 + " tới=" + receiver.addressKey());
         boolean sent = messageSender.send(receiver, message);
         receiver.setOnline(sent);
@@ -71,9 +70,9 @@ private final PeerInfo localPeer;
         messageHistoryService.addAndSave(receiver, message);
         messageNotifier.accept(message);
         if (sent) {
-            LOGGER.info("Tin nhắn CHAT đã được giao và lưu. id=" + message.getId());
+            log.info("Tin nhắn CHAT đã được giao và lưu. id=" + message.getId());
         } else {
-            LOGGER.warn("Tin nhắn CHAT thất bại sau khi retry. id=" + message.getId()
+            log.warn("Tin nhắn CHAT thất bại sau khi retry. id=" + message.getId()
                     + ", tới=" + receiver.addressKey() + ", status=" + message.getStatus());
         }
         peerChangeNotifier.run();
@@ -83,12 +82,12 @@ private final PeerInfo localPeer;
     // Lưu tin offline lên bootstrap-server để receiver nhận lại khi JOIN.
     private boolean storeOfflineIfPossible(Message message) {
         if (bootstrapClient == null) {
-            LOGGER.warn("Không thể lưu tin nhắn offline vì bootstrap đang tắt. messageId="
+            log.warn("Không thể lưu tin nhắn offline vì bootstrap đang tắt. messageId="
                     + message.getId());
             return false;
         }
         boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
-        LOGGER.info("Đã lưu fallback offline=" + stored + ", messageId=" + message.getId());
+        log.info("Đã lưu fallback offline=" + stored + ", messageId=" + message.getId());
         return stored;
     }
 }

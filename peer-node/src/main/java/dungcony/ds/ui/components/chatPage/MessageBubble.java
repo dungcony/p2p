@@ -1,8 +1,8 @@
 package dungcony.ds.ui.components.chatPage;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.App;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
@@ -15,9 +15,8 @@ import java.awt.*;
 // Component bong bóng tin nhắn
 //
 // @author Shoyeb Ansari
+@Slf4j
 class MessageBubble extends JPanel {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageBubble.class);
 // Tin nhắn cần hiển thị
     private Message message;
 
@@ -26,8 +25,8 @@ class MessageBubble extends JPanel {
             this.message = message;
             initializeComponents();
         } catch (Exception e) {
-            LOGGER.error("Không thể khởi tạo bong bóng tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể khởi tạo bong bóng tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -54,8 +53,8 @@ class MessageBubble extends JPanel {
                 add(Box.createHorizontalGlue());
             }
         } catch (Exception e) {
-            LOGGER.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -131,8 +130,8 @@ class MessageBubble extends JPanel {
 
             return panel;
         } catch (Exception e) {
-            LOGGER.error("Không thể tạo nội dung tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể tạo nội dung tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
             return new JPanel();
         }
     }

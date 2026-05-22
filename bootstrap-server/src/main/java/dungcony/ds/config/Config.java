@@ -1,16 +1,15 @@
 package dungcony.ds.config;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Properties;
 
+@Slf4j
 public class Config {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
 private final int serverPort;
     private final Path databasePath;
 
@@ -27,7 +26,7 @@ private final int serverPort;
                 properties.load(inputStream);
             }
         } catch (IOException e) {
-            LOGGER.warn("Không thể nạp cấu hình bootstrap: " + e.getMessage());
+            log.warn("Không thể nạp cấu hình bootstrap: " + e.getMessage());
         }
 
         String configuredPort = firstNonBlank(

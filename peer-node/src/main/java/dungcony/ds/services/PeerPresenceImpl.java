@@ -1,8 +1,8 @@
 package dungcony.ds.services;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.interfaces.PeerDirectoryService;
 import dungcony.ds.interfaces.PeerPresenceService;
 import dungcony.ds.model.BootstrapClient;
@@ -10,9 +10,8 @@ import dungcony.ds.model.Message;
 import dungcony.ds.model.MessageSender;
 import dungcony.ds.model.PeerInfo;
 
+@Slf4j
 public class PeerPresenceImpl implements PeerPresenceService {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(PeerPresenceImpl.class);
 private final PeerInfo localPeer;
     private final MessageSender messageSender;
     private final BootstrapClient bootstrapClient;
@@ -34,11 +33,11 @@ private final PeerInfo localPeer;
     public boolean checkUserIsOnline(String hostAndMaybePort) {
         PeerInfo peerInfo = peerDirectoryService.resolvePeer(hostAndMaybePort);
         if (peerInfo == null) {
-            LOGGER.warn("Không thể kiểm tra trạng thái online. Địa chỉ peer rỗng.");
+            log.warn("Không thể kiểm tra trạng thái online. Địa chỉ peer rỗng.");
             return false;
         }
         if (peerDirectoryService.isSelfPeer(peerInfo)) {
-            LOGGER.warn("Từ chối kiểm tra online với peer local: " + peerInfo.addressKey());
+            log.warn("Từ chối kiểm tra online với peer local: " + peerInfo.addressKey());
             return false;
         }
         boolean online = bootstrapClient != null && checkByBootstrap(peerInfo);
@@ -52,10 +51,10 @@ private final PeerInfo localPeer;
 
     // Hỏi bootstrap-server danh sách peer online và so khớp theo id hoặc address.
     private boolean checkByBootstrap(PeerInfo targetPeer) {
-        LOGGER.debug("Đang kiểm tra trạng thái online qua bootstrap. target=" + targetPeer.addressKey());
+        log.debug("Đang kiểm tra trạng thái online qua bootstrap. target=" + targetPeer.addressKey());
         java.util.Collection<PeerInfo> onlinePeers = bootstrapClient.listOrNull();
         if (onlinePeers == null) {
-            LOGGER.warn("Bootstrap không khả dụng khi kiểm tra online. Chuyển sang heartbeat trực tiếp. target="
+            log.warn("Bootstrap không khả dụng khi kiểm tra online. Chuyển sang heartbeat trực tiếp. target="
                     + targetPeer.addressKey());
             return false;
         }
@@ -65,25 +64,25 @@ private final PeerInfo localPeer;
             }
             peerDirectoryService.put(onlinePeer);
             if (isSamePeer(targetPeer, onlinePeer)) {
-                LOGGER.info("Bootstrap xác nhận peer online. target=" + targetPeer.addressKey()
+                log.info("Bootstrap xác nhận peer online. target=" + targetPeer.addressKey()
                         + ", matched=" + onlinePeer.addressKey());
                 return true;
             }
         }
-        LOGGER.info("Bootstrap chưa xác nhận peer online. Chuyển sang heartbeat trực tiếp. target="
+        log.info("Bootstrap chưa xác nhận peer online. Chuyển sang heartbeat trực tiếp. target="
                 + targetPeer.addressKey());
         return false;
     }
 
     // Gửi heartbeat trực tiếp tới host:port để xác minh peer có TCP reachable không.
     private boolean checkByDirectHeartbeat(PeerInfo peerInfo) {
-        LOGGER.debug("Đang gửi heartbeat trực tiếp tới " + peerInfo.addressKey());
+        log.debug("Đang gửi heartbeat trực tiếp tới " + peerInfo.addressKey());
         boolean online = messageSender.send(peerInfo, Message.heartbeat(localPeer));
         if (online) {
             peerInfo.setOnline(true);
             peerDirectoryService.put(peerInfo);
         }
-        LOGGER.info("Kết quả heartbeat trực tiếp. peer=" + peerInfo.addressKey() + ", online=" + online);
+        log.info("Kết quả heartbeat trực tiếp. peer=" + peerInfo.addressKey() + ", online=" + online);
         return online;
     }
 

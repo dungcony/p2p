@@ -1,8 +1,8 @@
 package dungcony.ds.repositories;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -22,9 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 public class LocalMessageRepo {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(LocalMessageRepo.class);
 private static final Type MESSAGE_RECORD_LIST_TYPE = new TypeToken<List<MessageRecord>>() {
     }.getType();
 
@@ -52,16 +51,16 @@ private static final Type MESSAGE_RECORD_LIST_TYPE = new TypeToken<List<MessageR
             if (!Files.exists(messageFilePath)) {
                 Files.writeString(messageFilePath, "[]", StandardCharsets.UTF_8);
             }
-            LOGGER.info("Kho JSON tin nhắn local đã sẵn sàng. path=" + messageFilePath.toAbsolutePath());
+            log.info("Kho JSON tin nhắn local đã sẵn sàng. path=" + messageFilePath.toAbsolutePath());
         } catch (IOException e) {
-            LOGGER.error("Không thể khởi tạo kho JSON tin nhắn local: " + e.getMessage());
+            log.error("Không thể khởi tạo kho JSON tin nhắn local: " + e.getMessage());
         }
     }
 
     // Lưu một message vào history local theo peer đối thoại.
     public synchronized void save(PeerInfo conversationPeer, Message message) {
         if (conversationPeer == null || message == null) {
-            LOGGER.warn("LocalMessageRepo bỏ qua lưu conversation/message null.");
+            log.warn("LocalMessageRepo bỏ qua lưu conversation/message null.");
             return;
         }
 
@@ -73,15 +72,15 @@ private static final Type MESSAGE_RECORD_LIST_TYPE = new TypeToken<List<MessageR
 
         if (existingRecord.isPresent()) {
             records.set(records.indexOf(existingRecord.get()), newRecord);
-            LOGGER.debug("Đã cập nhật tin nhắn trong JSON local. messageId=" + message.getId());
+            log.debug("Đã cập nhật tin nhắn trong JSON local. messageId=" + message.getId());
         } else {
             records.add(newRecord);
-            LOGGER.debug("Đã thêm tin nhắn vào JSON local. messageId=" + message.getId());
+            log.debug("Đã thêm tin nhắn vào JSON local. messageId=" + message.getId());
         }
 
         records.sort(Comparator.comparingLong(MessageRecord::getTimestamp));
         writeAllRecords(records);
-        LOGGER.info("Đã lưu tin nhắn local. conversationPeerId=" + conversationPeer.getId()
+        log.info("Đã lưu tin nhắn local. conversationPeerId=" + conversationPeer.getId()
                 + ", messageId=" + message.getId());
     }
 
@@ -99,13 +98,13 @@ private static final Type MESSAGE_RECORD_LIST_TYPE = new TypeToken<List<MessageR
             try {
                 messages.add(record.toMessage());
             } catch (IllegalArgumentException e) {
-                LOGGER.warn("Đã bỏ qua record tin nhắn local không hợp lệ. messageId="
+                log.warn("Đã bỏ qua record tin nhắn local không hợp lệ. messageId="
                         + record.getMessageId() + ", lỗi=" + e.getMessage());
             }
         }
 
         messages.sort(Comparator.comparingLong(Message::getTimestamp));
-        LOGGER.debug("Đã nạp tin nhắn local. conversationPeerId="
+        log.debug("Đã nạp tin nhắn local. conversationPeerId="
                 + conversationPeerId + ", sốLượng=" + messages.size());
         return messages;
     }
@@ -128,7 +127,7 @@ private static final Type MESSAGE_RECORD_LIST_TYPE = new TypeToken<List<MessageR
                 peersById.put(peerInfo.getId(), peerInfo);
             }
         }
-        LOGGER.debug("Đã nạp danh sách conversation trực tiếp local. sốLượng=" + peersById.size());
+        log.debug("Đã nạp danh sách conversation trực tiếp local. sốLượng=" + peersById.size());
         return new ArrayList<>(peersById.values());
     }
 
@@ -145,7 +144,7 @@ private static final Type MESSAGE_RECORD_LIST_TYPE = new TypeToken<List<MessageR
             List<MessageRecord> records = gson.fromJson(json, MESSAGE_RECORD_LIST_TYPE);
             return records == null ? new ArrayList<>() : new ArrayList<>(records);
         } catch (IOException | RuntimeException e) {
-            LOGGER.error("Không thể đọc JSON tin nhắn local: " + e.getMessage());
+            log.error("Không thể đọc JSON tin nhắn local: " + e.getMessage());
             return new ArrayList<>();
         }
     }
@@ -171,7 +170,7 @@ private static final Type MESSAGE_RECORD_LIST_TYPE = new TypeToken<List<MessageR
                     false
             );
         } catch (NumberFormatException e) {
-            LOGGER.warn("Đã bỏ qua khóa conversation peer không hợp lệ: " + peerKey);
+            log.warn("Đã bỏ qua khóa conversation peer không hợp lệ: " + peerKey);
             return null;
         }
     }
@@ -181,7 +180,7 @@ private static final Type MESSAGE_RECORD_LIST_TYPE = new TypeToken<List<MessageR
         try {
             Files.writeString(messageFilePath, gson.toJson(records), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            LOGGER.error("Không thể ghi JSON tin nhắn local: " + e.getMessage());
+            log.error("Không thể ghi JSON tin nhắn local: " + e.getMessage());
         }
     }
 

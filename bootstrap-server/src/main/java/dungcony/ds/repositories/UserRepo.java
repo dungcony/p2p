@@ -1,26 +1,24 @@
 package dungcony.ds.repositories;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.entities.UserEntity;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+@Slf4j
 public record UserRepo(Conn conn) {
-
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserRepo.class);
 // Thêm mới hoặc cập nhật user bằng connection riêng khi xử lý REGISTER độc lập.
     public void upsert(UserEntity userEntity) {
         try (Connection connection = conn.getConnection()) {
             upsert(userEntity, connection);
-            LOGGER.info("SQLite đã upsert user=" + userEntity.getUserId()
+            log.info("SQLite đã upsert user=" + userEntity.getUserId()
                     + ", tênHiểnThị=" + userEntity.getDisplayName());
         } catch (SQLException e) {
-            LOGGER.error("Không thể upsert user: " + e.getMessage());
+            log.error("Không thể upsert user: " + e.getMessage());
         }
     }
 

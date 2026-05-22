@@ -3,7 +3,6 @@ package dungcony.ds.ui.components.chatPage;
 import dungcony.ds.App;
 import dungcony.ds.interfaces.MessageListener;
 import dungcony.ds.model.Message;
-import dungcony.ds.ui.pages.ChatPage;
 import dungcony.ds.ui.utils.ColorPalette;
 
 import javax.swing.*;
@@ -20,7 +19,6 @@ public class ChatScreen extends JPanel implements MessageListener {
     private ChatHeader chatHeader;
     private JLabel emptyStateLabel;
     private final List<Message> messages;
-    private ChatPage parentChatPage;
 
     public ChatScreen() {
         this.messages = new ArrayList<>();
@@ -34,8 +32,7 @@ public class ChatScreen extends JPanel implements MessageListener {
 
     private void initializeComponents() {
         setBackground(ColorPalette.BACKGROUND);
-        chatHeader = new ChatHeader(selectedUser, ipAddress);
-        chatHeader.getBackButton().addActionListener(e -> goToChatListPage());
+        chatHeader = new ChatHeader(selectedUser);
         chatHistory = new ChatHistory();
         sendMessageBox = new SendMessageBox(this);
         emptyStateLabel = new JLabel("Chọn một peer để bắt đầu chat", SwingConstants.CENTER);
@@ -84,20 +81,6 @@ public class ChatScreen extends JPanel implements MessageListener {
         messages.clear();
         chatHistory.clearMessages();
         showChatControls(true);
-    }
-
-    public void setMobileMode(boolean isMobile) {
-        chatHeader.setMobileMode(isMobile);
-    }
-
-    public void setParentChatPage(ChatPage parent) {
-        this.parentChatPage = parent;
-    }
-
-    private void goToChatListPage() {
-        if (parentChatPage != null) {
-            parentChatPage.showChatList();
-        }
     }
 
     public String getIpAddress() {

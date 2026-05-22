@@ -1,8 +1,8 @@
 package dungcony.ds.services;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.dtos.GroupMemberPayload;
 import dungcony.ds.dtos.GroupPayload;
 import dungcony.ds.interfaces.BootstrapGroupService;
@@ -14,9 +14,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@Slf4j
 public class BootstrapGroupImpl implements BootstrapGroupService {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapGroupImpl.class);
 private final BootstrapClient bootstrapClient;
     private final PeerInfo localPeer;
 
@@ -28,27 +27,27 @@ private final BootstrapClient bootstrapClient;
     @Override
     public void publishGroup(Group group) {
         if (bootstrapClient == null) {
-            LOGGER.warn("Không thể publish nhóm vì bootstrap đang tắt. groupId="
+            log.warn("Không thể publish nhóm vì bootstrap đang tắt. groupId="
                     + group.getGroupId());
             return;
         }
         boolean created = bootstrapClient.createGroup(group, localPeer.getId());
         if (!created) {
-            LOGGER.warn("Bootstrap CREATE_GROUP thất bại. groupId=" + group.getGroupId());
+            log.warn("Bootstrap CREATE_GROUP thất bại. groupId=" + group.getGroupId());
             return;
         }
         bootstrapClient.addGroupMember(group.getGroupId(), localPeer.getId());
         for (PeerInfo member : group.getMembers()) {
             bootstrapClient.addGroupMember(group.getGroupId(), member.getId());
         }
-        LOGGER.info("Đã publish nhóm lên bootstrap. groupId=" + group.getGroupId()
+        log.info("Đã publish nhóm lên bootstrap. groupId=" + group.getGroupId()
                 + ", sốThànhViên=" + group.getMembers().size());
     }
 
     @Override
     public void addMembersToGroup(String groupId, Collection<PeerInfo> members) {
         if (bootstrapClient == null) {
-            LOGGER.warn("Không thể thêm thành viên nhóm lên bootstrap vì bootstrap đang tắt. groupId="
+            log.warn("Không thể thêm thành viên nhóm lên bootstrap vì bootstrap đang tắt. groupId="
                     + groupId);
             return;
         }
@@ -63,7 +62,7 @@ private final BootstrapClient bootstrapClient;
                 }
             }
         }
-        LOGGER.info("Đã đồng bộ thêm thành viên nhóm lên bootstrap. groupId=" + groupId
+        log.info("Đã đồng bộ thêm thành viên nhóm lên bootstrap. groupId=" + groupId
                 + ", sốThànhViênThêm=" + added);
     }
 
@@ -84,7 +83,7 @@ private final BootstrapClient bootstrapClient;
             joinedGroups.add(toGroup(groupPayload, memberPayloads, knownPeers));
         }
 
-        LOGGER.info("Đồng bộ nhóm từ bootstrap lấy được số nhóm đã tham gia=" + joinedGroups.size());
+        log.info("Đồng bộ nhóm từ bootstrap lấy được số nhóm đã tham gia=" + joinedGroups.size());
         return joinedGroups;
     }
 

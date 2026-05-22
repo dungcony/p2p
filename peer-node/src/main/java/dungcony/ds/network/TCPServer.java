@@ -1,8 +1,8 @@
 package dungcony.ds.network;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.model.MessageReceiver;
 
 import java.io.IOException;
@@ -11,9 +11,8 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Slf4j
 public class TCPServer {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(TCPServer.class);
 private final int port;
     private final MessageReceiver receiver;
     private final ExecutorService connectionPool = Executors.newCachedThreadPool();
@@ -31,16 +30,16 @@ private final int port;
         running = true;
         try (ServerSocket openedSocket = new ServerSocket(port)) {
             serverSocket = openedSocket;
-            LOGGER.info("TCPServer đang lắng nghe trên cổng " + port);
+            log.info("TCPServer đang lắng nghe trên cổng " + port);
             while (running) {
                 Socket socket = openedSocket.accept();
-                LOGGER.debug("TCPServer đã nhận kết nối từ "
+                log.debug("TCPServer đã nhận kết nối từ "
                         + socket.getRemoteSocketAddress());
                 connectionPool.submit(new ConnectionHandler(socket, receiver));
             }
         } catch (IOException e) {
             if (running) {
-                LOGGER.error("TCP server đã dừng: " + e.getMessage());
+                log.error("TCP server đã dừng: " + e.getMessage());
             }
         } finally {
             running = false;
@@ -51,7 +50,7 @@ private final int port;
     public void stop() {
         running = false;
         connectionPool.shutdownNow();
-        LOGGER.info("TCPServer đang dừng trên cổng " + port);
+        log.info("TCPServer đang dừng trên cổng " + port);
         if (serverSocket != null) {
             try {
                 serverSocket.close();

@@ -1,8 +1,8 @@
 package dungcony.ds.repositories;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.entities.OfflineMessageEntity;
 
 import java.sql.Connection;
@@ -13,10 +13,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@Slf4j
 public record OfflineMessageRepo(Conn conn) {
-
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(OfflineMessageRepo.class);
 // Lưu message vào bảng offline_messages khi receiver đang offline.
     public void save(OfflineMessageEntity message) {
         try (Connection connection = conn.getConnection();
@@ -37,10 +35,10 @@ public record OfflineMessageRepo(Conn conn) {
             statement.setLong(6, message.getCreatedAt());
             statement.setInt(7, message.isDelivered() ? 1 : 0);
             statement.executeUpdate();
-            LOGGER.info("Đã lưu tin nhắn offline id=" + message.getMessageId()
+            log.info("Đã lưu tin nhắn offline id=" + message.getMessageId()
                     + ", receiver=" + message.getReceiverId());
         } catch (SQLException e) {
-            LOGGER.error("Không thể lưu tin nhắn offline: " + e.getMessage());
+            log.error("Không thể lưu tin nhắn offline: " + e.getMessage());
         }
     }
 
@@ -69,7 +67,7 @@ public record OfflineMessageRepo(Conn conn) {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Không thể nạp tin nhắn offline: " + e.getMessage());
+            log.error("Không thể nạp tin nhắn offline: " + e.getMessage());
         }
         return messages;
     }
@@ -90,9 +88,9 @@ public record OfflineMessageRepo(Conn conn) {
                 statement.addBatch();
             }
             int[] updated = statement.executeBatch();
-            LOGGER.info("Đã đánh dấu tin nhắn offline đã giao. sốLượng=" + updated.length);
+            log.info("Đã đánh dấu tin nhắn offline đã giao. sốLượng=" + updated.length);
         } catch (SQLException e) {
-            LOGGER.error("Không thể đánh dấu tin nhắn offline đã giao: " + e.getMessage());
+            log.error("Không thể đánh dấu tin nhắn offline đã giao: " + e.getMessage());
         }
     }
 }

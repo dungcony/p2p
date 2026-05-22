@@ -1,8 +1,8 @@
 package dungcony.ds.services;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.config.PeerConfig;
 import dungcony.ds.dtos.ProfileSelection;
 import dungcony.ds.interfaces.ProfileSelectionService;
@@ -11,9 +11,8 @@ import javax.swing.*;
 import java.nio.file.Path;
 import java.util.List;
 
+@Slf4j
 public class ProfileSelectionImpl implements ProfileSelectionService {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProfileSelectionImpl.class);
 private final Path dataRoot;
 
     public ProfileSelectionImpl(Path dataRoot) {
@@ -24,7 +23,7 @@ private final Path dataRoot;
     public ProfileSelection selectProfile() {
         List<PeerConfig> profiles = PeerConfig.listProfiles(dataRoot);
         if (profiles.isEmpty()) {
-            LOGGER.info("Không tìm thấy profile cũ. Đang tạo profile UUID mới.");
+            log.info("Không tìm thấy profile cũ. Đang tạo profile UUID mới.");
             return new ProfileSelection(PeerConfig.createNew(dataRoot), true, true);
         }
 

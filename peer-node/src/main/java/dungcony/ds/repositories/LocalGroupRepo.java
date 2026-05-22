@@ -1,8 +1,8 @@
 package dungcony.ds.repositories;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -18,9 +18,8 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+@Slf4j
 public class LocalGroupRepo {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(LocalGroupRepo.class);
 private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
     }.getType();
 
@@ -43,23 +42,23 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
             if (!Files.exists(groupFilePath)) {
                 Files.writeString(groupFilePath, "[]", StandardCharsets.UTF_8);
             }
-            LOGGER.info("Kho JSON nhóm local đã sẵn sàng. path=" + groupFilePath.toAbsolutePath());
+            log.info("Kho JSON nhóm local đã sẵn sàng. path=" + groupFilePath.toAbsolutePath());
         } catch (IOException e) {
-            LOGGER.error("Không thể khởi tạo kho JSON nhóm local: " + e.getMessage());
+            log.error("Không thể khởi tạo kho JSON nhóm local: " + e.getMessage());
         }
     }
 
     // Lưu hoặc cập nhật một group vào groups.json.
     public synchronized void save(Group group) {
         if (group == null) {
-            LOGGER.warn("LocalGroupRepo bỏ qua lưu nhóm null.");
+            log.warn("LocalGroupRepo bỏ qua lưu nhóm null.");
             return;
         }
         List<Group> groups = findAll();
         groups.removeIf(existingGroup -> group.getGroupId().equals(existingGroup.getGroupId()));
         groups.add(group);
         saveAll(groups);
-        LOGGER.info("Đã lưu nhóm local. groupId=" + group.getGroupId()
+        log.info("Đã lưu nhóm local. groupId=" + group.getGroupId()
                 + ", tên=" + group.getName());
     }
 
@@ -69,9 +68,9 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
         sortedGroups.sort(Comparator.comparing(Group::getName).thenComparing(Group::getGroupId));
         try {
             Files.writeString(groupFilePath, gson.toJson(sortedGroups), StandardCharsets.UTF_8);
-            LOGGER.debug("Đã ghi nhóm local. sốLượng=" + sortedGroups.size());
+            log.debug("Đã ghi nhóm local. sốLượng=" + sortedGroups.size());
         } catch (IOException e) {
-            LOGGER.error("Không thể ghi JSON nhóm local: " + e.getMessage());
+            log.error("Không thể ghi JSON nhóm local: " + e.getMessage());
         }
     }
 
@@ -87,10 +86,10 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
             }
             List<Group> groups = gson.fromJson(json, GROUP_LIST_TYPE);
             List<Group> result = groups == null ? new ArrayList<>() : new ArrayList<>(groups);
-            LOGGER.debug("Đã nạp nhóm local. sốLượng=" + result.size());
+            log.debug("Đã nạp nhóm local. sốLượng=" + result.size());
             return result;
         } catch (IOException | RuntimeException e) {
-            LOGGER.error("Không thể đọc JSON nhóm local: " + e.getMessage());
+            log.error("Không thể đọc JSON nhóm local: " + e.getMessage());
             return new ArrayList<>();
         }
     }

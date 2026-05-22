@@ -18,8 +18,6 @@ public class ScanButton extends ModernButton {
     
     // Cờ cho biết đang quét hay không
     private boolean isScanning = false;
-    // Cờ hover
-    private boolean isHovered = false;
     // Icon quét
     private FontIcon scanIcon;
     // Icon loading
@@ -79,20 +77,6 @@ public class ScanButton extends ModernButton {
     // Thiết lập tương tác chuột
     private void setupInteractions() {
         this.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (!isScanning) {
-                    isHovered = true;
-                    repaint();
-                }
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                isHovered = false;
-                repaint();
-            }
-            
             @Override
             public void mousePressed(MouseEvent e) {
                 if (!isScanning) {

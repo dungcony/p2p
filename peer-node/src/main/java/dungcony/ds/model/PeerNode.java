@@ -1,7 +1,7 @@
 package dungcony.ds.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.enums.MessageType;
 import dungcony.ds.interfaces.*;
@@ -17,9 +17,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Slf4j
 public class PeerNode {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PeerNode.class);
     public static final int DEFAULT_PORT = 5001;
     private static final long BOOTSTRAP_REFRESH_INTERVAL_MS = 5000;
     private static final String GROUP_CHAT_PREFIX = "group:";
@@ -96,7 +95,7 @@ public class PeerNode {
                         bootstrapGroupService,
                         this::notifyPeersChanged,
                         this::notifyMessage);
-        LOGGER.info("Đã khởi tạo PeerNode: id=" + localPeer.getId()
+        log.info("Đã khởi tạo PeerNode: id=" + localPeer.getId()
                 + ", tên=" + localPeer.getName()
                 + ", địaChỉ=" + localPeer.addressKey()
                 + ", bootstrap=" + (bootstrapClient == null ? "đã tắt" : bootstrapHost + ":" + bootstrapPort)
@@ -105,7 +104,7 @@ public class PeerNode {
 
     // Khởi động vai trò nhận tin của peer bằng TCPServer trên một thread riêng.
     public void start() {
-        LOGGER.info("Đang khởi động bộ lắng nghe TCP cho peer local " + localPeer.addressKey());
+        log.info("Đang khởi động bộ lắng nghe TCP cho peer local " + localPeer.addressKey());
         running = true;
         Thread serverThread = new Thread(tcpServer::listen, "PeerNode-TCPServer-" + localPeer.getPort());
         serverThread.setDaemon(true);
@@ -119,7 +118,7 @@ public class PeerNode {
 
     // Dừng TCPServer để peer ngừng nhận kết nối mới.
     public void stop() {
-        LOGGER.info("Đang dừng PeerNode " + localPeer.addressKey());
+        log.info("Đang dừng PeerNode " + localPeer.addressKey());
         running = false;
         if (bootstrapClient != null) {
             bootstrapClient.leave(localPeer.addressKey());
@@ -172,7 +171,7 @@ public class PeerNode {
         }
         for (PeerInfo historyPeer : messageHistoryService.getDirectConversationPeers()) {
             if (peerDirectoryService.isSelfPeer(historyPeer)) {
-                LOGGER.debug("Bỏ qua conversation trỏ về peer local. peerId=" + historyPeer.getId());
+                log.debug("Bỏ qua conversation trỏ về peer local. peerId=" + historyPeer.getId());
                 continue;
             }
             PeerInfo runtimePeer = peerDirectoryService.findKnownPeerById(historyPeer.getId());
@@ -182,10 +181,10 @@ public class PeerNode {
             } else if (!peerDirectoryService.isSelfPeer(runtimePeer)) {
                 conversations.put(historyPeer.getId(), runtimePeer);
             } else {
-                LOGGER.debug("Bỏ qua runtime peer local trong danh sách chat. peerId=" + runtimePeer.getId());
+                log.debug("Bỏ qua runtime peer local trong danh sách chat. peerId=" + runtimePeer.getId());
             }
         }
-        LOGGER.debug("Đã tạo danh sách chat. sốLượng=" + conversations.size());
+        log.debug("Đã tạo danh sách chat. sốLượng=" + conversations.size());
         return conversations.values();
     }
 
@@ -201,7 +200,7 @@ public class PeerNode {
             return false;
         }
         boolean available = bootstrapClient.listOrNull() != null;
-        LOGGER.info("Đã kiểm tra bootstrap. khảDụng=" + available);
+        log.info("Đã kiểm tra bootstrap. khảDụng=" + available);
         return available;
     }
 
@@ -214,14 +213,14 @@ public class PeerNode {
     // bootstrap.
     public BroadcastResult broadcastToNetwork(String content) {
         if (content == null || content.isBlank()) {
-            LOGGER.warn("Từ chối broadcast tin nhắn rỗng.");
+            log.warn("Từ chối broadcast tin nhắn rỗng.");
             return new BroadcastResult(0, 0, 0);
         }
 
         List<PeerInfo> targets = collectOnlineBroadcastTargets();
         int delivered = 0;
         int failed = 0;
-        LOGGER.info("Đang broadcast toàn mạng. sốPeerĐích=" + targets.size());
+        log.info("Đang broadcast toàn mạng. sốPeerĐích=" + targets.size());
         for (PeerInfo target : targets) {
             Message message = Message.broadcast(localPeer, target, content);
             boolean sent = messageSender.send(target, message);
@@ -231,12 +230,12 @@ public class PeerNode {
             } else {
                 failed++;
             }
-            LOGGER.info("Kết quả broadcast toàn mạng. receiver=" + target.addressKey()
+            log.info("Kết quả broadcast toàn mạng. receiver=" + target.addressKey()
                     + ", sent=" + sent);
         }
         notifyPeersChanged();
         BroadcastResult result = new BroadcastResult(targets.size(), delivered, failed);
-        LOGGER.info("Broadcast toàn mạng hoàn tất. total=" + result.totalTargets()
+        log.info("Broadcast toàn mạng hoàn tất. total=" + result.totalTargets()
                 + ", delivered=" + result.delivered()
                 + ", failed=" + result.failed());
         return result;
@@ -246,13 +245,13 @@ public class PeerNode {
     public void sendGroupMessage(String groupId, String content) {
         Group group = groupManager.getGroup(groupId);
         if (group == null) {
-            LOGGER.warn("Không thể gửi tin nhắn nhóm. Không tìm thấy nhóm: " + groupId);
+            log.warn("Không thể gửi tin nhắn nhóm. Không tìm thấy nhóm: " + groupId);
             return;
         }
         Message message = Mes.groupChat(localPeer, groupId, group.getName(), content);
         boolean anyDelivered = false;
         boolean anyPending = false;
-        LOGGER.info("Đang broadcast tin nhắn nhóm. messageId=" + message.getId()
+        log.info("Đang broadcast tin nhắn nhóm. messageId=" + message.getId()
                 + " tới nhóm=" + groupId + ", sốThànhViên=" + group.getMembers().size());
         for (PeerInfo member : group.getMembers()) {
             PeerInfo target = peerDirectoryService.findKnownPeerById(member.getId());
@@ -364,12 +363,12 @@ public class PeerNode {
         if (knownPeer == null || peerDirectoryService.isSelfPeer(knownPeer)) {
             return 0;
         }
-        LOGGER.info("Đang hỏi peer đã biết danh sách peer khác. peer=" + knownPeer.addressKey());
+        log.info("Đang hỏi peer đã biết danh sách peer khác. peer=" + knownPeer.addressKey());
         Message request = Message.peerListRequest(localPeer, knownPeer);
         Message response = messageSender.sendForResponse(knownPeer, request, MessageType.PEER_LIST_RESPONSE);
         if (response == null) {
             knownPeer.setOnline(false);
-            LOGGER.warn("Không nhận được PEER_LIST_RESPONSE từ peer=" + knownPeer.addressKey());
+            log.warn("Không nhận được PEER_LIST_RESPONSE từ peer=" + knownPeer.addressKey());
             notifyPeersChanged();
             return 0;
         }
@@ -384,7 +383,7 @@ public class PeerNode {
         List<PeerInfo> knownPeers = new ArrayList<>();
         knownPeers.add(localPeer);
         knownPeers.addAll(peerDirectoryService.list());
-        LOGGER.info("Trả danh sách peer cho request id=" + request.getId()
+        log.info("Trả danh sách peer cho request id=" + request.getId()
                 + ", sốPeer=" + knownPeers.size());
         return Message.peerListResponse(localPeer, request, knownPeers);
     }
@@ -398,7 +397,7 @@ public class PeerNode {
         sender.setOnline(true);
         peerDirectoryService.put(sender);
         int merged = peerDirectoryService.mergeKnownPeers(response.getPeers());
-        LOGGER.info("Đã xử lý PEER_LIST_RESPONSE. sender=" + sender.addressKey()
+        log.info("Đã xử lý PEER_LIST_RESPONSE. sender=" + sender.addressKey()
                 + ", sốPeerMerge=" + merged);
         notifyPeersChanged();
         return merged;
@@ -424,7 +423,7 @@ public class PeerNode {
         } else {
             messageHistoryService.addAndSave(sender, message);
         }
-        LOGGER.info("Đã nhận " + message.getType() + " và lưu message. id=" + message.getId()
+        log.info("Đã nhận " + message.getType() + " và lưu message. id=" + message.getId()
                 + ", từ=" + sender.addressKey());
         notifyPeersChanged();
         notifyMessage(message);
@@ -433,7 +432,7 @@ public class PeerNode {
     // Cập nhật group local khi nhận snapshot membership từ peer khác.
     public void onGroupMembersSync(Message message) {
         if (message == null || message.getGroupId() == null || message.getGroupId().isBlank()) {
-            LOGGER.warn("Bỏ qua GROUP_MEMBERS_SYNC vì thiếu groupId.");
+            log.warn("Bỏ qua GROUP_MEMBERS_SYNC vì thiếu groupId.");
             return;
         }
         PeerInfo sender = peerDirectoryService.mergeSenderFromKnownPeers(message);
@@ -450,7 +449,7 @@ public class PeerNode {
         }
         peerDirectoryService.mergeKnownPeers(members);
         Group group = groupManager.syncMembers(message.getGroupId(), message.getGroupName(), members);
-        LOGGER.info("Đã đồng bộ group membership từ peer. groupId=" + group.getGroupId()
+        log.info("Đã đồng bộ group membership từ peer. groupId=" + group.getGroupId()
                 + ", sốThànhViên=" + group.getMembers().size());
         notifyPeersChanged();
     }
@@ -459,7 +458,7 @@ public class PeerNode {
     public void markPeerOnline(Message message) {
         PeerInfo sender = peerDirectoryService.mergeSenderFromKnownPeers(message);
         peerDirectoryService.put(sender);
-        LOGGER.debug("Đã đánh dấu peer trực tuyến từ " + message.getType()
+        log.debug("Đã đánh dấu peer trực tuyến từ " + message.getType()
                 + ": " + sender.addressKey());
         notifyPeersChanged();
     }
@@ -471,24 +470,24 @@ public class PeerNode {
             return false;
         }
         if (message.getGroupId() != null && !message.getGroupId().isBlank()) {
-            LOGGER.warn("Chưa hỗ trợ retry thủ công cho tin nhắn nhóm. messageId=" + message.getId());
+            log.warn("Chưa hỗ trợ retry thủ công cho tin nhắn nhóm. messageId=" + message.getId());
             return false;
         }
         if (message.getStatus() != MessageStatus.FAILED && message.getStatus() != MessageStatus.PENDING) {
-            LOGGER.warn("Bỏ qua retry vì trạng thái hiện tại không cần retry. messageId="
+            log.warn("Bỏ qua retry vì trạng thái hiện tại không cần retry. messageId="
                     + message.getId() + ", status=" + message.getStatus());
             return false;
         }
         PeerInfo receiver = resolveMessageReceiver(message);
         if (receiver == null || peerDirectoryService.isSelfPeer(receiver)) {
-            LOGGER.warn("Không thể retry vì không xác định được receiver. messageId=" + message.getId());
+            log.warn("Không thể retry vì không xác định được receiver. messageId=" + message.getId());
             return false;
         }
         message.setStatus(MessageStatus.SENDING);
         messageHistoryService.updateAndSave(receiver, message);
         notifyMessage(message);
 
-        LOGGER.info("Đang retry tin nhắn. messageId=" + message.getId()
+        log.info("Đang retry tin nhắn. messageId=" + message.getId()
                 + ", receiver=" + receiver.addressKey());
         boolean sent = messageSender.send(receiver, message);
         receiver.setOnline(sent);
@@ -502,7 +501,7 @@ public class PeerNode {
         messageHistoryService.updateAndSave(receiver, message);
         notifyMessage(message);
         notifyPeersChanged();
-        LOGGER.info("Retry tin nhắn kết thúc. messageId=" + message.getId()
+        log.info("Retry tin nhắn kết thúc. messageId=" + message.getId()
                 + ", status=" + message.getStatus());
         return sent;
     }
@@ -546,7 +545,7 @@ public class PeerNode {
                 Thread.currentThread().interrupt();
                 return;
             } catch (RuntimeException e) {
-                LOGGER.error("Vòng refresh bootstrap lỗi: " + e.getMessage());
+                log.error("Vòng refresh bootstrap lỗi: " + e.getMessage());
             }
         }
     }
@@ -596,12 +595,12 @@ public class PeerNode {
     // Lưu group message offline lên bootstrap theo receiverId của từng member.
     private boolean storeGroupOfflineIfPossible(Message message, PeerInfo member) {
         if (bootstrapClient == null) {
-            LOGGER.warn("Không thể lưu tin nhắn nhóm offline vì bootstrap đang tắt. member="
+            log.warn("Không thể lưu tin nhắn nhóm offline vì bootstrap đang tắt. member="
                     + member.getId());
             return false;
         }
         boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
-        LOGGER.info("Đã lưu fallback tin nhóm offline=" + stored
+        log.info("Đã lưu fallback tin nhóm offline=" + stored
                 + ", messageId=" + message.getId()
                 + ", groupId=" + message.getGroupId()
                 + ", receiverId=" + member.getId());
@@ -613,7 +612,7 @@ public class PeerNode {
         if (group == null) {
             return;
         }
-        LOGGER.info("Đang sync membership nhóm trực tiếp. groupId=" + group.getGroupId()
+        log.info("Đang sync membership nhóm trực tiếp. groupId=" + group.getGroupId()
                 + ", sốThànhViên=" + group.getMembers().size());
         for (PeerInfo member : group.getMembers()) {
             PeerInfo target = peerDirectoryService.findKnownPeerById(member.getId());
@@ -628,7 +627,7 @@ public class PeerNode {
             boolean sent = messageSender.send(target, syncMessage);
             target.setOnline(sent);
             member.setOnline(sent);
-            LOGGER.info("Kết quả sync membership trực tiếp. groupId=" + group.getGroupId()
+            log.info("Kết quả sync membership trực tiếp. groupId=" + group.getGroupId()
                     + ", member=" + member.getId() + ", sent=" + sent);
         }
     }
@@ -636,12 +635,12 @@ public class PeerNode {
     // Lưu fallback offline cho retry tin 1-1 nếu bootstrap đang sẵn sàng.
     private boolean storeDirectOfflineIfPossible(Message message) {
         if (bootstrapClient == null) {
-            LOGGER.warn("Không thể lưu fallback retry vì bootstrap đang tắt. messageId="
+            log.warn("Không thể lưu fallback retry vì bootstrap đang tắt. messageId="
                     + message.getId());
             return false;
         }
         boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
-        LOGGER.info("Đã lưu fallback retry offline=" + stored
+        log.info("Đã lưu fallback retry offline=" + stored
                 + ", messageId=" + message.getId());
         return stored;
     }

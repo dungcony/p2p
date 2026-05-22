@@ -1,16 +1,15 @@
 package dungcony.ds.dtos;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.enums.MessageType;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 
+@Slf4j
 public class MessageRecord {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageRecord.class);
 private String messageId;
     private String conversationPeerId;
     private String conversationPeerName;
@@ -80,7 +79,7 @@ private String messageId;
         try {
             return MessageStatus.valueOf(status);
         } catch (IllegalArgumentException e) {
-            LOGGER.warn("Trạng thái tin nhắn trong JSON không hợp lệ. messageId="
+            log.warn("Trạng thái tin nhắn trong JSON không hợp lệ. messageId="
                     + messageId + ", status=" + status + ". Dùng SENT.");
             return MessageStatus.SENT;
         }

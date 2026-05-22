@@ -1,14 +1,13 @@
 package dungcony.ds.ui;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import java.awt.*;
 
+@Slf4j
 public class PeerPortDialog extends JDialog {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(PeerPortDialog.class);
 private final JTextField portField;
     private final int bootstrapPort;
     private boolean confirmed;
@@ -62,10 +61,10 @@ private final JTextField portField;
             }
             this.peerPort = port;
             this.confirmed = true;
-            LOGGER.info("Đã xác nhận cổng peer. cổng=" + peerPort);
+            log.info("Đã xác nhận cổng peer. cổng=" + peerPort);
             dispose();
         } catch (NumberFormatException e) {
-            LOGGER.warn("Đã từ chối cổng peer: " + portField.getText());
+            log.warn("Đã từ chối cổng peer: " + portField.getText());
             JOptionPane.showMessageDialog(this,
                     "Cổng phải là số từ 1 đến 65535.",
                     "Cổng peer không hợp lệ",

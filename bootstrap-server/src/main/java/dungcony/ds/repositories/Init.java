@@ -1,14 +1,14 @@
 package dungcony.ds.repositories;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+@Slf4j
 public class Init {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Init.class);
     private final Conn conn;
 
     public Init(Conn conn) {
@@ -19,7 +19,7 @@ public class Init {
     public void initializeSchema() {
         try (Connection connection = conn.getConnection();
              Statement statement = connection.createStatement()) {
-            LOGGER.info("Đang khởi tạo schema bootstrap nếu còn thiếu. url={}", conn.getJdbcUrl());
+            log.info("Đang khởi tạo schema bootstrap nếu còn thiếu. url={}", conn.getJdbcUrl());
             statement.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS users (
                         user_id TEXT PRIMARY KEY,
@@ -57,9 +57,9 @@ public class Init {
                         delivered INTEGER NOT NULL DEFAULT 0
                     )
                     """);
-            LOGGER.info("Schema SQLite bootstrap đã sẵn sàng.");
+            log.info("Schema SQLite bootstrap đã sẵn sàng.");
         } catch (SQLException e) {
-            LOGGER.error("Không thể khởi tạo schema database bootstrap.", e);
+            log.error("Không thể khởi tạo schema database bootstrap.", e);
             throw new IllegalStateException("Không thể khởi tạo database bootstrap", e);
         }
     }

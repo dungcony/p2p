@@ -1,25 +1,17 @@
 package dungcony.ds.ui.components.chatPage;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.ui.components.ChatProfile;
-import dungcony.ds.ui.components.ModernButton;
 import dungcony.ds.ui.utils.ColorPalette;
-import org.kordamp.ikonli.fontawesome.FontAwesome;
-import org.kordamp.ikonli.swing.FontIcon;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionListener;
 
 // Component tiêu đề hiển thị thông tin người dùng được chọn
+@Slf4j
 public class ChatHeader extends JPanel {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChatHeader.class);
-// Nút quay lại ở chế độ mobile
-    private ModernButton backButton;
     // Nhãn tên người dùng
     private JLabel userNameLabel;
     // Component ChatProfile bao ngoài
@@ -29,44 +21,34 @@ public class ChatHeader extends JPanel {
     // Nhãn trạng thái online/offline
     private JLabel statusLabel;
 
-
-    private boolean isMobileMode = false;
-
     // Khởi tạo ChatHeader
     // @param userName Tên người dùng
-    public ChatHeader(String userName, String ipAddress) {
+    public ChatHeader(String userName) {
         try {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-            initializeComponents(userName, ipAddress);
+            initializeComponents(userName);
         } catch (Exception e) {
-            LOGGER.error("Không thể khởi tạo header chat\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể khởi tạo header chat\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
     // Khởi tạo các thành phần
     // @param userName Tên người dùng
-    private void initializeComponents(String userName, String ipAdress) {
+    private void initializeComponents(String userName) {
         try {
             // Panel thông tin
             userInformation = createDeviceInfoPanel(userName, false);
             chatProfile = new ChatProfile(10, userInformation, ColorPalette.PANEL_BACKGROUND);
             userInformation.setBackground(Color.white);
 
-            // Nút quay lại
-            backButton = new ModernButton("", Color.WHITE, Color.WHITE);
-            backButton.setIcon(FontIcon.of(FontAwesome.ARROW_LEFT, 20));
-            backButton.setBorder(new EmptyBorder(2, 10, 0, 0));
-            backButton.setVisible(false); // Ẩn lúc đầu
-
-            add(backButton);
             add(chatProfile);
             setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ColorPalette.SECONDARY_TEXT.brighter()));
 
             setBackground(Color.WHITE);
         } catch (Exception e) {
-            LOGGER.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -76,8 +58,8 @@ public class ChatHeader extends JPanel {
         try {
             userNameLabel.setText(userName);
         } catch (Exception e) {
-            LOGGER.error("Không thể cập nhật tên người dùng\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể cập nhật tên người dùng\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -93,8 +75,8 @@ public class ChatHeader extends JPanel {
             statusLabel.setText("● Ngoại tuyến");
             statusLabel.setForeground(ColorPalette.ERROR);
         } catch (Exception e) {
-            LOGGER.error("Không thể cập nhật trạng thái\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể cập nhật trạng thái\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -104,8 +86,8 @@ public class ChatHeader extends JPanel {
             statusLabel.setText("Nhóm");
             statusLabel.setForeground(ColorPalette.PRIMARY);
         } catch (Exception e) {
-            LOGGER.error("Không thể cập nhật trạng thái nhóm\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể cập nhật trạng thái nhóm\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -150,44 +132,9 @@ public class ChatHeader extends JPanel {
 
             return panel;
         } catch (Exception e) {
-            LOGGER.error("Không thể tạo panel thông tin thiết bị\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể tạo panel thông tin thiết bị\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
             return new JPanel();
-        }
-    }
-
-    
-    
-    public void addBackFunctinality(ActionListener backFunctionality) {
-        try {
-            backButton.addActionListener(backFunctionality);
-        } catch (Exception e) {
-            LOGGER.error("Không thể thêm chức năng quay lại\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
-        }
-    }
-
-    
-    // Gọi khi chế độ mobile thay đổi
-    public void setMobileMode(boolean isMobile) {
-        try {
-            this.isMobileMode = isMobile;
-            backButton.setVisible(isMobile);
-            revalidate();
-            repaint();
-        } catch (Exception e) {
-            LOGGER.error("Không thể thiết lập chế độ mobile\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
-        }
-    }
-
-    public JButton getBackButton() {
-        try {
-            return backButton;
-        } catch (Exception e) {
-            LOGGER.error("Không thể lấy nút quay lại\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
-            return null;
         }
     }
 }

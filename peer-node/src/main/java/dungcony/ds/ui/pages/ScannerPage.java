@@ -1,8 +1,8 @@
 package dungcony.ds.ui.pages;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.App;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.ui.components.addFriendPage.HeadingPanel;
@@ -19,9 +19,8 @@ import java.awt.*;
 // @see ScanButton
 // @see FoundDevices
 // @author Shoyeb Ansari
+@Slf4j
 public class ScannerPage extends JPanel {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScannerPage.class);
 // Panel tiêu đề
     private HeadingPanel headingPanel;
     // Nút quét
@@ -66,7 +65,7 @@ public class ScannerPage extends JPanel {
             try {
                 scanNearbyUsers();
             } catch (InterruptedException e1) {
-                LOGGER.error("Chi tiết lỗi", e1);
+                log.error("Chi tiết lỗi", e1);
             }
         });
         this.add(topPanel, BorderLayout.NORTH);
@@ -74,7 +73,7 @@ public class ScannerPage extends JPanel {
     }
     
     private void scanNearbyUsers() throws InterruptedException {
-        LOGGER.info("UI yêu cầu quét peer gần đây.");
+        log.info("UI yêu cầu quét peer gần đây.");
         // Hiển thị loading ngay lập tức
         foundDevices.setLoadingPanel();
         
@@ -82,7 +81,7 @@ public class ScannerPage extends JPanel {
             @Override
             protected String[] doInBackground() throws Exception {
                 if (App.peerNode == null) {
-                    LOGGER.warn("Bỏ qua quét vì App.peerNode đang null.");
+                    log.warn("Bỏ qua quét vì App.peerNode đang null.");
                     return new String[0];
                 }
                 return App.peerNode.discoverPeersOnLocalNetwork().stream()
@@ -94,10 +93,10 @@ public class ScannerPage extends JPanel {
             protected void done() {
                 try {
                     String[] foundDevicesList = get();
-                    LOGGER.info("UI quét xong. tìm thấy=" + foundDevicesList.length);
+                    log.info("UI quét xong. tìm thấy=" + foundDevicesList.length);
                     foundDevices.setFoundDevices(foundDevicesList);
                 } catch (Exception e) {
-                    LOGGER.error("Chi tiết lỗi", e);
+                    log.error("Chi tiết lỗi", e);
                     // Xử lý lỗi
                 }
             }

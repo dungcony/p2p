@@ -1,8 +1,8 @@
 package dungcony.ds.ui.pages;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.ui.components.ModernScrollBarUI;
 import dungcony.ds.ui.components.addFriendPage.BottomPanel;
 import dungcony.ds.ui.components.addFriendPage.CenterPanel;
@@ -14,10 +14,8 @@ import java.awt.*;
 
 // Trang mở chat trực tiếp bằng địa chỉ IP
 // @author Shoyeb Ansari
+@Slf4j
 public class AddFriendPage extends JPanel {
-
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(AddFriendPage.class);
 // Panel trên cùng chứa tiêu đề
     private HeadingPanel topPanel;
     // Panel giữa chứa logo, địa chỉ IP của người dùng hiện tại và chức năng sao chép
@@ -89,12 +87,12 @@ public class AddFriendPage extends JPanel {
                             scrollPane.revalidate();
                         });
                     } catch (Exception e) {
-                        LOGGER.error("Chi tiết lỗi", e);
+                        log.error("Chi tiết lỗi", e);
                     }
                 }
             });
         } catch (Exception e) {
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Chi tiết lỗi", e);
         }
     }
     
@@ -111,7 +109,7 @@ public class AddFriendPage extends JPanel {
             try {
                 return getPreferredSize();
             } catch (Exception e) {
-                LOGGER.error("Chi tiết lỗi", e);
+                log.error("Chi tiết lỗi", e);
                 return null;
             }
         }
@@ -121,7 +119,7 @@ public class AddFriendPage extends JPanel {
             try {
                 return 16;
             } catch (Exception e) {
-                LOGGER.error("Chi tiết lỗi", e);
+                log.error("Chi tiết lỗi", e);
                 return 0;
             }
         }
@@ -131,7 +129,7 @@ public class AddFriendPage extends JPanel {
             try {
                 return 100;
             } catch (Exception e) {
-                LOGGER.error("Chi tiết lỗi", e);
+                log.error("Chi tiết lỗi", e);
                 return 0;
             }
         }
@@ -141,7 +139,7 @@ public class AddFriendPage extends JPanel {
             try {
                 return true;
             } catch (Exception e) {
-                LOGGER.error("Chi tiết lỗi", e);
+                log.error("Chi tiết lỗi", e);
                 return false;
             }
         }
@@ -151,7 +149,7 @@ public class AddFriendPage extends JPanel {
             try {
                 return false;
             } catch (Exception e) {
-                LOGGER.error("Chi tiết lỗi", e);
+                log.error("Chi tiết lỗi", e);
                 return false;
             }
         }

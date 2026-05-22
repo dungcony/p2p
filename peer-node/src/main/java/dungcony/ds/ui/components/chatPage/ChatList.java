@@ -1,8 +1,8 @@
 package dungcony.ds.ui.components.chatPage;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.App;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
@@ -24,9 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 public class ChatList extends JPanel {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChatList.class);
 private static final Color ONLINE_COLOR = new Color(46, 125, 50);
     private static final Color OFFLINE_COLOR = new Color(211, 47, 47);
 
@@ -47,8 +46,8 @@ private static final Color ONLINE_COLOR = new Color(46, 125, 50);
             add(scrollPane, BorderLayout.CENTER);
             renderFriends();
         } catch (Exception e) {
-            LOGGER.error("Không thể khởi tạo danh sách chat\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể khởi tạo danh sách chat\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -109,8 +108,8 @@ private static final Color ONLINE_COLOR = new Color(46, 125, 50);
                 devicesContainer.revalidate();
                 devicesContainer.repaint();
             } catch (Exception e) {
-                LOGGER.error("Không thể hiển thị danh sách chat\nChi tiết lỗi: " + e.getMessage());
-                LOGGER.error("Chi tiết lỗi", e);
+                log.error("Không thể hiển thị danh sách chat\nChi tiết lỗi: " + e.getMessage());
+                log.error("Chi tiết lỗi", e);
             }
         });
     }
@@ -270,7 +269,7 @@ private static final Color ONLINE_COLOR = new Color(46, 125, 50);
                 try {
                     showCreateGroupDialog(get());
                 } catch (Exception e) {
-                    LOGGER.error("Không thể mở hộp thoại tạo nhóm: " + e.getMessage());
+                    log.error("Không thể mở hộp thoại tạo nhóm: " + e.getMessage());
                 } finally {
                     createGroupButton.setEnabled(true);
                 }
@@ -322,7 +321,7 @@ private static final Color ONLINE_COLOR = new Color(46, 125, 50);
                             result.failed() == 0 ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE
                     );
                 } catch (Exception e) {
-                    LOGGER.error("Không thể broadcast toàn mạng: " + e.getMessage());
+                    log.error("Không thể broadcast toàn mạng: " + e.getMessage());
                     JOptionPane.showMessageDialog(ChatList.this, "Không thể broadcast toàn mạng.", "Broadcast",
                             JOptionPane.ERROR_MESSAGE);
                 } finally {
@@ -348,7 +347,7 @@ private static final Color ONLINE_COLOR = new Color(46, 125, 50);
                 try {
                     showAddMembersDialog(group, get());
                 } catch (Exception e) {
-                    LOGGER.error("Không thể mở hộp thoại thêm peer vào nhóm: " + e.getMessage());
+                    log.error("Không thể mở hộp thoại thêm peer vào nhóm: " + e.getMessage());
                 }
             }
         }.execute();
@@ -435,7 +434,7 @@ private static final Color ONLINE_COLOR = new Color(46, 125, 50);
         }
 
         Group group = App.peerNode.createGroup(groupNameField.getText(), selectedPeers);
-        LOGGER.info("UI đã tạo nhóm. groupId=" + group.getGroupId()
+        log.info("UI đã tạo nhóm. groupId=" + group.getGroupId()
                 + ", sốThànhViên=" + group.getMembers().size());
         renderFriends();
     }
@@ -489,7 +488,7 @@ private static final Color ONLINE_COLOR = new Color(46, 125, 50);
         }
 
         App.peerNode.addMembersToGroup(group.getGroupId(), selectedPeers);
-        LOGGER.info("UI đã thêm peer vào nhóm. groupId=" + group.getGroupId()
+        log.info("UI đã thêm peer vào nhóm. groupId=" + group.getGroupId()
                 + ", sốPeerThêm=" + selectedPeers.size());
         renderFriends();
     }
@@ -591,7 +590,7 @@ private static final Color ONLINE_COLOR = new Color(46, 125, 50);
                     "Không tìm thấy peer",
                     JOptionPane.WARNING_MESSAGE
             );
-            LOGGER.warn("Đã chặn tạo nhóm vì bootstrap không khả dụng và có peer ngoại tuyến: "
+            log.warn("Đã chặn tạo nhóm vì bootstrap không khả dụng và có peer ngoại tuyến: "
                     + offlinePeers);
             return false;
         }

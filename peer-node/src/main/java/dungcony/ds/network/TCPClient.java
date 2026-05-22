@@ -1,8 +1,8 @@
 package dungcony.ds.network;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
@@ -15,9 +15,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+@Slf4j
 public class TCPClient {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(TCPClient.class);
 private static final int CONNECT_TIMEOUT_MS = 2000;
     private static final int READ_TIMEOUT_MS = 3000;
     private final MessageProtocol protocol = new MessageProtocol();
@@ -26,7 +25,7 @@ private static final int CONNECT_TIMEOUT_MS = 2000;
     public boolean send(PeerInfo peerInfo, Message message) {
         Message response = sendForResponse(peerInfo, message);
         boolean validAck = response != null && response.getType() == MessageType.ACK && message.getId().equals(response.getId());
-        LOGGER.debug("Đã nhận phản hồi TCP. peer=" + peerInfo.addressKey()
+        log.debug("Đã nhận phản hồi TCP. peer=" + peerInfo.addressKey()
                 + ", messageId=" + message.getId() + ", validAck=" + validAck);
         return validAck;
     }
@@ -34,31 +33,31 @@ private static final int CONNECT_TIMEOUT_MS = 2000;
     // Mở kết nối TCP tới peer đích, gửi một message và trả về response raw để xử lý các request không phải ACK.
     public Message sendForResponse(PeerInfo peerInfo, Message message) {
         try (Socket socket = new Socket()) {
-            LOGGER.debug("Bắt đầu kết nối TCP: " + peerInfo.addressKey()
+            log.debug("Bắt đầu kết nối TCP: " + peerInfo.addressKey()
                     + ", messageId=" + message.getId());
             socket.connect(new InetSocketAddress(peerInfo.getHost(), peerInfo.getPort()), CONNECT_TIMEOUT_MS);
             socket.setSoTimeout(READ_TIMEOUT_MS);
-            LOGGER.debug("TCP đã kết nối: " + peerInfo.addressKey());
+            log.debug("TCP đã kết nối: " + peerInfo.addressKey());
 
             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
 
             writer.println(protocol.serialize(message));
-            LOGGER.debug("Đã gửi payload TCP. messageId=" + message.getId());
+            log.debug("Đã gửi payload TCP. messageId=" + message.getId());
             String response = reader.readLine();
             if (response == null || response.isBlank()) {
-                LOGGER.warn("Phản hồi TCP rỗng. peer=" + peerInfo.addressKey()
+                log.warn("Phản hồi TCP rỗng. peer=" + peerInfo.addressKey()
                         + ", messageId=" + message.getId());
                 return null;
             }
 
             Message decoded = protocol.deserialize(response);
-            LOGGER.debug("Đã nhận phản hồi TCP. peer=" + peerInfo.addressKey()
+            log.debug("Đã nhận phản hồi TCP. peer=" + peerInfo.addressKey()
                     + ", messageId=" + message.getId()
                     + ", responseType=" + (decoded == null ? "null" : decoded.getType()));
             return decoded;
         } catch (IOException e) {
-            LOGGER.warn("Gửi TCP thất bại. peer=" + peerInfo.addressKey()
+            log.warn("Gửi TCP thất bại. peer=" + peerInfo.addressKey()
                     + ", messageId=" + message.getId() + ", lỗi=" + e.getMessage());
             return null;
         }

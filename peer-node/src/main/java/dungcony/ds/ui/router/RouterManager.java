@@ -1,17 +1,16 @@
 package dungcony.ds.ui.router;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
 // Lớp singleton quản lý điều hướng trang, giúp tạo trải nghiệm Single Page Application.
 // @author Shoyeb Ansari
+@Slf4j
 public class RouterManager {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(RouterManager.class);
 // Đối tượng duy nhất trong toàn bộ ứng dụng
     private static RouterManager instance;
     // Panel nội dung của ứng dụng
@@ -63,7 +62,7 @@ public class RouterManager {
             cardLayout.show(contentPanel, routeName);
             currentRoute = routeName;
         } else {
-            LOGGER.error("Không tìm thấy route: " + routeName);
+            log.error("Không tìm thấy route: " + routeName);
         }
     }
 

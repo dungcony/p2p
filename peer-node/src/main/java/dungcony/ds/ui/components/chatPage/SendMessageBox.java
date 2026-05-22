@@ -1,8 +1,8 @@
 package dungcony.ds.ui.components.chatPage;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.App;
 import dungcony.ds.ui.components.ModernButton;
 import dungcony.ds.ui.components.RoundedBorder;
@@ -16,9 +16,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 // Hộp gửi tin nhắn gồm ô nhập và nút gửi
+@Slf4j
 class SendMessageBox extends JPanel {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(SendMessageBox.class);
 // Ô nhập tin nhắn
     private SendMessageTextField messageField;
     // Nút gửi tin nhắn
@@ -33,8 +32,8 @@ class SendMessageBox extends JPanel {
             setupLayout();
             setupEventHandlers();
         } catch (Exception e) {
-            LOGGER.error("Không thể khởi tạo ô gửi tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể khởi tạo ô gửi tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -61,8 +60,8 @@ class SendMessageBox extends JPanel {
             sendButton.setPreferredSize(new Dimension(50, 44));
             sendButton.setBorder(new RoundedBorder(22, ColorPalette.PRIMARY));
         } catch (Exception e) {
-            LOGGER.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể khởi tạo component\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -72,8 +71,8 @@ class SendMessageBox extends JPanel {
             add(messageField, BorderLayout.CENTER);
             add(sendButton, BorderLayout.EAST);
         } catch (Exception e) {
-            LOGGER.error("Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể thiết lập bố cục\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -85,8 +84,8 @@ class SendMessageBox extends JPanel {
                 try {
                     sendMessage();
                 } catch (Exception ex) {
-                    LOGGER.error("Không thể xử lý nút gửi\nChi tiết lỗi: " + ex.getMessage());
-                    LOGGER.error("Chi tiết lỗi", ex);
+                    log.error("Không thể xử lý nút gửi\nChi tiết lỗi: " + ex.getMessage());
+                    log.error("Chi tiết lỗi", ex);
                 }
             });
 
@@ -95,13 +94,13 @@ class SendMessageBox extends JPanel {
                 try {
                     sendMessage();
                 } catch (Exception ex) {
-                    LOGGER.error("Không thể xử lý phím Enter\nChi tiết lỗi: " + ex.getMessage());
-                    LOGGER.error("Chi tiết lỗi", ex);
+                    log.error("Không thể xử lý phím Enter\nChi tiết lỗi: " + ex.getMessage());
+                    log.error("Chi tiết lỗi", ex);
                 }
             });
         } catch (Exception e) {
-            LOGGER.error("Không thể thiết lập xử lý sự kiện\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể thiết lập xử lý sự kiện\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 
@@ -114,14 +113,14 @@ class SendMessageBox extends JPanel {
                 String ip = parentScreen.getIpAddress();
                 String groupId = parentScreen.getGroupId();
                 if (!parentScreen.isGroupChat() && (ip == null || ip.isBlank())) {
-                    LOGGER.warn("Bỏ qua gửi tin vì chưa chọn peer.");
+                    log.warn("Bỏ qua gửi tin vì chưa chọn peer.");
                     return;
                 }
                 if (!parentScreen.isGroupChat() && App.peerNode != null && App.peerNode.isSelfAddress(ip)) {
-                    LOGGER.warn("Bỏ qua gửi tin vì peer được chọn là peer hiện tại: " + ip);
+                    log.warn("Bỏ qua gửi tin vì peer được chọn là peer hiện tại: " + ip);
                     return;
                 }
-                LOGGER.info("UI yêu cầu gửi tin. đích=" + (parentScreen.isGroupChat() ? groupId : ip)
+                log.info("UI yêu cầu gửi tin. đích=" + (parentScreen.isGroupChat() ? groupId : ip)
                         + ", độDài=" + messageText.length());
 
                 // Xóa ô nhập ngay để cải thiện trải nghiệm
@@ -143,11 +142,11 @@ class SendMessageBox extends JPanel {
                                     App.peerNode.sendMessage(messageText, ip);
                                 }
                             } else {
-                                LOGGER.warn("Không thể gửi tin vì App.peerNode đang null.");
+                                log.warn("Không thể gửi tin vì App.peerNode đang null.");
                             }
                         } catch (Exception ex) {
-                            LOGGER.error("Không thể gửi tin trong nền\nChi tiết lỗi: " + ex.getMessage());
-                            LOGGER.error("Chi tiết lỗi", ex);
+                            log.error("Không thể gửi tin trong nền\nChi tiết lỗi: " + ex.getMessage());
+                            log.error("Chi tiết lỗi", ex);
                         }
                         return null;
                     }
@@ -158,8 +157,8 @@ class SendMessageBox extends JPanel {
                             // Chạy trên EDT khi tác vụ nền hoàn thành
                             get(); // Check if any exception occurred
                         } catch (Exception e) {
-                            LOGGER.error("Không thể hoàn tất gửi tin\nChi tiết lỗi: " + e.getMessage());
-                            LOGGER.error("Chi tiết lỗi", e);
+                            log.error("Không thể hoàn tất gửi tin\nChi tiết lỗi: " + e.getMessage());
+                            log.error("Chi tiết lỗi", e);
                         } finally {
                             // Bật lại các component UI
                             sendButton.setEnabled(true);
@@ -170,11 +169,11 @@ class SendMessageBox extends JPanel {
                 }.execute();
             }
             else {
-                LOGGER.debug("Đã bỏ qua tin nhắn rỗng.");
+                log.debug("Đã bỏ qua tin nhắn rỗng.");
             }
         } catch (Exception e) {
-            LOGGER.error("Không thể gửi tin nhắn\nChi tiết lỗi: " + e.getMessage());
-            LOGGER.error("Chi tiết lỗi", e);
+            log.error("Không thể gửi tin nhắn\nChi tiết lỗi: " + e.getMessage());
+            log.error("Chi tiết lỗi", e);
         }
     }
 }

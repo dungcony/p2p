@@ -1,8 +1,8 @@
 package dungcony.ds.repositories;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.entities.GroupEntity;
 
 import java.sql.Connection;
@@ -13,10 +13,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@Slf4j
 public record GroupRepo(Conn conn) {
-
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(GroupRepo.class);
 // Tạo/cập nhật metadata group trong bảng groups.
     public void upsert(GroupEntity groupEntity) {
         try (Connection connection = conn.getConnection();
@@ -31,9 +29,9 @@ public record GroupRepo(Conn conn) {
             statement.setString(3, groupEntity.getCreatedBy());
             statement.setLong(4, groupEntity.getCreatedAt());
             statement.executeUpdate();
-            LOGGER.info("Đã lưu nhóm id=" + groupEntity.getGroupId());
+            log.info("Đã lưu nhóm id=" + groupEntity.getGroupId());
         } catch (SQLException e) {
-            LOGGER.error("Không thể lưu nhóm: " + e.getMessage());
+            log.error("Không thể lưu nhóm: " + e.getMessage());
         }
     }
 
@@ -56,7 +54,7 @@ public record GroupRepo(Conn conn) {
                 ));
             }
         } catch (SQLException e) {
-            LOGGER.error("Không thể liệt kê nhóm: " + e.getMessage());
+            log.error("Không thể liệt kê nhóm: " + e.getMessage());
         }
         return groups;
     }

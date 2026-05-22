@@ -1,8 +1,8 @@
 package dungcony.ds.repositories;
 
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import dungcony.ds.entities.GroupMemberEntity;
 
 import java.sql.Connection;
@@ -13,10 +13,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@Slf4j
 public record GroupMemberRepo(Conn conn) {
-
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(GroupMemberRepo.class);
 // Thêm thành viên vào group_members.
     public void add(GroupMemberEntity memberEntity) {
         try (Connection connection = conn.getConnection();
@@ -30,10 +28,10 @@ public record GroupMemberRepo(Conn conn) {
             statement.setString(2, memberEntity.getUserId());
             statement.setLong(3, memberEntity.getJoinedAt());
             statement.executeUpdate();
-            LOGGER.info("Đã thêm thành viên nhóm groupId=" + memberEntity.getGroupId()
+            log.info("Đã thêm thành viên nhóm groupId=" + memberEntity.getGroupId()
                     + ", userId=" + memberEntity.getUserId());
         } catch (SQLException e) {
-            LOGGER.error("Không thể thêm thành viên nhóm: " + e.getMessage());
+            log.error("Không thể thêm thành viên nhóm: " + e.getMessage());
         }
     }
 
@@ -47,10 +45,10 @@ public record GroupMemberRepo(Conn conn) {
             statement.setString(1, groupId);
             statement.setString(2, userId);
             int deleted = statement.executeUpdate();
-            LOGGER.info("Đã xóa thành viên nhóm groupId=" + groupId
+            log.info("Đã xóa thành viên nhóm groupId=" + groupId
                     + ", userId=" + userId + ", đãXóa=" + deleted);
         } catch (SQLException e) {
-            LOGGER.error("Không thể xóa thành viên nhóm: " + e.getMessage());
+            log.error("Không thể xóa thành viên nhóm: " + e.getMessage());
         }
     }
 
@@ -75,7 +73,7 @@ public record GroupMemberRepo(Conn conn) {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Không thể liệt kê thành viên nhóm: " + e.getMessage());
+            log.error("Không thể liệt kê thành viên nhóm: " + e.getMessage());
         }
         return members;
     }

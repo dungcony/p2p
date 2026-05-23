@@ -16,8 +16,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Slf4j
+// Service điều phối đăng ký peer, heartbeat bootstrap, đồng bộ peer, group và offline message
 public class BootstrapSyncImpl implements BootstrapSyncService {
-private static final String GROUP_CHAT_PREFIX = "group:";
+    private static final String GROUP_CHAT_PREFIX = "group:";
 
     private final BootstrapClient bootstrapClient;
     private final PeerInfo localPeer;
@@ -28,7 +29,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
     private final Runnable peerChangeNotifier;
     private final Consumer<Message> messageNotifier;
 
-    // Khởi tạo service xử lý REGISTER/JOIN/offline/group sync với bootstrap.
+    // Khởi tạo service xử lý REGISTER/JOIN/offline/group sync với bootstrap
     public BootstrapSyncImpl(BootstrapClient bootstrapClient, PeerInfo localPeer,
                              PeerDirectoryService peerDirectoryService,
                              MessageHistoryService messageHistoryService,
@@ -46,7 +47,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
         this.messageNotifier = messageNotifier;
     }
 
-    // Đăng ký user với bootstrap, join vào mạng, nạp peer/group và offline message.
+    // Đăng ký user với bootstrap, join vào mạng, nạp peer/group và offline message
     @Override
     public void registerAndJoinBootstrap() {
         log.info("Đang đăng ký peer local với bootstrap. peerId={}, tên={}", localPeer.getId(), localPeer.getName());
@@ -64,7 +65,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
         log.info("Đồng bộ bootstrap xong. peerThêm={}, knownPeers={}", added, peerDirectoryService.size());
     }
 
-    // Làm mới danh sách peer online và group từ bootstrap-server.
+    // Làm mới danh sách peer online và group từ bootstrap-server
     @Override
     public void refreshFromBootstrap() {
         JoinResponse joinResponse = bootstrapClient.joinOrNull(localPeer);
@@ -80,14 +81,14 @@ private static final String GROUP_CHAT_PREFIX = "group:";
         log.info("Refresh bootstrap xong. peerTrựcTuyến={}, knownPeers={}", onlineCount, peerDirectoryService.size());
     }
 
-    // Load group membership từ bootstrap và cache lại vào groups.json của profile hiện tại.
+    // Load group membership từ bootstrap và cache lại vào groups.json của profile hiện tại
     private void syncGroupsFromBootstrap() {
         List<Group> joinedGroups = bootstrapGroupService.fetchJoinedGroups(peerDirectoryService.list());
         groupManager.replaceAll(joinedGroups);
         log.info("Đồng bộ nhóm bootstrap xong. nhómĐãThamGia={}", joinedGroups.size());
     }
 
-    // Đưa các tin offline bootstrap trả về vào history nếu tìm được peer gửi trong danh sách đã biết.
+    // Đưa các tin offline bootstrap trả về vào history nếu tìm được peer gửi trong danh sách đã biết
     private void handleOfflineMessages(JoinResponse joinResponse) {
         for (OfflineMessage offlineMessage : joinResponse.getOfflineMessages()) {
             PeerInfo sender = peerDirectoryService.findKnownPeerById(offlineMessage.senderId());
@@ -120,7 +121,7 @@ private static final String GROUP_CHAT_PREFIX = "group:";
         }
     }
 
-    // Tạo conversation peer đại diện group để message offline group được lưu đúng history.
+    // Tạo conversation peer đại diện group để message offline group được lưu đúng history
     private PeerInfo groupConversationPeer(String groupId) {
         Group group = groupManager.getGroup(groupId);
         String name = group == null ? groupId : group.getName();

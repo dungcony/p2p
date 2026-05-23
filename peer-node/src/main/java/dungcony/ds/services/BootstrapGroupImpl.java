@@ -15,15 +15,18 @@ import java.util.Collection;
 import java.util.List;
 
 @Slf4j
+// Service đồng bộ group chat với bootstrap-server gồm tạo group, thêm member và nạp group đã tham gia
 public class BootstrapGroupImpl implements BootstrapGroupService {
-private final BootstrapClient bootstrapClient;
+    private final BootstrapClient bootstrapClient;
     private final PeerInfo localPeer;
 
+    // Khởi tạo service group bootstrap với client tracker và peer local
     public BootstrapGroupImpl(BootstrapClient bootstrapClient, PeerInfo localPeer) {
         this.bootstrapClient = bootstrapClient;
         this.localPeer = localPeer;
     }
 
+    // Đẩy group mới lên bootstrap để peer khác có thể nạp membership
     @Override
     public void publishGroup(Group group) {
         if (bootstrapClient == null) {
@@ -42,6 +45,7 @@ private final BootstrapClient bootstrapClient;
         log.info("Đã publish nhóm lên bootstrap. groupId={}, sốThànhViên={}", group.getGroupId(), group.getMembers().size());
     }
 
+    // Thêm các peer mới vào group đã tồn tại trên bootstrap
     @Override
     public void addMembersToGroup(String groupId, Collection<PeerInfo> members) {
         if (bootstrapClient == null) {
@@ -62,6 +66,7 @@ private final BootstrapClient bootstrapClient;
         log.info("Đã đồng bộ thêm thành viên nhóm lên bootstrap. groupId={}, sốThànhViênThêm={}", groupId, added);
     }
 
+    // Lấy các group mà peer local hiện là thành viên từ bootstrap
     @Override
     public List<Group> fetchJoinedGroups(Collection<PeerInfo> knownPeers) {
         List<Group> joinedGroups = new ArrayList<>();
@@ -86,7 +91,7 @@ private final BootstrapClient bootstrapClient;
 
     // ----------------------------------------- PRIVATE -----------------------------------//
 
-    // Chuyển DTO bootstrap thành Group runtime của peer-node.
+    // Chuyển DTO bootstrap thành Group runtime của peer-node
     private Group toGroup(GroupPayload groupPayload, Collection<GroupMemberPayload> memberPayloads,
                           Collection<PeerInfo> knownPeers) {
         List<PeerInfo> members = new ArrayList<>();
@@ -103,7 +108,7 @@ private final BootstrapClient bootstrapClient;
         return new Group(groupPayload.groupId(), groupPayload.name(), members);
     }
 
-    // Tìm peer runtime theo user_id ổn định do bootstrap cấp.
+    // Tìm peer runtime theo user_id ổn định do bootstrap cấp
     private PeerInfo findKnownPeerById(Collection<PeerInfo> knownPeers, String peerId) {
         if (peerId == null || peerId.isBlank() || knownPeers == null) {
             return null;

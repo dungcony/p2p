@@ -12,13 +12,16 @@ import java.nio.file.Path;
 import java.util.List;
 
 @Slf4j
+// Service hiển thị luồng chọn profile peer trước khi khởi động node
 public class ProfileSelectionImpl implements ProfileSelectionService {
-private final Path dataRoot;
+    private final Path dataRoot;
 
+    // Khởi tạo service chọn profile với data root runtime
     public ProfileSelectionImpl(Path dataRoot) {
         this.dataRoot = dataRoot;
     }
 
+    // Chọn profile cũ hoặc tạo profile mới cho peer local
     @Override
     public ProfileSelection selectProfile() {
         List<PeerConfig> profiles = PeerConfig.listProfiles(dataRoot);
@@ -51,7 +54,7 @@ private final Path dataRoot;
 
     // ------------------------- PRIVATE -----------------------------//
 
-    // Cho người dùng click profile cũ, Start trực tiếp hoặc Sửa nếu muốn sửa name/port.
+    // Cho người dùng click profile cũ, Start trực tiếp hoặc Sửa nếu muốn sửa name/port
     private ProfileSelection selectExistingProfile(List<PeerConfig> profiles) {
         DefaultListModel<PeerConfig> listModel = new DefaultListModel<>();
         profiles.forEach(listModel::addElement);

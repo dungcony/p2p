@@ -16,8 +16,9 @@ import dungcony.ds.utils.Mes;
 import java.util.function.Consumer;
 
 @Slf4j
+// Service xử lý gửi chat 1-1 và fallback lưu offline qua bootstrap
 public class ChatImpl implements ChatService {
-private final PeerInfo localPeer;
+    private final PeerInfo localPeer;
     private final MessageSender messageSender;
     private final BootstrapClient bootstrapClient;
     private final PeerDirectoryService peerDirectoryService;
@@ -25,7 +26,7 @@ private final PeerInfo localPeer;
     private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
-    // Khởi tạo service xử lý heartbeat và gửi chat 1-1.
+    // Khởi tạo service xử lý heartbeat và gửi chat 1-1
     public ChatImpl(PeerInfo localPeer, MessageSender messageSender, BootstrapClient bootstrapClient,
                     PeerDirectoryService peerDirectoryService, MessageHistoryService messageHistoryService,
                     Consumer<Message> messageNotifier, Runnable peerChangeNotifier) {
@@ -38,7 +39,7 @@ private final PeerInfo localPeer;
         this.peerChangeNotifier = peerChangeNotifier;
     }
 
-    // Gửi tin nhắn 1-1 trực tiếp tới peer đích, lưu lịch sử nếu gửi được hoặc store offline thành công.
+    // Gửi tin nhắn 1-1 trực tiếp tới peer đích, lưu lịch sử nếu gửi được hoặc store offline thành công
     @Override
     public boolean sendMessage(String content, String hostAndMaybePort) {
         if (content == null || content.isBlank()) {
@@ -77,7 +78,7 @@ private final PeerInfo localPeer;
         return sent;
     }
 
-    // Lưu tin offline lên bootstrap-server để receiver nhận lại khi JOIN.
+    // Lưu tin offline lên bootstrap-server để receiver nhận lại khi JOIN
     private boolean storeOfflineIfPossible(Message message) {
         if (bootstrapClient == null) {
             log.warn("Không thể lưu tin nhắn offline vì bootstrap đang tắt. messageId={}", message.getId());

@@ -1,8 +1,5 @@
 package dungcony.ds;
 
-import lombok.extern.slf4j.Slf4j;
-
-
 import dungcony.ds.config.PeerConfig;
 import dungcony.ds.dtos.ProfileSelection;
 import dungcony.ds.interfaces.ProfileSelectionService;
@@ -11,21 +8,26 @@ import dungcony.ds.services.ProfileSelectionImpl;
 import dungcony.ds.ui.LoginDialog;
 import dungcony.ds.ui.Main;
 import dungcony.ds.ui.PeerPortDialog;
+import dungcony.ds.utils.RuntimeOption;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.file.Path;
 
+import static dungcony.ds.utils.ProfileRead.resolveRuntimeOptions;
+
 @Slf4j
 public class App {
-public static PeerNode peerNode;
+    public static PeerNode peerNode;
 
     // Điểm vào của ứng dụng: lấy thông tin peer từ LoginDialog, khởi động PeerNode,
     // sau đó mở cửa sổ chat chính.
     public static void main(String[] args) {
-        RuntimeOptions runtimeOptions = resolveRuntimeOptions(args);
+        RuntimeOption runtimeOptions = resolveRuntimeOptions(args);
         Path dataRoot = runtimeOptions.dataRoot();
+        
         SwingUtilities.invokeLater(() -> {
             ProfileSelectionService profileSelectionService = new ProfileSelectionImpl(dataRoot);
             ProfileSelection selection = profileSelectionService.selectProfile();
@@ -87,65 +89,5 @@ public static PeerNode peerNode;
         });
     }
 
-    // Đọc tham số runtime: --data-dir và --peer-port.
-    private static RuntimeOptions resolveRuntimeOptions(String[] args) {
-        Path defaultDataRoot = Path.of("peer-node", "src", "main", "resources", "data");
-        Path dataRoot = defaultDataRoot;
-        Integer peerPort = null;
-        if (args == null) {
-            return new RuntimeOptions(dataRoot, peerPort);
-        }
 
-        for (int index = 0; index < args.length; index++) {
-            String arg = args[index];
-            if (arg == null || arg.isBlank()) {
-                continue;
-            }
-            if (arg.startsWith("--data-dir=")) {
-                dataRoot = Path.of(arg.substring("--data-dir=".length()));
-                log.info("Thư mục dữ liệu runtime={}", dataRoot.toAbsolutePath());
-                continue;
-            }
-            if ("--data-dir".equals(arg) && index + 1 < args.length) {
-                dataRoot = Path.of(args[index + 1]);
-                log.info("Thư mục dữ liệu runtime={}", dataRoot.toAbsolutePath());
-                index++;
-                continue;
-            }
-            if (arg.startsWith("--peer-cổng=") || arg.startsWith("--cổng=")) {
-                String value = arg.contains("--peer-cổng=")
-                        ? arg.substring("--peer-cổng=".length())
-                        : arg.substring("--cổng=".length());
-                peerPort = parsePeerPort(value);
-                continue;
-            }
-            if (("--peer-port".equals(arg) || "--port".equals(arg)) && index + 1 < args.length) {
-                peerPort = parsePeerPort(args[index + 1]);
-                index++;
-            }
-        }
-
-        log.info("Thư mục dữ liệu runtime={}", dataRoot.toAbsolutePath());
-        if (peerPort != null) {
-            log.info("Cổng peer runtime={}", peerPort);
-        }
-        return new RuntimeOptions(dataRoot, peerPort);
-    }
-
-    // Parse peer port từ CLI, trả null nếu value không hợp lệ.
-    private static Integer parsePeerPort(String value) {
-        try {
-            int port = Integer.parseInt(value);
-            if (port < 1 || port > 65535) {
-                throw new NumberFormatException("Port out of range");
-            }
-            return port;
-        } catch (NumberFormatException e) {
-            log.warn("Đã bỏ qua giá trị --peer-port không hợp lệ={}", value);
-            return null;
-        }
-    }
-
-    private record RuntimeOptions(Path dataRoot, Integer peerPort) {
-    }
 }

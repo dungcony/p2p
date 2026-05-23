@@ -14,18 +14,19 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
+// Service quản lý danh bạ peer runtime và các thao tác merge resolve peer
 public class PeerDirectoryImpl implements PeerDirectoryService {
-private final PeerInfo localPeer;
+    private final PeerInfo localPeer;
     private final NetworkAddressService networkAddressService;
     private final Map<String, PeerInfo> peers = new ConcurrentHashMap<>();
 
-    // Khởi tạo danh bạ peer runtime của PeerNode.
+    // Khởi tạo danh bạ peer runtime của PeerNode
     public PeerDirectoryImpl(PeerInfo localPeer, NetworkAddressService networkAddressService) {
         this.localPeer = localPeer;
         this.networkAddressService = networkAddressService;
     }
 
-    // Thêm peer vào danh bạ theo addressKey.
+    // Thêm peer vào danh bạ theo addressKey
     @Override
     public void put(PeerInfo peerInfo) {
         if (peerInfo != null) {
@@ -34,13 +35,13 @@ private final PeerInfo localPeer;
         }
     }
 
-    // Lấy danh sách peer runtime hiện tại.
+    // Lấy danh sách peer runtime hiện tại
     @Override
     public Collection<PeerInfo> list() {
         return Collections.unmodifiableCollection(peers.values());
     }
 
-    // Merge danh sách peer nhận từ bootstrap hoặc peer khác vào danh bạ runtime.
+    // Merge danh sách peer nhận từ bootstrap hoặc peer khác vào danh bạ runtime
     @Override
     public int mergeKnownPeers(Collection<PeerInfo> discoveredPeers) {
         int merged = 0;
@@ -66,13 +67,13 @@ private final PeerInfo localPeer;
         return merged;
     }
 
-    // Lấy số peer đã biết.
+    // Lấy số peer đã biết
     @Override
     public int size() {
         return peers.size();
     }
 
-    // Thêm một peer từ input name và host/port.
+    // Thêm một peer từ input name và host/port
     @Override
     public PeerInfo addKnownPeer(String name, String hostAndMaybePort) {
         PeerInfo peerInfo = parsePeer(name, hostAndMaybePort);
@@ -94,7 +95,7 @@ private final PeerInfo localPeer;
         return peerInfo;
     }
 
-    // Tìm peer đã biết hoặc phân tích địa chỉ đầu vào thành PeerInfo tạm thời.
+    // Tìm peer đã biết hoặc phân tích địa chỉ đầu vào thành PeerInfo tạm thời
     @Override
     public PeerInfo resolvePeer(String hostAndMaybePort) {
         if (hostAndMaybePort == null || hostAndMaybePort.isBlank()) {
@@ -109,7 +110,7 @@ private final PeerInfo localPeer;
         return peers.getOrDefault(parsed.addressKey(), parsed);
     }
 
-    // Chuyển chuỗi host hoặc host:port thành PeerInfo với port mặc định nếu không nhập port.
+    // Chuyển chuỗi host hoặc host:port thành PeerInfo với port mặc định nếu không nhập port
     @Override
     public PeerInfo parsePeer(String name, String hostAndMaybePort) {
         String value = hostAndMaybePort == null ? "" : hostAndMaybePort.trim();
@@ -131,7 +132,7 @@ private final PeerInfo localPeer;
         return new PeerInfo(name, host, port);
     }
 
-    // Tìm peer runtime theo user_id ổn định do bootstrap cấp.
+    // Tìm peer runtime theo user_id ổn định do bootstrap cấp
     @Override
     public PeerInfo findKnownPeerById(String peerId) {
         if (peerId == null || peerId.isBlank()) {
@@ -145,7 +146,7 @@ private final PeerInfo localPeer;
         return null;
     }
 
-    // Tạo PeerInfo từ message đến và giữ lại tên hiển thị nếu peer đã có trong map.
+    // Tạo PeerInfo từ message đến và giữ lại tên hiển thị nếu peer đã có trong map
     @Override
     public PeerInfo mergeSenderFromKnownPeers(Message message) {
         String key = message.getSenderHost() + ":" + message.getSenderPort();
@@ -154,7 +155,7 @@ private final PeerInfo localPeer;
         return new PeerInfo(message.getSenderId(), displayName, message.getSenderHost(), message.getSenderPort());
     }
 
-    // Đồng bộ danh sách online bootstrap trả về, đánh dấu peer vắng mặt là offline.
+    // Đồng bộ danh sách online bootstrap trả về, đánh dấu peer vắng mặt là offline
     @Override
     public int syncOnlinePeers(Collection<PeerInfo> onlinePeers) {
         peers.values().forEach(peerInfo -> peerInfo.setOnline(false));
@@ -175,7 +176,7 @@ private final PeerInfo localPeer;
         return addedOrUpdated;
     }
 
-    // Kiểm tra peer có trỏ về local peer hay không.
+    // Kiểm tra peer có trỏ về local peer hay không
     @Override
     public boolean isSelfPeer(PeerInfo peerInfo) {
         return networkAddressService.isSelfPeer(localPeer, peerInfo);

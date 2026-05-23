@@ -11,14 +11,15 @@ import dungcony.ds.model.MessageSender;
 import dungcony.ds.model.PeerInfo;
 
 @Slf4j
+// Service kiểm tra và cập nhật trạng thái online offline của peer
 public class PeerPresenceImpl implements PeerPresenceService {
-private final PeerInfo localPeer;
+    private final PeerInfo localPeer;
     private final MessageSender messageSender;
     private final BootstrapClient bootstrapClient;
     private final PeerDirectoryService peerDirectoryService;
     private final Runnable peerChangeNotifier;
 
-    // Khởi tạo service quản lý trạng thái online/offline của peer.
+    // Khởi tạo service quản lý trạng thái online/offline của peer
     public PeerPresenceImpl(PeerInfo localPeer, MessageSender messageSender, BootstrapClient bootstrapClient,
                             PeerDirectoryService peerDirectoryService, Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
@@ -28,7 +29,7 @@ private final PeerInfo localPeer;
         this.peerChangeNotifier = peerChangeNotifier;
     }
 
-    // Kiểm tra peer online qua bootstrap LIST nếu có, fallback heartbeat trực tiếp khi bootstrap không thấy peer.
+    // Kiểm tra peer online qua bootstrap LIST nếu có, fallback heartbeat trực tiếp khi bootstrap không thấy peer
     @Override
     public boolean checkUserIsOnline(String hostAndMaybePort) {
         PeerInfo peerInfo = peerDirectoryService.resolvePeer(hostAndMaybePort);
@@ -49,7 +50,7 @@ private final PeerInfo localPeer;
         return online;
     }
 
-    // Hỏi bootstrap-server danh sách peer online và so khớp theo id hoặc address.
+    // Hỏi bootstrap-server danh sách peer online và so khớp theo id hoặc address
     private boolean checkByBootstrap(PeerInfo targetPeer) {
         log.debug("Đang kiểm tra trạng thái online qua bootstrap. target={}", targetPeer.addressKey());
         java.util.Collection<PeerInfo> onlinePeers = bootstrapClient.listOrNull();
@@ -71,7 +72,7 @@ private final PeerInfo localPeer;
         return false;
     }
 
-    // Gửi heartbeat trực tiếp tới host:port để xác minh peer có TCP reachable không.
+    // Gửi heartbeat trực tiếp tới host:port để xác minh peer có TCP reachable không
     private boolean checkByDirectHeartbeat(PeerInfo peerInfo) {
         log.debug("Đang gửi heartbeat trực tiếp tới {}", peerInfo.addressKey());
         boolean online = messageSender.send(peerInfo, Message.heartbeat(localPeer));
@@ -83,7 +84,7 @@ private final PeerInfo localPeer;
         return online;
     }
 
-    // So khớp peer theo user_id nếu có, nếu không thì so khớp bằng host:port.
+    // So khớp peer theo user_id nếu có, nếu không thì so khớp bằng host:port
     private boolean isSamePeer(PeerInfo targetPeer, PeerInfo onlinePeer) {
         if (targetPeer.getId() != null && !targetPeer.getId().isBlank()
                 && targetPeer.getId().equals(onlinePeer.getId())) {

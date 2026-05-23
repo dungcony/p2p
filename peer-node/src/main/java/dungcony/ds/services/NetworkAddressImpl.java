@@ -14,8 +14,9 @@ import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 @Slf4j
+// Service xác định địa chỉ mạng local và so khớp peer có trỏ về chính node hiện tại không
 public class NetworkAddressImpl implements NetworkAddressService {
-// Tìm địa chỉ IPv4 LAN phù hợp nhất của máy hiện tại để peer khác có thể kết nối.
+    // Tìm địa chỉ IPv4 LAN phù hợp nhất của máy hiện tại để peer khác có thể kết nối
     @Override
     public String resolveLocalHost() {
         try {
@@ -43,7 +44,7 @@ public class NetworkAddressImpl implements NetworkAddressService {
         }
     }
 
-    // So sánh PeerInfo với localPeer để chặn self-chat trong mọi luồng logic.
+    // So sánh PeerInfo với localPeer để chặn self-chat trong mọi luồng logic
     @Override
     public boolean isSelfPeer(PeerInfo localPeer, PeerInfo peerInfo) {
         if (peerInfo == null) {
@@ -58,7 +59,7 @@ public class NetworkAddressImpl implements NetworkAddressService {
         return isSameHost(peerInfo.getHost(), localPeer.getHost());
     }
 
-    // So sánh host theo literal, localhost/loopback và địa chỉ IP resolve được.
+    // So sánh host theo literal, localhost/loopback và địa chỉ IP resolve được
     @Override
     public boolean isSameHost(String candidateHost, String localHost) {
         if (candidateHost == null || candidateHost.isBlank()) {

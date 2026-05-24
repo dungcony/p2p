@@ -23,7 +23,7 @@ public class App {
     public static PeerNode peerNode;
 
     // Điểm vào của ứng dụng: lấy thông tin peer từ LoginDialog, khởi động PeerNode,
-    // sau đó mở cửa sổ chat chính.
+    // sau đó mở cửa sổ chat chính
     public static void main(String[] args) {
         RuntimeOption runtimeOptions = resolveRuntimeOptions(args);
         Path dataRoot = runtimeOptions.dataRoot();

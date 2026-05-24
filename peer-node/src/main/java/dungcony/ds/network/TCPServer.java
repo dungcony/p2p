@@ -19,13 +19,13 @@ private final int port;
     private volatile boolean running;
     private ServerSocket serverSocket;
 
-    // Khởi tạo TCPServer với port lắng nghe và MessageReceiver để xử lý message đến.
+    // Khởi tạo TCPServer với port lắng nghe và MessageReceiver để xử lý message đến
     public TCPServer(int port, MessageReceiver receiver) {
         this.port = port;
         this.receiver = receiver;
     }
 
-    // Mở ServerSocket, accept nhiều kết nối và giao từng kết nối cho ConnectionHandler.
+    // Mở ServerSocket, accept nhiều kết nối và giao từng kết nối cho ConnectionHandler
     public void listen() {
         running = true;
         try (ServerSocket openedSocket = new ServerSocket(port)) {
@@ -45,7 +45,7 @@ private final int port;
         }
     }
 
-    // Dừng server và đóng connection pool để peer thoát sạch.
+    // Dừng server và đóng connection pool để peer thoát sạch
     public void stop() {
         running = false;
         connectionPool.shutdownNow();

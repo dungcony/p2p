@@ -27,7 +27,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final Path groupFilePath;
 
-    // Khởi tạo local JSON store cho group trong dataDir của profile hiện tại.
+    // Khởi tạo local JSON store cho group trong dataDir của profile hiện tại
     public LocalGroupRepo(Path dataDir) {
         Path resolvedDataDir = dataDir == null
                 ? Path.of("peer-node", "src", "main", "resources", "data")
@@ -36,7 +36,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
         initializeStorage();
     }
 
-    // Tạo file groups.json nếu profile chưa có group store.
+    // Tạo file groups.json nếu profile chưa có group store
     private void initializeStorage() {
         try {
             Files.createDirectories(groupFilePath.getParent());
@@ -49,7 +49,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
         }
     }
 
-    // Lưu hoặc cập nhật một group vào groups.json.
+    // Lưu hoặc cập nhật một group vào groups.json
     @Override
     public synchronized void save(Group group) {
         if (group == null) {
@@ -63,7 +63,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
         log.info("Đã lưu nhóm local. groupId={}, tên={}", group.getGroupId(), group.getName());
     }
 
-    // Ghi lại toàn bộ danh sách group của profile hiện tại.
+    // Ghi lại toàn bộ danh sách group của profile hiện tại
     @Override
     public synchronized void saveAll(Collection<Group> groups) {
         List<Group> sortedGroups = new ArrayList<>(groups == null ? List.of() : groups);
@@ -76,7 +76,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
         }
     }
 
-    // Đọc tất cả group mà profile hiện tại đang tham gia.
+    // Đọc tất cả group mà profile hiện tại đang tham gia
     @Override
     public synchronized List<Group> findAll() {
         try {

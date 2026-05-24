@@ -19,13 +19,13 @@ private final Socket socket;
     private final MessageReceiver receiver;
     private final MessageProtocol protocol = new MessageProtocol();
 
-    // Khởi tạo handler cho một socket đã accept từ TCPServer.
+    // Khởi tạo handler cho một socket đã accept từ TCPServer
     public ConnectionHandler(Socket socket, MessageReceiver receiver) {
         this.socket = socket;
         this.receiver = receiver;
     }
 
-    // Đọc một message JSON từ socket, chuyển cho MessageReceiver xử lý và trả ACK/response.
+    // Đọc một message JSON từ socket, chuyển cho MessageReceiver xử lý và trả ACK/response
     @Override
     public void run() {
         try (Socket acceptedSocket = socket;

@@ -8,7 +8,7 @@ import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Đóng gói logic gửi message qua TCP với retry và ACK validation.
+ * Đóng gói logic gửi message qua TCP với retry và ACK validation
  *
  * <p>Luồng gửi:</p>
  * <pre>
@@ -25,12 +25,12 @@ public class MessageSender implements PeerMessageSender {
 
     private final TCPClient tcpClient;
 
-    // Khởi tạo sender với TCPClient dùng để gửi dữ liệu qua mạng.
+    // Khởi tạo sender với TCPClient dùng để gửi dữ liệu qua mạng
     public MessageSender(TCPClient tcpClient) {
         this.tcpClient = tcpClient;
     }
 
-    // Gửi message tới một peer, retry vài lần nếu chưa nhận ACK.
+    // Gửi message tới một peer, retry vài lần nếu chưa nhận ACK
     @Override
     public boolean send(PeerInfo peerInfo, Message message) {
         for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
@@ -47,7 +47,7 @@ public class MessageSender implements PeerMessageSender {
         return false;
     }
 
-    // Gửi request và chờ response có type cụ thể, dùng cho peer discovery.
+    // Gửi request và chờ response có type cụ thể, dùng cho peer discovery
     @Override
     public Message sendForResponse(PeerInfo peerInfo, Message message, MessageType expectedType) {
         for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
@@ -68,7 +68,7 @@ public class MessageSender implements PeerMessageSender {
         return null;
     }
 
-    // Broadcast một message tới toàn bộ thành viên của group.
+    // Broadcast một message tới toàn bộ thành viên của group
     public void broadcast(Group group, Message message) {
         for (PeerInfo member : group.getMembers()) {
             log.info("Đang broadcast message id={} tới thành viên={}", message.getId(), member.addressKey());
@@ -76,7 +76,7 @@ public class MessageSender implements PeerMessageSender {
         }
     }
 
-    // Nghỉ ngắn giữa các lần retry để tránh gửi dồn dập khi peer chưa phản hồi.
+    // Nghỉ ngắn giữa các lần retry để tránh gửi dồn dập khi peer chưa phản hồi
     private void sleepBeforeRetry() {
         try {
             Thread.sleep(RETRY_DELAY_MS);

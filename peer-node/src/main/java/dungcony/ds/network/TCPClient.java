@@ -21,7 +21,7 @@ private static final int CONNECT_TIMEOUT_MS = 2000;
     private static final int READ_TIMEOUT_MS = 3000;
     private final MessageProtocol protocol = new MessageProtocol();
 
-    // Mở kết nối TCP tới peer đích, gửi một message và trả về true khi nhận ACK hợp lệ.
+    // Mở kết nối TCP tới peer đích, gửi một message và trả về true khi nhận ACK hợp lệ
     public boolean send(PeerInfo peerInfo, Message message) {
         Message response = sendForResponse(peerInfo, message);
         boolean validAck = response != null && response.getType() == MessageType.ACK && message.getId().equals(response.getId());
@@ -29,7 +29,7 @@ private static final int CONNECT_TIMEOUT_MS = 2000;
         return validAck;
     }
 
-    // Mở kết nối TCP tới peer đích, gửi một message và trả về response raw để xử lý các request không phải ACK.
+    // Mở kết nối TCP tới peer đích, gửi một message và trả về response raw để xử lý các request không phải ACK
     public Message sendForResponse(PeerInfo peerInfo, Message message) {
         try (Socket socket = new Socket()) {
             log.debug("Bắt đầu kết nối TCP: {}, messageId={}", peerInfo.addressKey(), message.getId());

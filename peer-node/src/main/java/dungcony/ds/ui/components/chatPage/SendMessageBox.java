@@ -104,7 +104,7 @@ class SendMessageBox extends JPanel {
         }
     }
 
-    // Gửi tin nhắn qua PeerNode. Lịch sử và ACK do tầng peer/network xử lý.
+    // Gửi tin nhắn qua PeerNode. Lịch sử và ACK do tầng peer/network xử lý
     private void sendMessage() {
         try {
             String messageText = messageField.getText();

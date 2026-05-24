@@ -136,7 +136,7 @@ class MessageBubble extends JPanel {
         }
     }
 
-    // Tạo label trạng thái gửi tin cho message của user hiện tại.
+    // Tạo label trạng thái gửi tin cho message của user hiện tại
     private JLabel createStatusLabel() {
         if (!message.isFromCurrentUser()) {
             return null;
@@ -150,7 +150,7 @@ class MessageBubble extends JPanel {
         return label;
     }
 
-    // Tạo nút retry thủ công cho tin nhắn 1-1 bị FAILED.
+    // Tạo nút retry thủ công cho tin nhắn 1-1 bị FAILED
     private JButton createRetryButton() {
         if (!message.isFromCurrentUser()
                 || message.getStatus() != MessageStatus.FAILED

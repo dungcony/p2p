@@ -7,7 +7,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
-// Lớp singleton quản lý điều hướng trang, giúp tạo trải nghiệm Single Page Application.
+// Lớp singleton quản lý điều hướng trang, giúp tạo trải nghiệm Single Page Application
 // @author Shoyeb Ansari
 @Slf4j
 public class RouterManager {
@@ -72,7 +72,7 @@ public class RouterManager {
         return currentRoute;
     }
 
-    // Lấy component của route đã đăng ký để page khác có thể gọi API UI nội bộ khi cần.
+    // Lấy component của route đã đăng ký để page khác có thể gọi API UI nội bộ khi cần
     public Component getRoute(String routeName) {
         return routes.get(routeName);
     }

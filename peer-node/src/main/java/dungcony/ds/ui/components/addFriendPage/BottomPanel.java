@@ -94,7 +94,7 @@ private ModernButton checkConnectionButton;
         return true;
     }
 
-    // Chuyển thẳng sẵng trang chat và mở conversation vừa connect.
+    // Chuyển thẳng sẵng trang chat và mở conversation vừa connect
     private void openChat(PeerInfo peerInfo) {
         RouterManager routerManager = RouterManager.getInstance();
         routerManager.navigateTo("chats");

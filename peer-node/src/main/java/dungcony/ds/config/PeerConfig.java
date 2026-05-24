@@ -26,12 +26,12 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
     private String bootstrapHost;
     private int bootstrapPort;
 
-    // Đọc cấu hình peer từ file resources/data/config.properties và tạo id nếu chưa có.
+    // Đọc cấu hình peer từ file resources/data/config.properties và tạo id nếu chưa có
     public static PeerConfig load() {
         return load(DEFAULT_DATA_DIR);
     }
 
-    // Đọc cấu hình peer từ dataDir riêng của instance hiện tại.
+    // Đọc cấu hình peer từ dataDir riêng của instance hiện tại
     public static PeerConfig load(Path dataDir) {
         Path dataRoot = dataDir == null ? DEFAULT_DATA_DIR : dataDir.normalize();
         Path loadedConfigPath = resolveConfigPath(dataRoot);
@@ -64,7 +64,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         return config;
     }
 
-    // Tạo profile mới với peer.id la UUID và folder profile cùng tên UUID.
+    // Tạo profile mới với peer.id la UUID và folder profile cùng tên UUID
     public static PeerConfig createNew(Path dataRoot) {
         Path resolvedDataRoot = dataRoot == null ? DEFAULT_DATA_DIR : dataRoot.normalize();
         PeerConfig config = new PeerConfig();
@@ -80,7 +80,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         return config;
     }
 
-    // Liet ke các profile đã có trong data root, mới profile la một folder UUID có config.properties.
+    // Liet ke các profile đã có trong data root, mới profile la một folder UUID có config.properties
     public static List<PeerConfig> listProfiles(Path dataRoot) {
         Path resolvedDataRoot = dataRoot == null ? DEFAULT_DATA_DIR : dataRoot.normalize();
         List<PeerConfig> profiles = new ArrayList<>();
@@ -110,7 +110,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         return profiles;
     }
 
-    // Cập nhật tên và port sau khi người dùng bấm Start ở màn hình đăng nhập.
+    // Cập nhật tên và port sau khi người dùng bấm Start ở màn hình đăng nhập
     public void updateLogin(String peerId, String peerName, int peerPort) {
         this.peerId = peerId == null || peerId.isBlank() ? this.peerId : peerId.trim();
         this.peerName = peerName == null || peerName.isBlank() ? this.peerName : peerName.trim();
@@ -118,14 +118,14 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         refreshStoragePaths();
     }
 
-    // Cập nhật định danh hiển thị; port lắng nghe không đổi trong dialog UI.
+    // Cập nhật định danh hiển thị; port lắng nghe không đổi trong dialog UI
     public void updateIdentity(String peerId, String peerName) {
         this.peerId = peerId == null || peerId.isBlank() ? this.peerId : peerId.trim();
         this.peerName = peerName == null || peerName.isBlank() ? this.peerName : peerName.trim();
         refreshStoragePaths();
     }
 
-    // Cập nhật port lắng nghe của peer khi tạo profile mới.
+    // Cập nhật port lắng nghe của peer khi tạo profile mới
     public boolean updatePeerPort(int peerPort) {
         if (peerPort < 1 || peerPort > 65535) {
             log.warn("Đã bỏ qua cổng peer không hợp lệ={}", peerPort);
@@ -139,7 +139,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         return true;
     }
 
-    // Áp dụng peer port được truyền lúc chạy app qua CLI.
+    // Áp dụng peer port được truyền lúc chạy app qua CLI
     public void applyRuntimePeerPort(Integer runtimePeerPort) {
         if (runtimePeerPort == null) {
             protectBootstrapPort();
@@ -155,7 +155,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         }
     }
 
-    // Lưu cấu hình peer để lần sau app dùng lại cùng peer.id khi đăng nhập.
+    // Lưu cấu hình peer để lần sau app dùng lại cùng peer.id khi đăng nhập
     public void save() {
         Properties profileProperties = new Properties();
         profileProperties.setProperty("peer.id", peerId);
@@ -173,47 +173,47 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         }
     }
 
-    // Lấy data directory riêng của instance peer-node hiện tại.
+    // Lấy data directory riêng của instance peer-node hiện tại
     public Path getDataDir() {
         return dataDir;
     }
 
-    // Lấy data root chua các folder profile peer theo UUID.
+    // Lấy data root chua các folder profile peer theo UUID
     public Path getDataRoot() {
         return dataRoot;
     }
 
-    // Label ngắn gọn để hiển thị trong dialog chọn profile.
+    // Label ngắn gọn để hiển thị trong dialog chọn profile
     public String getDisplayLabel() {
         return peerName + " | " + peerPort + " | " + peerId;
     }
 
-    // Lấy id ổn định dùng làm khóa user_id trên bootstrap-server.
+    // Lấy id ổn định dùng làm khóa user_id trên bootstrap-server
     public String getPeerId() {
         return peerId;
     }
 
-    // Lấy tên hiển thị của peer.
+    // Lấy tên hiển thị của peer
     public String getPeerName() {
         return peerName;
     }
 
-    // Lấy port TCP peer-node se lắng nghe.
+    // Lấy port TCP peer-node se lắng nghe
     public int getPeerPort() {
         return peerPort;
     }
 
-    // Lấy host của bootstrap-server.
+    // Lấy host của bootstrap-server
     public String getBootstrapHost() {
         return bootstrapHost;
     }
 
-    // Lấy port của bootstrap-server.
+    // Lấy port của bootstrap-server
     public int getBootstrapPort() {
         return bootstrapPort;
     }
 
-    // Nếu peer.port trùng bootstrap.port thì không cho PeerNode chiếm cổng tracker.
+    // Nếu peer.port trùng bootstrap.port thì không cho PeerNode chiếm cổng tracker
     private void protectBootstrapPort() {
         if (peerPort == bootstrapPort) {
             log.warn("peer.port trùng với cổng bootstrap={}. Chuyển về cổng mặc định của peer={}", bootstrapPort, PeerNode.DEFAULT_PORT);
@@ -221,13 +221,13 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         }
     }
 
-    // Đọc string property với fallback khi value rỗng.
+    // Đọc string property với fallback khi value rỗng
     private static String readString(Properties properties, String key, String defaultValue) {
         String value = properties.getProperty(key);
         return value == null || value.isBlank() ? defaultValue : value.trim();
     }
 
-    // Đọc int property với fallback khi value không hợp lệ.
+    // Đọc int property với fallback khi value không hợp lệ
     private static int readInt(Properties properties, String key, int defaultValue) {
         try {
             return Integer.parseInt(readString(properties, key, String.valueOf(defaultValue)));
@@ -237,13 +237,13 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         }
     }
 
-    // Cập nhật dataDir/configPath theo peer.id hiện tại để folder được dat theo UUID.
+    // Cập nhật dataDir/configPath theo peer.id hiện tại để folder được dat theo UUID
     private void refreshStoragePaths() {
         this.dataDir = dataRoot.resolve(safePathSegment(peerId));
         this.configPath = dataDir.resolve("config.properties");
     }
 
-    // Tìm config có sẵn trong data root: ưu tiên folder UUID con, sau đó mới đến config legacy.
+    // Tìm config có sẵn trong data root: ưu tiên folder UUID con, sau đó mới đến config legacy
     private static Path resolveConfigPath(Path dataRoot) {
         try {
             if (Files.exists(dataRoot)) {
@@ -274,7 +274,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         return null;
     }
 
-    // Đọc một profile cũ từ file config.properties trong folder UUID.
+    // Đọc một profile cũ từ file config.properties trong folder UUID
     private static PeerConfig loadFromConfigPath(Path dataRoot, Path configPath) {
         Properties properties = new Properties();
         Properties globalProperties = loadGlobalProperties(dataRoot);
@@ -296,7 +296,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         return config;
     }
 
-    // Chuyển peer.id thành tên folder an toàn trên filesystem.
+    // Chuyển peer.id thành tên folder an toàn trên filesystem
     private static String safePathSegment(String value) {
         if (value == null || value.isBlank()) {
             return UUID.randomUUID().toString();
@@ -304,7 +304,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         return value.replaceAll("[^a-zA-Z0-9._-]", "_");
     }
 
-    // Lưu bootstrap config chung vào dataRoot/config.properties, không ghi vào tung profile.
+    // Lưu bootstrap config chung vào dataRoot/config.properties, không ghi vào tung profile
     private void saveGlobalConfig() throws IOException {
         Properties globalProperties = new Properties();
         globalProperties.setProperty("bootstrap.host", bootstrapHost);
@@ -317,7 +317,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         log.info("Đã lưu cấu hình bootstrap dùng chung. path={}", globalConfigPath.toAbsolutePath());
     }
 
-    // Đọc bootstrap config chung từ dataRoot/config.properties.
+    // Đọc bootstrap config chung từ dataRoot/config.properties
     private static Properties loadGlobalProperties(Path dataRoot) {
         Properties properties = new Properties();
         Path globalConfigPath = dataRoot.resolve("config.properties");
@@ -333,7 +333,7 @@ private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main",
         return properties;
     }
 
-    // Kiểm tra config root cũ có chứa peer.id hay không để migrate thành profile UUID.
+    // Kiểm tra config root cũ có chứa peer.id hay không để migrate thành profile UUID
     private static boolean isLegacyPeerConfig(Path configPath) {
         if (!Files.exists(configPath)) {
             return false;

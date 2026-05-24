@@ -119,7 +119,7 @@ public class ChatPage extends JPanel {
         }
     }
 
-    // Xử lý khi chọn group chat từ ChatList.
+    // Xử lý khi chọn group chat từ ChatList
     public void onGroupSelected(String groupName, String groupId) {
         try {
             log.info("UI đã chọn nhóm. nhóm={}, groupId={}", groupName, groupId);

@@ -8,7 +8,7 @@ import java.nio.file.Path;
 @Slf4j
 public class ProfileRead {
 
-    // Đọc tham số runtime: --data-dir và --peer-port.
+    // Đọc tham số runtime: --data-dir và --peer-port
     public static RuntimeOption resolveRuntimeOptions(String[] args) {
         Path dataRoot = Path.of("peer-node", "src", "main", "resources", "data");
         Integer peerPort = null;
@@ -57,7 +57,7 @@ public class ProfileRead {
     }
 
 
-    // Parse data root từ CLI, giữ giá trị hiện tại nếu value không hợp lệ.
+    // Parse data root từ CLI, giữ giá trị hiện tại nếu value không hợp lệ
     private static Path parseDataRoot(String value, Path currentDataRoot) {
         if (value == null || value.isBlank()) {
             log.warn("Đã bỏ qua giá trị --data-dir rỗng. Giữ thư mục dữ liệu={}", currentDataRoot.toAbsolutePath());
@@ -71,7 +71,7 @@ public class ProfileRead {
         }
     }
 
-    // Parse peer port từ CLI, giữ giá trị hiện tại nếu value không hợp lệ.
+    // Parse peer port từ CLI, giữ giá trị hiện tại nếu value không hợp lệ
     private static Integer parsePeerPort(String value, Integer currentPeerPort) {
         if (value == null || value.isBlank()) {
             log.warn("Đã bỏ qua giá trị --peer-port rỗng. Giữ cổng peer runtime={}", currentPeerPort);

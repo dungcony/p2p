@@ -2,7 +2,7 @@ package dungcony.ds.ui.pages;
 
 import javax.swing.*;
 
-// Trang bắt đầu khi người dùng mở ứng dụng lần đầu.
+// Trang bắt đầu khi người dùng mở ứng dụng lần đầu
 // Chào mừng và giới thiệu ứng dụng
 public class StartPage extends JPanel {
 

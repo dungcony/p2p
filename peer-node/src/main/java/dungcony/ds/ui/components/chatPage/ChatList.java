@@ -133,7 +133,7 @@ public class ChatList extends JPanel {
         devicesContainer.add(chatProfile);
     }
 
-    // Thêm item peer vào danh sách chat.
+    // Thêm item peer vào danh sách chat
     private void addPeerProfile(PeerInfo peerInfo) {
         String peerKey = peerInfo.addressKey();
         Message message = App.peerNode.getLastMessage(peerKey);
@@ -149,7 +149,7 @@ public class ChatList extends JPanel {
         addProfile(peerInfo.getName(), lastMessage, lastTime, peerKey, peerInfo.isOnline());
     }
 
-    // Thêm item group vào danh sách chat.
+    // Thêm item group vào danh sách chat
     private void addGroupProfile(Group group, Message message) {
         String lastMessage = "";
         String lastTime = "";
@@ -250,7 +250,7 @@ public class ChatList extends JPanel {
         }
     }
 
-    // Hiển thị dialog tạo group với các peer đang online.
+    // Hiển thị dialog tạo group với các peer đang online
     private void openCreateGroupDialog() {
         if (App.peerNode == null) {
             return;
@@ -351,7 +351,7 @@ public class ChatList extends JPanel {
         }.execute();
     }
 
-    // Lấy danh sách peer có uid và refresh online/offline trước khi hiển thị dialog.
+    // Lấy danh sách peer có uid và refresh online/offline trước khi hiển thị dialog
     private List<PeerInfo> loadGroupCandidatesWithFreshStatus() {
         return loadGroupCandidatesWithFreshStatus(null);
     }
@@ -386,7 +386,7 @@ public class ChatList extends JPanel {
         return ids;
     }
 
-    // Hiển thị dialog tạo group sau khi trạng thái peer đã được refresh.
+    // Hiển thị dialog tạo group sau khi trạng thái peer đã được refresh
     private void showCreateGroupDialog(List<PeerInfo> groupCandidates) {
         JTextField groupNameField = new JTextField("Nhóm mới");
         JTextField peerIdField = new JTextField();
@@ -565,7 +565,7 @@ public class ChatList extends JPanel {
         return null;
     }
 
-    // Khi bootstrap-server tắt, group chỉ được tạo với peer đang TCP reachable.
+    // Khi bootstrap-server tắt, group chỉ được tạo với peer đang TCP reachable
     private boolean validateDirectGroupMembers(List<PeerInfo> selectedPeers) {
         List<String> offlinePeers = new ArrayList<>();
         for (PeerInfo peerInfo : selectedPeers) {

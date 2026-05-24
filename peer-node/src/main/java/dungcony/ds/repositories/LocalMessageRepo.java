@@ -24,7 +24,7 @@ public class LocalMessageRepo implements MessageRepository {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final Path messageFilePath;
 
-    // Khởi tạo local JSON store trong dataDir riêng của instance hiện tại.
+    // Khởi tạo local JSON store trong dataDir riêng của instance hiện tại
     public LocalMessageRepo(Path dataDir) {
         Path resolvedDataDir = dataDir == null
                 ? Path.of("peer-node", "src", "main", "resources", "data")
@@ -33,7 +33,7 @@ public class LocalMessageRepo implements MessageRepository {
         initializeStorage();
     }
 
-    // Tạo folder/file JSON nếu local history chua tồn tại.
+    // Tạo folder/file JSON nếu local history chua tồn tại
     private void initializeStorage() {
         try {
             Files.createDirectories(messageFilePath.getParent());
@@ -46,7 +46,7 @@ public class LocalMessageRepo implements MessageRepository {
         }
     }
 
-    // Lưu một message vào history local theo peer đối thoại.
+    // Lưu một message vào history local theo peer đối thoại
     @Override
     public synchronized void save(PeerInfo conversationPeer, Message message) {
         if (conversationPeer == null || message == null) {
@@ -73,7 +73,7 @@ public class LocalMessageRepo implements MessageRepository {
         log.info("Đã lưu tin nhắn local. conversationPeerId={}, messageId={}", conversationPeer.getId(), message.getId());
     }
 
-    // Đọc history local với một peer theo peer.id ổn định.
+    // Đọc history local với một peer theo peer.id ổn định
     @Override
     public synchronized List<Message> findByConversationPeerId(String conversationPeerId) {
         List<Message> messages = new ArrayList<>();
@@ -97,7 +97,7 @@ public class LocalMessageRepo implements MessageRepository {
         return messages;
     }
 
-    // Đọc danh sách peer đã từng có tin nhắn 1-1 để hiện lại conversation khi peer offline.
+    // Đọc danh sách peer đã từng có tin nhắn 1-1 để hiện lại conversation khi peer offline
     @Override
     public synchronized List<PeerInfo> findDirectConversationPeers() {
         Map<String, PeerInfo> peersById = new LinkedHashMap<>();
@@ -120,7 +120,7 @@ public class LocalMessageRepo implements MessageRepository {
         return new ArrayList<>(peersById.values());
     }
 
-    // Đọc toàn bộ record từ file JSON local.
+    // Đọc toàn bộ record từ file JSON local
     private List<MesRecord> readAllRecords() {
         try {
             if (!Files.exists(messageFilePath)) {
@@ -138,7 +138,7 @@ public class LocalMessageRepo implements MessageRepository {
         }
     }
 
-    // Chuyển metadata conversation trong JSON thành PeerInfo để UI có thể hiển thị history offline.
+    // Chuyển metadata conversation trong JSON thành PeerInfo để UI có thể hiển thị history offline
     private PeerInfo toPeerInfo(MesRecord record) {
         String peerKey = record.getConversationPeerKey();
         if (peerKey == null || peerKey.isBlank()) {
@@ -164,7 +164,7 @@ public class LocalMessageRepo implements MessageRepository {
         }
     }
 
-    // Ghi toàn bộ record vào file JSON local.
+    // Ghi toàn bộ record vào file JSON local
     private void writeAllRecords(List<MesRecord> records) {
         try {
             Files.writeString(messageFilePath, gson.toJson(records), StandardCharsets.UTF_8);

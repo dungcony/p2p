@@ -4,7 +4,7 @@ import dungcony.ds.model.Message;
 import dungcony.ds.services.interfaces.messaging.MessageRouterService;
 
 /**
- * Xử lý message nhận được từ TCP socket và điều phối tới router nghiệp vụ.
+ * Xử lý message nhận được từ TCP socket và điều phối tới router nghiệp vụ
  *
  * <p>Luồng xử lý mỗi message đến:</p>
  * <pre>
@@ -23,13 +23,13 @@ public class MessageReceiver {
 
     private final MessageRouterService messageRouterService;
 
-    // Khởi tạo receiver với router nghiệp vụ để network layer không phụ thuộc PeerNode.
+    // Khởi tạo receiver với router nghiệp vụ để network layer không phụ thuộc PeerNode
     public MessageReceiver(MessageRouterService messageRouterService) {
         this.messageRouterService = messageRouterService;
     }
 
     /**
-     * Chuyển message đến cho router nghiệp vụ và trả response cho bên gửi.
+     * Chuyển message đến cho router nghiệp vụ và trả response cho bên gửi
      *
      * @param message message nhận được từ TCP socket (có thể null)
      * @return ACK hoặc response tương ứng, null nếu message không hợp lệ

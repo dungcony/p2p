@@ -16,13 +16,13 @@ public class Group {
     public Group() {
     }
 
-    // Tạo group mới với id tự sinh và tên hiển thị.
+    // Tạo group mới với id tự sinh và tên hiển thị
     public Group(String name) {
         this.groupId = UUID.randomUUID().toString();
         this.name = name == null || name.isBlank() ? "Group" : name.trim();
     }
 
-    // Phục hồi group có sẵn từ bootstrap/local cache với groupId đã tồn tại.
+    // Phục hồi group có sẵn từ bootstrap/local cache với groupId đã tồn tại
     public Group(String groupId, String name, Collection<PeerInfo> members) {
         this.groupId = groupId == null || groupId.isBlank() ? UUID.randomUUID().toString() : groupId;
         this.name = name == null || name.isBlank() ? "Group" : name.trim();
@@ -38,7 +38,7 @@ public class Group {
         }
     }
 
-    // Thay danh sách thành viên bằng snapshot mới nhận từ bootstrap/peer sync.
+    // Thay danh sách thành viên bằng snapshot mới nhận từ bootstrap/peer sync
     public void replaceMembers(Collection<PeerInfo> newMembers) {
         members.clear();
         if (newMembers != null) {

@@ -42,7 +42,7 @@ public class Message {
     public Message() {
     }
 
-    // Constructor đơn giản phục vụ UI khi cần tạo message hiển thị cục bộ.
+    // Constructor đơn giản phục vụ UI khi cần tạo message hiển thị cục bộ
     public Message(String senderHost, String content, boolean fromCurrentUser) {
         this.id = UUID.randomUUID().toString();
         this.type = MessageType.CHAT;
@@ -53,7 +53,7 @@ public class Message {
         this.fromCurrentUser = fromCurrentUser;
     }
 
-    // Tạo message chat 1-1 có đầy đủ sender, receiver và timestamp.
+    // Tạo message chat 1-1 có đầy đủ sender, receiver và timestamp
     public static Message chat(PeerInfo sender, PeerInfo receiver, String content) {
         Message message = new Message();
         message.id = UUID.randomUUID().toString();
@@ -62,7 +62,7 @@ public class Message {
     }
 
 
-    // Tạo message chat nhóm cho một receiver cụ thể để bootstrap có thể lưu offline theo user_id.
+    // Tạo message chat nhóm cho một receiver cụ thể để bootstrap có thể lưu offline theo user_id
     public static Message groupChat(PeerInfo sender, PeerInfo receiver, String groupId, String groupName, String content) {
         Message message = Mes.groupChat(sender, groupId, groupName, content);
         message.receiverId = receiver.getId();
@@ -71,7 +71,7 @@ public class Message {
         return message;
     }
 
-    // Tạo message broadcast toàn mạng cho một receiver cụ thể.
+    // Tạo message broadcast toàn mạng cho một receiver cụ thể
     public static Message broadcast(PeerInfo sender, PeerInfo receiver, String content) {
         Message message = new Message();
         message.id = UUID.randomUUID().toString();
@@ -79,7 +79,7 @@ public class Message {
         return getMessage(sender, receiver, content, message);
     }
 
-    // Tạo ACK phản hồi cho message nguồn để bên gửi biết tin đã được nhận.
+    // Tạo ACK phản hồi cho message nguồn để bên gửi biết tin đã được nhận
     public static Message ack(Message source, PeerInfo sender) {
         Message message = new Message();
         message.id = source.getId();
@@ -89,7 +89,7 @@ public class Message {
     }
 
 
-    // Tạo heartbeat message dùng để kiểm tra peer còn online hay không.
+    // Tạo heartbeat message dùng để kiểm tra peer còn online hay không
     public static Message heartbeat(PeerInfo sender) {
         Message message = new Message();
         message.id = UUID.randomUUID().toString();
@@ -102,7 +102,7 @@ public class Message {
         return message;
     }
 
-    // Tạo request hỏi peer đích danh sách peer mà nó đang biết.
+    // Tạo request hỏi peer đích danh sách peer mà nó đang biết
     public static Message peerListRequest(PeerInfo sender, PeerInfo receiver) {
         Message message = new Message();
         message.id = UUID.randomUUID().toString();
@@ -118,7 +118,7 @@ public class Message {
         return message;
     }
 
-    // Tạo response trả danh sách peer đã biết cho requester.
+    // Tạo response trả danh sách peer đã biết cho requester
     public static Message peerListResponse(PeerInfo sender, Message request, Collection<PeerInfo> peers) {
         Message message = new Message();
         message.id = request.getId();
@@ -128,7 +128,7 @@ public class Message {
         return message;
     }
 
-    // Tạo message đồng bộ membership của group tới một member đang online.
+    // Tạo message đồng bộ membership của group tới một member đang online
     public static Message groupMembersSync(PeerInfo sender, PeerInfo receiver, Group group) {
         Message message = new Message();
         message.id = UUID.randomUUID().toString();
@@ -147,7 +147,7 @@ public class Message {
         return message;
     }
 
-    // Phục hồi message từ local JSON store để UI hiển thị lại lịch sử chat.
+    // Phục hồi message từ local JSON store để UI hiển thị lại lịch sử chat
     public static Message restore(String id, MessageType type, String senderId, String senderHost, int senderPort,
                                   String receiverId, String receiverHost, int receiverPort, String groupId,
                                   String content, long timestamp, boolean fromCurrentUser) {
@@ -156,7 +156,7 @@ public class Message {
     }
 
 
-    // Phục hồi message từ local JSON với trạng thái gửi đã lưu.
+    // Phục hồi message từ local JSON với trạng thái gửi đã lưu
     public static Message restore(String id, MessageType type, String senderId, String senderHost, int senderPort,
                                   String receiverId, String receiverHost, int receiverPort, String groupId,
                                   String groupName, String content, long timestamp, boolean fromCurrentUser,

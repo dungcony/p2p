@@ -12,8 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
- * Quản lý vòng đời của các group chat: tạo, cập nhật membership, đồng bộ từ bootstrap.
- * Cache group vào memory (ConcurrentHashMap) và persist xuống groups.json qua GroupRepository.
+ * Quản lý vòng đời của các group chat: tạo, cập nhật membership, đồng bộ từ bootstrap
+ * Cache group vào memory (ConcurrentHashMap) và persist xuống groups.json qua GroupRepository
  *
  * <p>Luồng group:</p>
  * <pre>
@@ -31,7 +31,7 @@ public class GroupManager {
     private final GroupRepository groupRepository;
     private final Consumer<Group> groupCreatedPublisher;
 
-    // Khởi tạo GroupManager có local repo và publisher để đồng bộ group mới lên bootstrap.
+    // Khởi tạo GroupManager có local repo và publisher để đồng bộ group mới lên bootstrap
     public GroupManager(GroupRepository groupRepository, Consumer<Group> groupCreatedPublisher) {
         this.groupRepository = groupRepository;
         this.groupCreatedPublisher = groupCreatedPublisher;
@@ -43,7 +43,7 @@ public class GroupManager {
         }
     }
 
-    // Tạo nhóm mới và thêm danh sách thành viên ban đầu nếu có.
+    // Tạo nhóm mới và thêm danh sách thành viên ban đầu nếu có
     public Group createGroup(String name, Collection<PeerInfo> members) {
         Group group = new Group(name);
         if (members != null) {
@@ -57,7 +57,7 @@ public class GroupManager {
         return group;
     }
 
-    // Thêm thành viên vào group đã tồn tại và lưu lại local cache.
+    // Thêm thành viên vào group đã tồn tại và lưu lại local cache
     public Group addMembers(String groupId, Collection<PeerInfo> members) {
         Group group = groups.get(groupId);
         if (group == null) {
@@ -74,7 +74,7 @@ public class GroupManager {
         return group;
     }
 
-    // Tạo hoặc cập nhật group local khi nhận được GROUP_CHAT trực tiếp từ peer khác.
+    // Tạo hoặc cập nhật group local khi nhận được GROUP_CHAT trực tiếp từ peer khác
     public Group ensureLocalGroup(String groupId, String name, Collection<PeerInfo> members) {
         Group group = groups.get(groupId);
         if (group == null) {
@@ -91,7 +91,7 @@ public class GroupManager {
         return group;
     }
 
-    // Đồng bộ group local bằng snapshot membership đầy đủ từ peer khác (GROUP_MEMBERS_SYNC).
+    // Đồng bộ group local bằng snapshot membership đầy đủ từ peer khác (GROUP_MEMBERS_SYNC)
     public Group syncMembers(String groupId, String name, Collection<PeerInfo> members) {
         Group group = groups.get(groupId);
         if (group == null) {
@@ -108,17 +108,17 @@ public class GroupManager {
         return group;
     }
 
-    // Tìm group theo groupId để gửi tin hoặc hiển thị thông tin nhóm.
+    // Tìm group theo groupId để gửi tin hoặc hiển thị thông tin nhóm
     public Group getGroup(String groupId) {
         return groups.get(groupId);
     }
 
-    // Lấy toàn bộ nhóm hiện có ở runtime.
+    // Lấy toàn bộ nhóm hiện có ở runtime
     public Collection<Group> getAllGroups() {
         return Collections.unmodifiableCollection(groups.values());
     }
 
-    // Thay thế local group cache bằng danh sách group bootstrap trả về.
+    // Thay thế local group cache bằng danh sách group bootstrap trả về
     public void replaceAll(Collection<Group> authoritativeGroups) {
         groups.clear();
         if (authoritativeGroups != null) {
@@ -132,14 +132,14 @@ public class GroupManager {
         log.info("GroupManager đã thay nhóm bằng dữ liệu bootstrap. sốLượng={}", groups.size());
     }
 
-    // Lưu group mới/cập nhật xuống groups.json nếu local repo được cấu hình.
+    // Lưu group mới/cập nhật xuống groups.json nếu local repo được cấu hình
     private void saveGroup(Group group) {
         if (groupRepository != null) {
             groupRepository.save(group);
         }
     }
 
-    // Publish group mới lên bootstrap nếu PeerNode cấu hình publisher.
+    // Publish group mới lên bootstrap nếu PeerNode cấu hình publisher
     private void publishGroup(Group group) {
         if (groupCreatedPublisher != null) {
             groupCreatedPublisher.accept(group);

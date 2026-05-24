@@ -50,7 +50,7 @@ public class MesRecord {
         return record;
     }
 
-    // Phục hồi Message runtime từ DTO JSON.
+    // Phục hồi Message runtime từ DTO JSON
     public Message toMessage() {
         return Message.restore(
                 messageId,
@@ -70,7 +70,7 @@ public class MesRecord {
         );
     }
 
-    // Đọc status từ JSON cũ/mới, mặc định SENT để tương thích với file cũ chưa có field status.
+    // Đọc status từ JSON cũ/mới, mặc định SENT để tương thích với file cũ chưa có field status
     private MessageStatus parseStatus() {
         if (status == null || status.isBlank()) {
             return MessageStatus.SENT;

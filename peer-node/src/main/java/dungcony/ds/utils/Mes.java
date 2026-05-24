@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public class Mes {
-    // Tạo offline message từ message P2P khi gửi trực tiếp thất bại.
+    // Tạo offline message từ message P2P khi gửi trực tiếp thất bại
     public static OfflineMessage fromMessage(Message message) {
         return new OfflineMessage(
                 message.getId(),
@@ -53,7 +53,7 @@ public class Mes {
         message.setStatus(MessageStatus.SENT);
     }
 
-    // Phục hồi message từ local JSON, bao gồm metadata group nếu có.
+    // Phục hồi message từ local JSON, bao gồm metadata group nếu có
     public static Message restore(String id, MessageType type, String senderId, String senderHost, int senderPort,
                                   String receiverId, String receiverHost, int receiverPort, String groupId,
                                   String groupName, String content, long timestamp, boolean fromCurrentUser) {
@@ -82,7 +82,7 @@ public class Mes {
     }
 
 
-    // Tạo message chat nhóm có tên group để peer nhận có thể tạo group local khi bootstrap không sẵn sàng.
+    // Tạo message chat nhóm có tên group để peer nhận có thể tạo group local khi bootstrap không sẵn sàng
     public static Message groupChat(PeerInfo sender, String groupId, String groupName, String content) {
         Message message = new Message();
 

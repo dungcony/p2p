@@ -12,12 +12,12 @@ private final JTextField idField;
     private final JTextField nameField;
     private boolean confirmed;
 
-    // Tạo dialog nhập tên peer truoc khi khởi động PeerNode.
+    // Tạo dialog nhập tên peer truoc khi khởi động PeerNode
     public LoginDialog() {
         this("peer-local", System.getProperty("user.name", "peer"));
     }
 
-    // Tạo dialog nhập peer với gia tri mặc định lay từ cấu hình đã lưu.
+    // Tạo dialog nhập peer với gia tri mặc định lay từ cấu hình đã lưu
     public LoginDialog(String defaultPeerId, String defaultPeerName) {
         this.idField = new JTextField(defaultPeerId == null || defaultPeerId.isBlank() ? "peer-local" : defaultPeerId, 20);
         this.nameField = new JTextField(defaultPeerName == null || defaultPeerName.isBlank() ? "peer" : defaultPeerName, 20);
@@ -49,25 +49,25 @@ private final JTextField idField;
         setLocationRelativeTo(null);
     }
 
-    // Đóng dialog khi người dùng xác nhận thông tin profile.
+    // Đóng dialog khi người dùng xác nhận thông tin profile
     private void confirm() {
         confirmed = true;
         log.info("Đã xác nhận đăng nhập. peerId={}, tênPeer={}", getPeerId(), getPeerName());
         dispose();
     }
 
-    // Cho biết người dùng đã bấm Start hay đã hủy dialog.
+    // Cho biết người dùng đã bấm Start hay đã hủy dialog
     public boolean isConfirmed() {
         return confirmed;
     }
 
-    // Lấy id đăng ký ổn định của peer, dùng làm user_id trên bootstrap-server.
+    // Lấy id đăng ký ổn định của peer, dùng làm user_id trên bootstrap-server
     public String getPeerId() {
         String peerId = idField.getText();
         return peerId == null || peerId.isBlank() ? "peer-local" : peerId.trim();
     }
 
-    // Lấy tên peer từ input, dùng giá trị mặc định nếu người dùng để trống.
+    // Lấy tên peer từ input, dùng giá trị mặc định nếu người dùng để trống
     public String getPeerName() {
         String name = nameField.getText();
         return name == null || name.isBlank() ? "peer" : name.trim();

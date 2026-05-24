@@ -80,7 +80,7 @@ public class ChatHeader extends JPanel {
         }
     }
 
-    // Hiển thị header khi đang mở group chat.
+    // Hiển thị header khi đang mở group chat
     public void setGroupStatus() {
         try {
             statusLabel.setText("Nhóm");

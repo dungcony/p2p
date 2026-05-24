@@ -13,7 +13,7 @@ private final JTextField portField;
     private boolean confirmed;
     private int peerPort;
 
-    // Tạo dialog nhập port lắng nghe cho profile mới.
+    // Tạo dialog nhập port lắng nghe cho profile mới
     public PeerPortDialog(int defaultPeerPort, int bootstrapPort) {
         this.bootstrapPort = bootstrapPort;
         this.peerPort = defaultPeerPort;
@@ -45,7 +45,7 @@ private final JTextField portField;
         setLocationRelativeTo(null);
     }
 
-    // Kiểm tra port hợp lệ và không trùng cổng bootstrap-server.
+    // Kiểm tra port hợp lệ và không trùng cổng bootstrap-server
     private void confirm() {
         try {
             int port = Integer.parseInt(portField.getText().trim());
@@ -72,12 +72,12 @@ private final JTextField portField;
         }
     }
 
-    // Cho biết người dùng đã bấm Save hay hủy dialog.
+    // Cho biết người dùng đã bấm Save hay hủy dialog
     public boolean isConfirmed() {
         return confirmed;
     }
 
-    // Lấy peer port đã xác nhận để lưu vào profile.
+    // Lấy peer port đã xác nhận để lưu vào profile
     public int getPeerPort() {
         return peerPort;
     }

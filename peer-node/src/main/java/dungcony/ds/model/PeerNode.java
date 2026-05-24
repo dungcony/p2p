@@ -53,7 +53,7 @@ public class PeerNode {
     private final PeerNodeRuntime runtime;
 
     /**
-     * Khởi tạo facade PeerNode và nhận dependency graph từ PeerNodeFactory.
+     * Khởi tạo facade PeerNode và nhận dependency graph từ PeerNodeFactory
      */
     public PeerNode(String peerId, String peerName, int port,
                     String bootstrapHost, int bootstrapPort, Path dataDir) {
@@ -89,53 +89,53 @@ public class PeerNode {
                 bootstrapAddress, resolvedDataDir.toAbsolutePath());
     }
 
-    // Khởi động TCPServer trên daemon thread và vòng sync bootstrap nếu có.
+    // Khởi động TCPServer trên daemon thread và vòng sync bootstrap nếu có
     public void start() {
         runtime.start();
     }
 
-    // Gửi LEAVE lên bootstrap rồi dừng TCPServer.
+    // Gửi LEAVE lên bootstrap rồi dừng TCPServer
     public void stop() {
         runtime.stop();
     }
 
-    // Đăng ký callback để UI được thông báo khi có tin nhắn mới.
+    // Đăng ký callback để UI được thông báo khi có tin nhắn mới
     public void addMessageListener(MessageListener listener) {
         if (listener != null) {
             messageListeners.add(listener);
         }
     }
 
-    // Đăng ký callback để UI refresh danh sách peer khi trạng thái peer thay đổi.
+    // Đăng ký callback để UI refresh danh sách peer khi trạng thái peer thay đổi
     public void addPeerChangeListener(Runnable listener) {
         if (listener != null) {
             peerChangeListeners.add(listener);
         }
     }
 
-    // Thêm một peer đã biết vào bộ nhớ runtime.
+    // Thêm một peer đã biết vào bộ nhớ runtime
     public PeerInfo addKnownPeer(String name, String hostAndMaybePort) {
         PeerInfo peerInfo = peerDirectoryService.addKnownPeer(name, hostAndMaybePort);
         notifyPeersChanged();
         return peerInfo;
     }
 
-    // Lấy danh sách peer mà node hiện đang biết để UI hiển thị trong ChatList.
+    // Lấy danh sách peer mà node hiện đang biết để UI hiển thị trong ChatList
     public Collection<PeerInfo> getKnownPeers() {
         return peerDirectoryService.list();
     }
 
-    // Lấy danh sách chat: peer online từ bootstrap và peer offline đã từng có message.
+    // Lấy danh sách chat: peer online từ bootstrap và peer offline đã từng có message
     public Collection<PeerInfo> getChatListPeers() {
         return conversationService.getChatListPeers();
     }
 
-    // Kiểm tra peer có online không, ưu tiên trạng thái từ bootstrap-server.
+    // Kiểm tra peer có online không, ưu tiên trạng thái từ bootstrap-server
     public boolean checkUserIsOnline(String hostAndMaybePort) {
         return peerPresenceService.checkUserIsOnline(hostAndMaybePort);
     }
 
-    // Kiểm tra bootstrap-server có đang reachable không.
+    // Kiểm tra bootstrap-server có đang reachable không
     public boolean isBootstrapAvailable() {
         if (bootstrapGateway == null) {
             return false;
@@ -145,92 +145,92 @@ public class PeerNode {
         return available;
     }
 
-    // Gửi tin nhắn 1-1 trực tiếp tới peer đích.
+    // Gửi tin nhắn 1-1 trực tiếp tới peer đích
     public boolean sendMessage(String content, String hostAndMaybePort) {
         return chatService.sendMessage(content, hostAndMaybePort);
     }
 
-    // Gửi một message đến toàn bộ peer online mà node biết.
+    // Gửi một message đến toàn bộ peer online mà node biết
     public BroadcastResult broadcastToNetwork(String content) {
         return networkBroadcastService.broadcastToNetwork(content);
     }
 
-    // Gửi một tin nhắn tới tất cả thành viên của nhóm đã tạo.
+    // Gửi một tin nhắn tới tất cả thành viên của nhóm đã tạo
     public void sendGroupMessage(String groupId, String content) {
         groupChatService.sendGroupMessage(groupId, content);
     }
 
-    // Tạo group chat mới từ danh sách peer được chọn trong UI.
+    // Tạo group chat mới từ danh sách peer được chọn trong UI
     public Group createGroup(String name, Collection<PeerInfo> members) {
         return groupChatService.createGroup(name, members);
     }
 
-    // Thêm peer vào group hiện có.
+    // Thêm peer vào group hiện có
     public Group addMembersToGroup(String groupId, Collection<PeerInfo> members) {
         return groupChatService.addMembersToGroup(groupId, members);
     }
 
-    // Lấy các group hiện tại của peer để UI hiển thị.
+    // Lấy các group hiện tại của peer để UI hiển thị
     public Collection<Group> getGroups() {
         return groupChatService.getGroups();
     }
 
-    // Lấy lịch sử tin nhắn với một peer cụ thể.
+    // Lấy lịch sử tin nhắn với một peer cụ thể
     public List<Message> getMessagesWithPeer(String hostAndMaybePort) {
         return conversationService.getMessagesWithPeer(hostAndMaybePort);
     }
 
-    // Lấy tin nhắn cuối cùng với một peer để hiển thị preview.
+    // Lấy tin nhắn cuối cùng với một peer để hiển thị preview
     public Message getLastMessage(String hostAndMaybePort) {
         return conversationService.getLastMessage(hostAndMaybePort);
     }
 
-    // Lấy lịch sử message của group.
+    // Lấy lịch sử message của group
     public List<Message> getMessagesWithGroup(String groupId) {
         return groupChatService.getMessagesWithGroup(groupId);
     }
 
-    // Lấy message cuối cùng của group để hiển thị preview.
+    // Lấy message cuối cùng của group để hiển thị preview
     public Message getLastGroupMessage(String groupId) {
         return groupChatService.getLastGroupMessage(groupId);
     }
 
-    // Hỏi một peer đã biết danh sách peer mà nó đang biết (fallback khi không có bootstrap).
+    // Hỏi một peer đã biết danh sách peer mà nó đang biết (fallback khi không có bootstrap)
     public List<PeerInfo> discoverPeersFromKnownPeer(PeerInfo knownPeer) {
         return peerDiscoverService.discoverPeersFromKnownPeer(knownPeer);
     }
 
-    // Tạo PEER_LIST_RESPONSE gồm local peer và danh bạ runtime hiện tại.
+    // Tạo PEER_LIST_RESPONSE gồm local peer và danh bạ runtime hiện tại
     public Message buildPeerListResponse(Message request) {
         return peerDiscoverService.buildPeerListResponse(request);
     }
 
-    // Merge danh sách peer nhận từ PEER_LIST_RESPONSE vào danh bạ local.
+    // Merge danh sách peer nhận từ PEER_LIST_RESPONSE vào danh bạ local
     public int onPeerListResponse(Message response) {
         return peerDiscoverService.onPeerListResponse(response);
     }
 
-    // Xử lý tin nhắn đến từ network.
+    // Xử lý tin nhắn đến từ network
     public void onInboundMessage(Message message) {
         inboundMessageService.onInboundMessage(message);
     }
 
-    // Cập nhật group local khi nhận snapshot membership từ peer khác.
+    // Cập nhật group local khi nhận snapshot membership từ peer khác
     public void onGroupMembersSync(Message message) {
         inboundMessageService.onGroupMembersSync(message);
     }
 
-    // Đánh dấu peer gửi heartbeat/JOIN là online.
+    // Đánh dấu peer gửi heartbeat/JOIN là online
     public void markPeerOnline(Message message) {
         inboundMessageService.markPeerOnline(message);
     }
 
-    // Retry thủ công một tin nhắn 1-1 FAILED/PENDING.
+    // Retry thủ công một tin nhắn 1-1 FAILED/PENDING
     public boolean retryMessage(Message message) {
         return messageRetryService.retryMessage(message);
     }
 
-    // Kiểm tra địa chỉ người dùng nhập có trỏ về chính peer hiện tại hay không.
+    // Kiểm tra địa chỉ người dùng nhập có trỏ về chính peer hiện tại hay không
     public boolean isSelfAddress(String hostAndMaybePort) {
         PeerInfo peerInfo = peerDirectoryService.parsePeer(hostAndMaybePort, hostAndMaybePort);
         return peerDirectoryService.isSelfPeer(peerInfo);
@@ -238,12 +238,12 @@ public class PeerNode {
 
     // ── Notify helpers ──
 
-    // Notify các MessageListener, bảo đảm callback chạy trên Swing EDT.
+    // Notify các MessageListener, bảo đảm callback chạy trên Swing EDT
     private void notifyMessage(Message message) {
         eventDispatcher.dispatch(() -> messageListeners.forEach(l -> l.onMessageReceived(message)));
     }
 
-    // Notify các listener đang quan sát thay đổi danh sách/trạng thái peer.
+    // Notify các listener đang quan sát thay đổi danh sách/trạng thái peer
     private void notifyPeersChanged() {
         eventDispatcher.dispatch(() -> peerChangeListeners.forEach(Runnable::run));
     }

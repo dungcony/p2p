@@ -7,6 +7,7 @@ import dungcony.ds.dtos.JoinResponse;
 import dungcony.ds.dtos.OfflineMessage;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.PeerInfo;
+import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -34,7 +35,7 @@ import java.util.List;
  * </pre>
  */
 @Slf4j
-public class BootstrapClient {
+public class BootstrapClient implements BootstrapGateway {
 
     private static final int CONNECT_TIMEOUT_MS = 3000;
     private static final int READ_TIMEOUT_MS    = 5000;
@@ -50,6 +51,7 @@ public class BootstrapClient {
     }
 
     // Gửi REGISTER để bootstrap-server lưu user_id và display_name của peer.
+    @Override
     public boolean register(PeerInfo peerInfo) {
         String response = request("REGISTER", peerInfo);
         boolean success = "OK".equalsIgnoreCase(response);
@@ -58,12 +60,14 @@ public class BootstrapClient {
     }
 
     // Gửi JOIN để đánh dấu peer online và nhận danh sách peer đang online.
+    @Override
     public JoinResponse join(PeerInfo peerInfo) {
         JoinResponse joinResponse = joinOrNull(peerInfo);
         return joinResponse == null ? JoinResponse.empty() : joinResponse;
     }
 
     // Gửi JOIN và trả về null nếu bootstrap không phản hồi hợp lệ.
+    @Override
     public JoinResponse joinOrNull(PeerInfo peerInfo) {
         String response = request("JOIN", peerInfo);
         if (response == null || response.isBlank()) {
@@ -82,6 +86,7 @@ public class BootstrapClient {
     }
 
     // Gửi tin nhắn offline lên bootstrap-server khi receiver đang mất kết nối trực tiếp.
+    @Override
     public boolean storeOffline(OfflineMessage message) {
         String response = request("STORE_OFFLINE", message);
         boolean success = "OK".equalsIgnoreCase(response);
@@ -91,6 +96,7 @@ public class BootstrapClient {
     }
 
     // Tạo/cập nhật group metadata trên bootstrap-server.
+    @Override
     public boolean createGroup(Group group, String createdBy) {
         GroupPayload payload = new GroupPayload(
                 group.getGroupId(),
@@ -106,6 +112,7 @@ public class BootstrapClient {
     }
 
     // Thêm user/peer vào group trên bootstrap-server.
+    @Override
     public boolean addGroupMember(String groupId, String userId) {
         GroupMemberPayload payload = new GroupMemberPayload(groupId, userId, System.currentTimeMillis());
         String response = request("ADD_GROUP_MEMBER", payload);
@@ -115,6 +122,7 @@ public class BootstrapClient {
     }
 
     // Lấy danh sách group metadata từ bootstrap-server.
+    @Override
     public Collection<GroupPayload> listGroups() {
         String response = requestRaw("LIST_GROUPS", "");
         if (response == null || response.isBlank()) {
@@ -127,6 +135,7 @@ public class BootstrapClient {
     }
 
     // Lấy danh sách member user_id của một group từ bootstrap-server.
+    @Override
     public Collection<GroupMemberPayload> listGroupMembers(String groupId) {
         String response = requestRaw("LIST_GROUP_MEMBERS", groupId);
         if (response == null || response.isBlank()) {
@@ -139,18 +148,21 @@ public class BootstrapClient {
     }
 
     // Gửi LEAVE để bootstrap-server xóa địa chỉ online của peer hiện tại.
+    @Override
     public void leave(String peerKey) {
         String response = requestRaw("LEAVE", peerKey);
         log.info("Bootstrap LEAVE peerKey={}, response={}", peerKey, response);
     }
 
     // Lấy danh sách peer online từ bootstrap-server khi cần refresh thủ công.
+    @Override
     public Collection<PeerInfo> list() {
         Collection<PeerInfo> peers = listOrNull();
         return peers == null ? Collections.emptyList() : peers;
     }
 
     // Lấy danh sách peer online, trả null nếu không kết nối được bootstrap-server.
+    @Override
     public Collection<PeerInfo> listOrNull() {
         String response = requestRaw("LIST", "");
         if (response == null) {

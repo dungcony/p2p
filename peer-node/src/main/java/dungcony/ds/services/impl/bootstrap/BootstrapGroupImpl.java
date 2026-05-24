@@ -4,7 +4,7 @@ import dungcony.ds.dtos.GroupMemberPayload;
 import dungcony.ds.dtos.GroupPayload;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.network.BootstrapClient;
+import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapGroupService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,30 +16,30 @@ import java.util.List;
 // Service đồng bộ group chat với bootstrap-server gồm tạo group, thêm member và nạp group đã tham gia
 public class BootstrapGroupImpl implements BootstrapGroupService {
 
-    private final BootstrapClient bootstrapClient;
+    private final BootstrapGateway bootstrapGateway;
     private final PeerInfo localPeer;
 
     // Khởi tạo service group bootstrap với client tracker và peer local
-    public BootstrapGroupImpl(BootstrapClient bootstrapClient, PeerInfo localPeer) {
-        this.bootstrapClient = bootstrapClient;
+    public BootstrapGroupImpl(BootstrapGateway bootstrapGateway, PeerInfo localPeer) {
+        this.bootstrapGateway = bootstrapGateway;
         this.localPeer = localPeer;
     }
 
     // Đẩy group mới lên bootstrap để peer khác có thể nạp membership
     @Override
     public void publishGroup(Group group) {
-        if (bootstrapClient == null) {
+        if (bootstrapGateway == null) {
             log.warn("Không thể publish nhóm vì bootstrap đang tắt. groupId={}", group.getGroupId());
             return;
         }
-        boolean created = bootstrapClient.createGroup(group, localPeer.getId());
+        boolean created = bootstrapGateway.createGroup(group, localPeer.getId());
         if (!created) {
             log.warn("Bootstrap CREATE_GROUP thất bại. groupId={}", group.getGroupId());
             return;
         }
-        bootstrapClient.addGroupMember(group.getGroupId(), localPeer.getId());
+        bootstrapGateway.addGroupMember(group.getGroupId(), localPeer.getId());
         for (PeerInfo member : group.getMembers()) {
-            bootstrapClient.addGroupMember(group.getGroupId(), member.getId());
+            bootstrapGateway.addGroupMember(group.getGroupId(), member.getId());
         }
         log.info("Đã publish nhóm lên bootstrap. groupId={}, sốThànhViên={}",
                 group.getGroupId(), group.getMembers().size());
@@ -48,7 +48,7 @@ public class BootstrapGroupImpl implements BootstrapGroupService {
     // Thêm các peer mới vào group đã tồn tại trên bootstrap
     @Override
     public void addMembersToGroup(String groupId, Collection<PeerInfo> members) {
-        if (bootstrapClient == null) {
+        if (bootstrapGateway == null) {
             log.warn("Không thể thêm thành viên nhóm lên bootstrap vì bootstrap đang tắt. groupId={}", groupId);
             return;
         }
@@ -58,7 +58,7 @@ public class BootstrapGroupImpl implements BootstrapGroupService {
                 if (member == null || member.getId() == null || member.getId().isBlank()) {
                     continue;
                 }
-                if (bootstrapClient.addGroupMember(groupId, member.getId())) {
+                if (bootstrapGateway.addGroupMember(groupId, member.getId())) {
                     added++;
                 }
             }
@@ -70,11 +70,11 @@ public class BootstrapGroupImpl implements BootstrapGroupService {
     @Override
     public List<Group> fetchJoinedGroups(Collection<PeerInfo> knownPeers) {
         List<Group> joinedGroups = new ArrayList<>();
-        if (bootstrapClient == null) {
+        if (bootstrapGateway == null) {
             return joinedGroups;
         }
-        for (GroupPayload groupPayload : bootstrapClient.listGroups()) {
-            Collection<GroupMemberPayload> memberPayloads = bootstrapClient.listGroupMembers(groupPayload.groupId());
+        for (GroupPayload groupPayload : bootstrapGateway.listGroups()) {
+            Collection<GroupMemberPayload> memberPayloads = bootstrapGateway.listGroupMembers(groupPayload.groupId());
             boolean localPeerIsMember = memberPayloads.stream()
                     .anyMatch(member -> localPeer.getId().equals(member.userId()));
             if (!localPeerIsMember) {

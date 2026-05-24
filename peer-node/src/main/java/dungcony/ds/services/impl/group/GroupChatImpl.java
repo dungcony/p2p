@@ -4,11 +4,11 @@ import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.network.BootstrapClient;
-import dungcony.ds.network.MessageSender;
+import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapGroupService;
 import dungcony.ds.services.interfaces.group.GroupChatService;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
+import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
 import dungcony.ds.utils.GroupConversationHelper;
 import dungcony.ds.utils.Mes;
@@ -24,8 +24,8 @@ import java.util.function.Consumer;
 public class GroupChatImpl implements GroupChatService {
 
     private final PeerInfo localPeer;
-    private final MessageSender messageSender;
-    private final BootstrapClient bootstrapClient;
+    private final PeerMessageSender messageSender;
+    private final BootstrapGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
     private final BootstrapGroupService bootstrapGroupService;
@@ -35,8 +35,8 @@ public class GroupChatImpl implements GroupChatService {
 
     // Khởi tạo service group chat với các dependency mạng, bootstrap, history và group manager
     public GroupChatImpl(PeerInfo localPeer,
-                         MessageSender messageSender,
-                         BootstrapClient bootstrapClient,
+                         PeerMessageSender messageSender,
+                         BootstrapGateway bootstrapGateway,
                          PeerDirectoryService peerDirectoryService,
                          MessageHistoryService messageHistoryService,
                          BootstrapGroupService bootstrapGroupService,
@@ -45,7 +45,7 @@ public class GroupChatImpl implements GroupChatService {
                          Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
         this.messageSender = messageSender;
-        this.bootstrapClient = bootstrapClient;
+        this.bootstrapGateway = bootstrapGateway;
         this.peerDirectoryService = peerDirectoryService;
         this.messageHistoryService = messageHistoryService;
         this.bootstrapGroupService = bootstrapGroupService;
@@ -157,11 +157,11 @@ public class GroupChatImpl implements GroupChatService {
 
     // Lưu group message offline lên bootstrap theo receiverId của từng member
     private boolean storeGroupOfflineIfPossible(Message message, PeerInfo member) {
-        if (bootstrapClient == null) {
+        if (bootstrapGateway == null) {
             log.warn("Không thể lưu tin nhắn nhóm offline vì bootstrap đang tắt. member={}", member.getId());
             return false;
         }
-        boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
+        boolean stored = bootstrapGateway.storeOffline(Mes.fromMessage(message));
         log.info("Đã lưu fallback tin nhóm offline={}, messageId={}, groupId={}, receiverId={}",
                 stored, message.getId(), message.getGroupId(), member.getId());
         return stored;

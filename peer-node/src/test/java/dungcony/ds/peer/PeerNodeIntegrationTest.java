@@ -1,9 +1,11 @@
 package dungcony.ds.peer;
 
+import dungcony.ds.dtos.BroadcastResult;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.*;
 import dungcony.ds.models.BootstrapServer;
+import dungcony.ds.network.BootstrapClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -171,7 +173,7 @@ class PeerNodeIntegrationTest {
         awaitKnownPeer(alice, "bob");
         awaitKnownPeer(alice, "carol");
 
-        PeerNode.BroadcastResult result = alice.broadcastToNetwork("hello network");
+        BroadcastResult result = alice.broadcastToNetwork("hello network");
 
         assertEquals(2, result.totalTargets());
         assertEquals(2, result.delivered());

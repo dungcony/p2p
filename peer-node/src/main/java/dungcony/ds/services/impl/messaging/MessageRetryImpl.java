@@ -3,10 +3,10 @@ package dungcony.ds.services.impl.messaging;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.network.BootstrapClient;
-import dungcony.ds.network.MessageSender;
+import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.messaging.MessageRetryService;
+import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
 import dungcony.ds.utils.Mes;
 import lombok.extern.slf4j.Slf4j;
@@ -17,22 +17,22 @@ import java.util.function.Consumer;
 // Service xử lý retry thủ công cho tin nhắn 1-1 đã FAILED hoặc PENDING
 public class MessageRetryImpl implements MessageRetryService {
 
-    private final MessageSender messageSender;
-    private final BootstrapClient bootstrapClient;
+    private final PeerMessageSender messageSender;
+    private final BootstrapGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
     private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
     // Khởi tạo service retry với sender, bootstrap fallback, danh bạ và history
-    public MessageRetryImpl(MessageSender messageSender,
-                            BootstrapClient bootstrapClient,
+    public MessageRetryImpl(PeerMessageSender messageSender,
+                            BootstrapGateway bootstrapGateway,
                             PeerDirectoryService peerDirectoryService,
                             MessageHistoryService messageHistoryService,
                             Consumer<Message> messageNotifier,
                             Runnable peerChangeNotifier) {
         this.messageSender = messageSender;
-        this.bootstrapClient = bootstrapClient;
+        this.bootstrapGateway = bootstrapGateway;
         this.peerDirectoryService = peerDirectoryService;
         this.messageHistoryService = messageHistoryService;
         this.messageNotifier = messageNotifier;
@@ -82,11 +82,11 @@ public class MessageRetryImpl implements MessageRetryService {
 
     // Lưu fallback offline cho retry tin 1-1 nếu bootstrap đang sẵn sàng
     private boolean storeDirectOfflineIfPossible(Message message) {
-        if (bootstrapClient == null) {
+        if (bootstrapGateway == null) {
             log.warn("Không thể lưu fallback retry vì bootstrap đang tắt. messageId={}", message.getId());
             return false;
         }
-        boolean stored = bootstrapClient.storeOffline(Mes.fromMessage(message));
+        boolean stored = bootstrapGateway.storeOffline(Mes.fromMessage(message));
         log.info("Đã lưu fallback retry offline={}, messageId={}", stored, message.getId());
         return stored;
     }

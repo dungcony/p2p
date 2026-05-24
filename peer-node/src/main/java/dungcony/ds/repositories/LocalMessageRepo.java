@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
+import dungcony.ds.services.interfaces.persistence.MessageRepository;
 import dungcony.ds.utils.MesRecord;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,7 +17,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 @Slf4j
-public class LocalMessageRepo {
+public class LocalMessageRepo implements MessageRepository {
     private static final Type MESSAGE_RECORD_LIST_TYPE = new TypeToken<List<MesRecord>>() {
     }.getType();
 
@@ -46,6 +47,7 @@ public class LocalMessageRepo {
     }
 
     // Lưu một message vào history local theo peer đối thoại.
+    @Override
     public synchronized void save(PeerInfo conversationPeer, Message message) {
         if (conversationPeer == null || message == null) {
             log.warn("LocalMessageRepo bỏ qua lưu conversation/message null.");
@@ -72,6 +74,7 @@ public class LocalMessageRepo {
     }
 
     // Đọc history local với một peer theo peer.id ổn định.
+    @Override
     public synchronized List<Message> findByConversationPeerId(String conversationPeerId) {
         List<Message> messages = new ArrayList<>();
         if (conversationPeerId == null || conversationPeerId.isBlank()) {
@@ -95,6 +98,7 @@ public class LocalMessageRepo {
     }
 
     // Đọc danh sách peer đã từng có tin nhắn 1-1 để hiện lại conversation khi peer offline.
+    @Override
     public synchronized List<PeerInfo> findDirectConversationPeers() {
         Map<String, PeerInfo> peersById = new LinkedHashMap<>();
         for (MesRecord record : readAllRecords()) {

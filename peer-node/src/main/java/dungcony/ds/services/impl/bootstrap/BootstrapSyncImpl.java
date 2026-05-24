@@ -6,7 +6,7 @@ import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.network.BootstrapClient;
+import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapGroupService;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapSyncService;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 // Service điều phối đăng ký peer, heartbeat bootstrap, đồng bộ peer, group và offline message
 public class BootstrapSyncImpl implements BootstrapSyncService {
 
-    private final BootstrapClient bootstrapClient;
+    private final BootstrapGateway bootstrapGateway;
     private final PeerInfo localPeer;
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
@@ -32,14 +32,14 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
     private final Consumer<Message> messageNotifier;
 
     // Khởi tạo service xử lý REGISTER/JOIN/offline/group sync với bootstrap
-    public BootstrapSyncImpl(BootstrapClient bootstrapClient, PeerInfo localPeer,
+    public BootstrapSyncImpl(BootstrapGateway bootstrapGateway, PeerInfo localPeer,
                              PeerDirectoryService peerDirectoryService,
                              MessageHistoryService messageHistoryService,
                              GroupManager groupManager,
                              BootstrapGroupService bootstrapGroupService,
                              Runnable peerChangeNotifier,
                              Consumer<Message> messageNotifier) {
-        this.bootstrapClient = bootstrapClient;
+        this.bootstrapGateway = bootstrapGateway;
         this.localPeer = localPeer;
         this.peerDirectoryService = peerDirectoryService;
         this.messageHistoryService = messageHistoryService;
@@ -53,12 +53,12 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
     @Override
     public void registerAndJoinBootstrap() {
         log.info("Đang đăng ký peer local với bootstrap. peerId={}, tên={}", localPeer.getId(), localPeer.getName());
-        boolean registered = bootstrapClient.register(localPeer);
+        boolean registered = bootstrapGateway.register(localPeer);
         if (!registered) {
             log.warn("Bootstrap REGISTER thất bại. Peer vẫn chạy ở chế độ TCP trực tiếp.");
             return;
         }
-        JoinResponse joinResponse = bootstrapClient.join(localPeer);
+        JoinResponse joinResponse = bootstrapGateway.join(localPeer);
         int added = peerDirectoryService.syncOnlinePeers(joinResponse.getOnlinePeers());
         syncGroupsFromBootstrap();
         handleOfflineMessages(joinResponse);
@@ -69,7 +69,7 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
     // Làm mới danh sách peer online và group từ bootstrap-server
     @Override
     public void refreshFromBootstrap() {
-        JoinResponse joinResponse = bootstrapClient.joinOrNull(localPeer);
+        JoinResponse joinResponse = bootstrapGateway.joinOrNull(localPeer);
         if (joinResponse == null) {
             log.warn("Bỏ qua refresh bootstrap vì tracker không khả dụng. "
                     + "Giữ nguyên trạng thái peer local hiện tại.");

@@ -2,7 +2,7 @@ package dungcony.ds.services.impl.group;
 
 import dungcony.ds.model.Group;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.repositories.LocalGroupRepo;
+import dungcony.ds.services.interfaces.persistence.GroupRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 
 /**
  * Quản lý vòng đời của các group chat: tạo, cập nhật membership, đồng bộ từ bootstrap.
- * Cache group vào memory (ConcurrentHashMap) và persist xuống groups.json qua LocalGroupRepo.
+ * Cache group vào memory (ConcurrentHashMap) và persist xuống groups.json qua GroupRepository.
  *
  * <p>Luồng group:</p>
  * <pre>
@@ -28,15 +28,15 @@ import java.util.function.Consumer;
 public class GroupManager {
 
     private final Map<String, Group> groups = new ConcurrentHashMap<>();
-    private final LocalGroupRepo localGroupRepo;
+    private final GroupRepository groupRepository;
     private final Consumer<Group> groupCreatedPublisher;
 
     // Khởi tạo GroupManager có local repo và publisher để đồng bộ group mới lên bootstrap.
-    public GroupManager(LocalGroupRepo localGroupRepo, Consumer<Group> groupCreatedPublisher) {
-        this.localGroupRepo = localGroupRepo;
+    public GroupManager(GroupRepository groupRepository, Consumer<Group> groupCreatedPublisher) {
+        this.groupRepository = groupRepository;
         this.groupCreatedPublisher = groupCreatedPublisher;
-        if (localGroupRepo != null) {
-            for (Group group : localGroupRepo.findAll()) {
+        if (groupRepository != null) {
+            for (Group group : groupRepository.findAll()) {
                 groups.put(group.getGroupId(), group);
             }
             log.info("GroupManager đã nạp nhóm local. sốLượng={}", groups.size());
@@ -126,16 +126,16 @@ public class GroupManager {
                 groups.put(group.getGroupId(), group);
             }
         }
-        if (localGroupRepo != null) {
-            localGroupRepo.saveAll(groups.values());
+        if (groupRepository != null) {
+            groupRepository.saveAll(groups.values());
         }
         log.info("GroupManager đã thay nhóm bằng dữ liệu bootstrap. sốLượng={}", groups.size());
     }
 
     // Lưu group mới/cập nhật xuống groups.json nếu local repo được cấu hình.
     private void saveGroup(Group group) {
-        if (localGroupRepo != null) {
-            localGroupRepo.save(group);
+        if (groupRepository != null) {
+            groupRepository.save(group);
         }
     }
 

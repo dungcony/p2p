@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import dungcony.ds.model.Group;
+import dungcony.ds.services.interfaces.persistence.GroupRepository;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -19,7 +20,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
-public class LocalGroupRepo {
+public class LocalGroupRepo implements GroupRepository {
 private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
     }.getType();
 
@@ -49,6 +50,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
     }
 
     // Lưu hoặc cập nhật một group vào groups.json.
+    @Override
     public synchronized void save(Group group) {
         if (group == null) {
             log.warn("LocalGroupRepo bỏ qua lưu nhóm null.");
@@ -62,6 +64,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
     }
 
     // Ghi lại toàn bộ danh sách group của profile hiện tại.
+    @Override
     public synchronized void saveAll(Collection<Group> groups) {
         List<Group> sortedGroups = new ArrayList<>(groups == null ? List.of() : groups);
         sortedGroups.sort(Comparator.comparing(Group::getName).thenComparing(Group::getGroupId));
@@ -74,6 +77,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
     }
 
     // Đọc tất cả group mà profile hiện tại đang tham gia.
+    @Override
     public synchronized List<Group> findAll() {
         try {
             if (!Files.exists(groupFilePath)) {

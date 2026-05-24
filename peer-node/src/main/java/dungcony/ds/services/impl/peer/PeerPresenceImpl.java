@@ -2,8 +2,8 @@ package dungcony.ds.services.impl.peer;
 
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.network.BootstrapClient;
-import dungcony.ds.network.MessageSender;
+import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
+import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
 import dungcony.ds.services.interfaces.peer.PeerPresenceService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,17 +13,17 @@ import lombok.extern.slf4j.Slf4j;
 public class PeerPresenceImpl implements PeerPresenceService {
 
     private final PeerInfo localPeer;
-    private final MessageSender messageSender;
-    private final BootstrapClient bootstrapClient;
+    private final PeerMessageSender messageSender;
+    private final BootstrapGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
     private final Runnable peerChangeNotifier;
 
     // Khởi tạo service quản lý trạng thái online/offline của peer
-    public PeerPresenceImpl(PeerInfo localPeer, MessageSender messageSender, BootstrapClient bootstrapClient,
+    public PeerPresenceImpl(PeerInfo localPeer, PeerMessageSender messageSender, BootstrapGateway bootstrapGateway,
                             PeerDirectoryService peerDirectoryService, Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
         this.messageSender = messageSender;
-        this.bootstrapClient = bootstrapClient;
+        this.bootstrapGateway = bootstrapGateway;
         this.peerDirectoryService = peerDirectoryService;
         this.peerChangeNotifier = peerChangeNotifier;
     }
@@ -40,7 +40,7 @@ public class PeerPresenceImpl implements PeerPresenceService {
             log.warn("Từ chối kiểm tra online với peer local: {}", peerInfo.addressKey());
             return false;
         }
-        boolean online = bootstrapClient != null && checkByBootstrap(peerInfo);
+        boolean online = bootstrapGateway != null && checkByBootstrap(peerInfo);
         if (!online) {
             online = checkByDirectHeartbeat(peerInfo);
         }
@@ -52,7 +52,7 @@ public class PeerPresenceImpl implements PeerPresenceService {
     // Hỏi bootstrap-server danh sách peer online và so khớp theo id hoặc address
     private boolean checkByBootstrap(PeerInfo targetPeer) {
         log.debug("Đang kiểm tra trạng thái online qua bootstrap. target={}", targetPeer.addressKey());
-        java.util.Collection<PeerInfo> onlinePeers = bootstrapClient.listOrNull();
+        java.util.Collection<PeerInfo> onlinePeers = bootstrapGateway.listOrNull();
         if (onlinePeers == null) {
             log.warn("Bootstrap không khả dụng khi kiểm tra online. Chuyển sang heartbeat trực tiếp. target={}",
                     targetPeer.addressKey());

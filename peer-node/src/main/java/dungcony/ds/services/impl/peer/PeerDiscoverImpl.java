@@ -3,7 +3,7 @@ package dungcony.ds.services.impl.peer;
 import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.network.MessageSender;
+import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
 import dungcony.ds.services.interfaces.peer.PeerDiscoverService;
 import dungcony.ds.utils.GroupConversationHelper;
@@ -17,13 +17,13 @@ import java.util.List;
 public class PeerDiscoverImpl implements PeerDiscoverService {
 
     private final PeerInfo localPeer;
-    private final MessageSender messageSender;
+    private final PeerMessageSender messageSender;
     private final PeerDirectoryService peerDirectoryService;
     private final Runnable peerChangeNotifier;
 
     // Khởi tạo service discovery với peer local, sender và danh bạ runtime
     public PeerDiscoverImpl(PeerInfo localPeer,
-                            MessageSender messageSender,
+                            PeerMessageSender messageSender,
                             PeerDirectoryService peerDirectoryService,
                             Runnable peerChangeNotifier) {
         this.localPeer = localPeer;

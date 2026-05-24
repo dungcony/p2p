@@ -4,6 +4,7 @@ import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
+import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -17,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * </pre>
  */
 @Slf4j
-public class MessageSender {
+public class MessageSender implements PeerMessageSender {
 
     private static final int RETRY_COUNT      = 3;
     private static final int RETRY_DELAY_MS   = 300;
@@ -30,6 +31,7 @@ public class MessageSender {
     }
 
     // Gửi message tới một peer, retry vài lần nếu chưa nhận ACK.
+    @Override
     public boolean send(PeerInfo peerInfo, Message message) {
         for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
             log.debug("Đang gửi {} message id={} tới={}, attempt={}/{}",
@@ -46,6 +48,7 @@ public class MessageSender {
     }
 
     // Gửi request và chờ response có type cụ thể, dùng cho peer discovery.
+    @Override
     public Message sendForResponse(PeerInfo peerInfo, Message message, MessageType expectedType) {
         for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
             log.debug("Đang gửi request {} id={} tới={}, attempt={}/{}",

@@ -1,10 +1,10 @@
 package dungcony.ds.ui.components.chatPage;
 
 import dungcony.ds.App;
+import dungcony.ds.dtos.BroadcastResult;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.model.PeerNode;
 import dungcony.ds.ui.components.ChatProfile;
 import dungcony.ds.ui.components.ModernScrollBarUI;
 import dungcony.ds.ui.pages.ChatPage;
@@ -301,16 +301,16 @@ public class ChatList extends JPanel {
         }
 
         broadcastButton.setEnabled(false);
-        new SwingWorker<PeerNode.BroadcastResult, Void>() {
+        new SwingWorker<BroadcastResult, Void>() {
             @Override
-            protected PeerNode.BroadcastResult doInBackground() {
+            protected BroadcastResult doInBackground() {
                 return App.peerNode.broadcastToNetwork(content);
             }
 
             @Override
             protected void done() {
                 try {
-                    PeerNode.BroadcastResult result = get();
+                    BroadcastResult result = get();
                     JOptionPane.showMessageDialog(
                             ChatList.this,
                             "Đã gửi tới " + result.delivered() + "/" + result.totalTargets()

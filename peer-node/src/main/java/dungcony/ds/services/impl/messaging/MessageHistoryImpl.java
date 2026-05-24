@@ -2,8 +2,8 @@ package dungcony.ds.services.impl.messaging;
 
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.repositories.LocalMessageRepo;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
+import dungcony.ds.services.interfaces.persistence.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -16,25 +16,25 @@ import java.util.concurrent.ConcurrentHashMap;
 // Service quản lý message history trong memory và file JSON local
 public class MessageHistoryImpl implements MessageHistoryService {
     private final Map<String, List<Message>> messageHistory = new ConcurrentHashMap<>();
-    private final LocalMessageRepo localMessageRepo;
+    private final MessageRepository messageRepository;
 
     // Khởi tạo service quản lý message history runtime và JSON local
-    public MessageHistoryImpl(LocalMessageRepo localMessageRepo) {
-        this.localMessageRepo = localMessageRepo;
+    public MessageHistoryImpl(MessageRepository messageRepository) {
+        this.messageRepository = messageRepository;
     }
 
     // Lưu message vào memory và messages.json theo peer đối thoại
     @Override
     public void addAndSave(PeerInfo conversationPeer, Message message) {
         add(conversationPeer.addressKey(), message);
-        localMessageRepo.save(conversationPeer, message);
+        messageRepository.save(conversationPeer, message);
     }
 
     // Lưu message vào memory với key tùy biến và persist theo peer đối thoại
     @Override
     public void addAndSave(String historyKey, PeerInfo conversationPeer, Message message) {
         add(historyKey, message);
-        localMessageRepo.save(conversationPeer, message);
+        messageRepository.save(conversationPeer, message);
     }
 
     // Lưu message vào history runtime
@@ -68,7 +68,7 @@ public class MessageHistoryImpl implements MessageHistoryService {
     public List<Message> getMessages(PeerInfo peerInfo, String fallbackKey) {
         String key = peerInfo == null ? fallbackKey : peerInfo.addressKey();
         if (peerInfo != null) {
-            List<Message> localMessages = localMessageRepo.findByConversationPeerId(peerInfo.getId());
+            List<Message> localMessages = messageRepository.findByConversationPeerId(peerInfo.getId());
             if (!localMessages.isEmpty()) {
                 mergeLocalMessages(key, localMessages);
             }
@@ -86,7 +86,7 @@ public class MessageHistoryImpl implements MessageHistoryService {
     // Lấy các peer đã từng có tin nhắn 1-1 trong messages.json
     @Override
     public List<PeerInfo> getDirectConversationPeers() {
-        return localMessageRepo.findDirectConversationPeers();
+        return messageRepository.findDirectConversationPeers();
     }
 
     // Merge messages.json vào cache runtime để UI không mất tin cũ khi cache đã có tin mới

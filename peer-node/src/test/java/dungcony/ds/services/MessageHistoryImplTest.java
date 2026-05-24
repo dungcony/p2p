@@ -4,6 +4,7 @@ import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.repositories.LocalMessageRepo;
+import dungcony.ds.services.Impl.MessageHistoryImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

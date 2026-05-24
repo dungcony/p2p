@@ -2,9 +2,9 @@ package dungcony.ds;
 
 import dungcony.ds.config.PeerConfig;
 import dungcony.ds.dtos.ProfileSelection;
-import dungcony.ds.interfaces.ProfileSelectionService;
 import dungcony.ds.model.PeerNode;
-import dungcony.ds.services.ProfileSelectionImpl;
+import dungcony.ds.services.Impl.ProfileSelectionImpl;
+import dungcony.ds.services.interfaces.ProfileSelectionService;
 import dungcony.ds.ui.LoginDialog;
 import dungcony.ds.ui.Main;
 import dungcony.ds.ui.PeerPortDialog;
@@ -27,7 +27,7 @@ public class App {
     public static void main(String[] args) {
         RuntimeOption runtimeOptions = resolveRuntimeOptions(args);
         Path dataRoot = runtimeOptions.dataRoot();
-        
+
         SwingUtilities.invokeLater(() -> {
             ProfileSelectionService profileSelectionService = new ProfileSelectionImpl(dataRoot);
             ProfileSelection selection = profileSelectionService.selectProfile();

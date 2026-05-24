@@ -23,11 +23,6 @@ public class LocalMessageRepo {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final Path messageFilePath;
 
-    // Khởi tạo local JSON store riêng cho peerId hiện tại.
-    public LocalMessageRepo(String peerId) {
-        this(Path.of("peer-node", "src", "main", "resources", "data"));
-    }
-
     // Khởi tạo local JSON store trong dataDir riêng của instance hiện tại.
     public LocalMessageRepo(Path dataDir) {
         Path resolvedDataDir = dataDir == null

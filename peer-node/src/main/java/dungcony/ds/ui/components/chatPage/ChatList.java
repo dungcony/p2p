@@ -1,7 +1,6 @@
 package dungcony.ds.ui.components.chatPage;
 
 import dungcony.ds.App;
-import dungcony.ds.dtos.BroadcastResult;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
@@ -33,7 +32,6 @@ public class ChatList extends JPanel {
     private JPanel devicesContainer;
     private JScrollPane scrollPane;
     private JButton createGroupButton;
-    private JButton broadcastButton;
     private ChatPage parentChatPage;
 
     public ChatList() {
@@ -77,19 +75,12 @@ public class ChatList extends JPanel {
         createGroupButton.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
         createGroupButton.addActionListener(event -> openCreateGroupDialog());
 
-        broadcastButton = new JButton("Phát toàn mạng");
-        broadcastButton.setFocusPainted(false);
-        broadcastButton.setBackground(ColorPalette.ACCENT);
-        broadcastButton.setForeground(Color.WHITE);
-        broadcastButton.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
-        broadcastButton.addActionListener(event -> openBroadcastDialog());
     }
 
     private JPanel createActionPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 2, 8, 0));
+        JPanel panel = new JPanel(new GridLayout(1, 1));
         panel.setBackground(ColorPalette.BACKGROUND);
         panel.add(createGroupButton);
-        panel.add(broadcastButton);
         return panel;
     }
 
@@ -98,6 +89,7 @@ public class ChatList extends JPanel {
             try {
                 devicesContainer.removeAll();
                 if (App.peerNode != null) {
+                    addBroadcastProfile(App.peerNode.getLastBroadcastMessage());
                     for (Group group : App.peerNode.getGroups()) {
                         Message message = App.peerNode.getLastGroupMessage(group.getGroupId());
                         addGroupProfile(group, message);
@@ -171,6 +163,33 @@ public class ChatList extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 if (parentChatPage != null) {
                     parentChatPage.onGroupSelected(group.getName(), group.getGroupId());
+                }
+            }
+        };
+        deviceInfoPanel.addMouseListener(selector);
+        chatProfile.addMouseListener(selector);
+
+        if (devicesContainer.getComponentCount() > 0) {
+            devicesContainer.add(Box.createVerticalStrut(8));
+        }
+        devicesContainer.add(chatProfile);
+    }
+
+    // Thêm conversation broadcast toàn mạng vào danh sách chat
+    private void addBroadcastProfile(Message message) {
+        String lastMessage = message == null
+                ? "Tin nhắn phát tới peer online"
+                : message.isFromCurrentUser() ? "Bạn: " + message.getContent() : message.getContent();
+        String lastTime = message == null ? "" : message.getFormattedTime();
+        JPanel deviceInfoPanel = createDeviceInfoPanel("[Thế giới]", lastMessage, lastTime, null);
+        ChatProfile chatProfile = new ChatProfile(10, deviceInfoPanel, ColorPalette.BACKGROUND);
+        chatProfile.setBackground(ColorPalette.BACKGROUND);
+
+        MouseAdapter selector = new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (parentChatPage != null) {
+                    parentChatPage.onBroadcastSelected();
                 }
             }
         };
@@ -299,60 +318,6 @@ public class ChatList extends JPanel {
         }.execute();
     }
 
-    private void openBroadcastDialog() {
-        if (App.peerNode == null) {
-            return;
-        }
-        JTextArea messageArea = new JTextArea(5, 28);
-        messageArea.setLineWrap(true);
-        messageArea.setWrapStyleWord(true);
-        JScrollPane messageScrollPane = new JScrollPane(messageArea);
-        int choice = JOptionPane.showConfirmDialog(
-                this,
-                messageScrollPane,
-                "Phát tin nhắn toàn mạng",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
-        );
-        if (choice != JOptionPane.OK_OPTION) {
-            return;
-        }
-        String content = messageArea.getText();
-        if (content == null || content.isBlank()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập nội dung broadcast.", "Broadcast",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        broadcastButton.setEnabled(false);
-        new SwingWorker<BroadcastResult, Void>() {
-            @Override
-            protected BroadcastResult doInBackground() {
-                return App.peerNode.broadcastToNetwork(content);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    BroadcastResult result = get();
-                    JOptionPane.showMessageDialog(
-                            ChatList.this,
-                            "Đã gửi tới " + result.delivered() + "/" + result.totalTargets()
-                                    + " peer. Thất bại: " + result.failed(),
-                            "Broadcast",
-                            result.failed() == 0 ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE
-                    );
-                } catch (Exception e) {
-                    log.error("Không thể broadcast toàn mạng: {}", e.getMessage());
-                    JOptionPane.showMessageDialog(ChatList.this, "Không thể broadcast toàn mạng.", "Broadcast",
-                            JOptionPane.ERROR_MESSAGE);
-                } finally {
-                    broadcastButton.setEnabled(true);
-                    renderFriends();
-                }
-            }
-        }.execute();
-    }
 
     private void openAddMembersDialog(Group group, JButton sourceButton) {
         if (App.peerNode == null || group == null) {

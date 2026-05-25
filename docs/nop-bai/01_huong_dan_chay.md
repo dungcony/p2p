@@ -14,7 +14,6 @@ Tài liệu này hướng dẫn cách build, chạy thử và kiểm tra hệ th
 | JDK | Java 21 | Cần cấu hình `JAVA_HOME` trỏ tới JDK 21. |
 | Maven | 3.9+ | Dùng để build multi-module project. |
 | Hệ điều hành | Windows | Project có sẵn script `.bat`; vẫn có thể chạy bằng Maven trên hệ điều hành khác. |
-| Docker | Tùy chọn | Dùng nếu muốn chạy bootstrap server bằng container. |
 
 Kiểm tra môi trường:
 
@@ -47,60 +46,88 @@ p2p/
 | File | Công dụng |
 | --- | --- |
 | `run-bootstrap.bat` | Chạy tracker server trên port mặc định `9000`. |
-| `run.bat` | Build dependency cần thiết và chạy một instance `peer-node`. |
-| `docker-compose.yml` | Chạy `bootstrap-server` bằng Docker Compose. |
+| `run.bat` | Chạy một peer bằng tham số CLI, không mở màn chọn profile. |
+| `run-peer.bat` | File thực thi chính cho một peer; `run.bat` đang delegate sang file này. |
+| `run-all-peers.bat` | Mở bootstrap server và 3 peer demo Alice/Bob/Carol. |
 
 ## 4. Chạy nhanh trên Windows
 
 Mở terminal tại thư mục gốc project `p2p/`.
 
-### Bước 1: chạy bootstrap server
+### Cách nhanh nhất: chạy cả cụm demo
+
+```bat
+run-all-peers.bat
+```
+
+Script này mở 4 cửa sổ terminal:
+
+- Bootstrap server trên port `9000`.
+- Alice dùng profile `alice`, port `5001`.
+- Bob dùng profile `bob`, port `5002`.
+- Carol dùng profile `carol`, port `5003`.
+
+### Chạy thủ công từng peer
+
+Nếu muốn tự mở từng cửa sổ, chạy bootstrap trước:
 
 ```bat
 run-bootstrap.bat
 ```
 
-Mặc định bootstrap server lắng nghe tại:
+Mặc định bootstrap server lắng nghe tại `127.0.0.1:9000`.
 
-```text
-127.0.0.1:9000
-```
-
-Bootstrap server dùng giao thức TCP text command và SQLite để lưu user, group metadata, group member và offline message.
-
-### Bước 2: chạy peer thứ nhất
-
-Mở terminal thứ hai:
+Mở terminal thứ hai để chạy Alice:
 
 ```bat
-run.bat --peer-port=5001 --data-dir=tmp/alice
+run.bat --profile=alice
 ```
 
-### Bước 3: chạy peer thứ hai
-
-Mở terminal thứ ba:
+Mở terminal thứ ba để chạy Bob:
 
 ```bat
-run.bat --peer-port=5002 --data-dir=tmp/bob
+run.bat --profile=bob
 ```
 
-### Bước 4: chạy peer thứ ba, nếu muốn thử group chat/broadcast
+Mở terminal thứ tư để chạy Carol:
 
 ```bat
-run.bat --peer-port=5003 --data-dir=tmp/carol
+run.bat --profile=carol
 ```
 
-Khi chạy lần đầu, ứng dụng hiển thị giao diện Swing để chọn hoặc tạo profile peer. Mỗi peer cần dùng một port TCP khác nhau.
+Ứng dụng không còn mở màn chọn profile khi khởi động. Mỗi instance nhận profile từ tham số CLI, sau đó đi thẳng vào màn chat chính.
+
+### Chạy bằng tên trực tiếp
+
+Ngoài profile có sẵn, có thể truyền tên hiển thị trực tiếp:
+
+```bat
+run.bat --peer-name=Dave
+```
+
+Khi dùng cách này, app tìm profile có cùng tên hiển thị. Nếu chưa có, app tự sinh `peer.id` dạng UUID, tự chọn port trống và lưu profile mới trong thư mục dữ liệu mặc định.
+
+Nếu chạy không tham số:
+
+```bat
+run.bat
+```
+
+Script chỉ hỏi tên hiển thị trong terminal. Người dùng không nhập `peer.id`; định danh peer là UUID nội bộ do app tự sinh.
+
+Điều quan trọng là không được chạy hai peer cùng lúc với cùng một port, vì peer nào cũng mở `TCPServer` riêng để nhận tin.
+
+Ba profile demo đã được tạo sẵn tại `peer-node/src/main/resources/data/alice`, `bob`, `carol`.
 
 ## 5. Tham số runtime của peer
 
 | Tham số | Ví dụ | Ý nghĩa |
 | --- | --- | --- |
-| `--peer-port` | `--peer-port=5001` | Port TCP mà peer dùng để lắng nghe tin nhắn đến. |
-| `--port` | `--port=5001` | Alias của `--peer-port`. |
-| `--data-dir` | `--data-dir=tmp/alice` | Thư mục lưu profile, `messages.json`, `groups.json`. |
+| `--profile` | `--profile=alice` | Nạp profile có sẵn trong `data/<profile>/config.properties`. |
+| `--peer-name` | `--peer-name=Alice` | Tên hiển thị của peer; app tự sinh id và tự chọn port nếu là profile mới. |
+| `--data-dir` | `--data-dir=tmp/demo-data` | Thư mục gốc chứa các profile và dữ liệu local. |
 
-Nếu không truyền `--peer-port`, ứng dụng dùng port đã lưu trong profile hoặc hỏi port khi tạo profile mới.
+Nếu không muốn gõ tham số dài, chạy `run.bat` không tham số để script hỏi thông tin profile ngay trong terminal.
 
 ## 6. Cấu hình bootstrap server
 
@@ -147,7 +174,7 @@ mvn -pl bootstrap-server exec:java -Dexec.mainClass="dungcony.ds.App" -Dexec.arg
 Chạy một peer trực tiếp bằng Maven:
 
 ```bat
-mvn -pl peer-node exec:java -Dexec.mainClass="dungcony.ds.App" -Dexec.args="--peer-port=5001 --data-dir=tmp/alice"
+mvn -pl peer-node exec:java -Dexec.mainClass="dungcony.ds.App" -Dexec.args="--profile=alice"
 ```
 
 Build riêng bootstrap server:
@@ -221,7 +248,7 @@ docker compose up --build bootstrap-server
 Mỗi peer có thư mục dữ liệu riêng:
 
 ```text
-tmp/alice/
+peer-node/src/main/resources/data/alice/
   config.properties
   messages.json
   groups.json
@@ -246,7 +273,7 @@ Bootstrap server dùng SQLite để lưu:
 
 | Hiện tượng | Nguyên nhân thường gặp | Cách xử lý |
 | --- | --- | --- |
-| Peer không mở được port | Port đang bị process khác dùng | Đổi `--peer-port` hoặc tắt process đang chiếm port. |
+| Peer không mở được port | Port trong profile đang bị process khác dùng | Tắt process đang chiếm port hoặc tạo profile mới để app tự chọn cổng trống. |
 | Peer không thấy peer khác | Bootstrap chưa chạy hoặc chưa refresh | Kiểm tra `run-bootstrap.bat`, đợi chu kỳ refresh khoảng 5 giây. |
 | Gửi tin bị `FAILED` | Peer đích offline và bootstrap không khả dụng | Chạy lại bootstrap hoặc gửi lại khi peer online. |
 | Gửi tin bị `PENDING` | Gửi trực tiếp thất bại nhưng đã lưu offline | Chạy lại peer nhận để bootstrap giao lại tin. |

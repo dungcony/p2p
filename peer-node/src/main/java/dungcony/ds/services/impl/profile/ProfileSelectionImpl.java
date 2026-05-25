@@ -1,18 +1,20 @@
 package dungcony.ds.services.impl.profile;
 
 import dungcony.ds.config.PeerProfile;
-import dungcony.ds.config.PeerProfileRepository;
 import dungcony.ds.dtos.ProfileSelection;
+import dungcony.ds.repositories.PeerProfileRepository;
 import dungcony.ds.services.interfaces.profile.ProfileSelectionService;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.swing.*;
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.List;
 
 @Slf4j
 // Service hiển thị luồng chọn profile peer trước khi khởi động node
 public class ProfileSelectionImpl implements ProfileSelectionService {
+    private static final Set<String> DEMO_PROFILE_IDS = Set.of("alice", "bob", "carol");
+
     private final Path dataRoot;
     private final PeerProfileRepository profileRepository;
 
@@ -22,73 +24,29 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
         this.profileRepository = profileRepository;
     }
 
-    // Chọn profile cũ hoặc tạo profile mới cho peer local
+    // Dùng profile người dùng thật nếu có; bỏ qua profile demo và chỉ hỏi tên khi cần tạo mới.
     @Override
     public ProfileSelection selectProfile() {
         List<PeerProfile> profiles = profileRepository.listProfiles(dataRoot);
-        if (profiles.isEmpty()) {
-            log.info("Không tìm thấy profile cũ. Đang tạo profile UUID mới.");
-            return new ProfileSelection(profileRepository.createNew(dataRoot), true, true);
+        for (PeerProfile profile : profiles) {
+            if (isDemoProfile(profile)) {
+                continue;
+            }
+            log.info("Đang dùng profile người dùng đã lưu. {}", profile.getDisplayLabel());
+            return new ProfileSelection(profile, false, false);
         }
-
-        Object[] options = {"Tạo profile mới", "Dùng profile có sẵn", "Hủy"};
-        int choice = JOptionPane.showOptionDialog(
-                null,
-                "Chọn cách khởi động peer này.",
-                "Profile peer",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[1]
-        );
-
-        if (choice == 0) {
-            return new ProfileSelection(profileRepository.createNew(dataRoot), true, true);
-        }
-        if (choice == 1) {
-            return selectExistingProfile(profiles);
-        }
-        return null;
+        log.info("Chưa có profile người dùng thật. Đang tạo profile mới và yêu cầu nhập tên.");
+        return new ProfileSelection(profileRepository.createNew(dataRoot), true, true);
     }
 
-
-    // ------------------------- PRIVATE -----------------------------//
-
-    // Cho người dùng click profile cũ, Start trực tiếp hoặc Sửa nếu muốn sửa name/port
-    private ProfileSelection selectExistingProfile(List<PeerProfile> profiles) {
-        DefaultListModel<PeerProfile> listModel = new DefaultListModel<>();
-        profiles.forEach(listModel::addElement);
-
-        JList<PeerProfile> profileList = new JList<>(listModel);
-        profileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        profileList.setSelectedIndex(0);
-        profileList.setVisibleRowCount(Math.min(8, Math.max(1, profiles.size())));
-        profileList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
-            JLabel label = new JLabel(value.getDisplayLabel());
-            label.setOpaque(true);
-            label.setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
-            label.setForeground(isSelected ? list.getSelectionForeground() : list.getForeground());
-            label.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
-            return label;
-        });
-
-        Object[] options = {"Bắt đầu", "Sửa", "Hủy"};
-        int choice = JOptionPane.showOptionDialog(
-                null,
-                new JScrollPane(profileList),
-                "Dùng profile có sẵn",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                options,
-                options[0]
-        );
-
-        PeerProfile selectedProfile = profileList.getSelectedValue();
-        if (selectedProfile == null || choice == 2 || choice == JOptionPane.CLOSED_OPTION) {
-            return null;
+    private boolean isDemoProfile(PeerProfile profile) {
+        if (profile == null) {
+            return false;
         }
-        return new ProfileSelection(selectedProfile, choice == 1, false);
+        return isDemoValue(profile.getPeerId()) || isDemoValue(profile.getPeerName());
+    }
+
+    private boolean isDemoValue(String value) {
+        return value != null && DEMO_PROFILE_IDS.contains(value.trim().toLowerCase());
     }
 }

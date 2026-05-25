@@ -74,7 +74,7 @@ public class PeerNodeFactory {
                 peerDirectoryService, peerChangeNotifier);
         ConversationService conversationService = new ConversationImpl(peerDirectoryService, messageHistoryService);
         NetworkBroadcastService networkBroadcastService = new NetworkBroadcastImpl(localPeer, messageSender, bootstrapGateway,
-                peerDirectoryService, peerChangeNotifier);
+                peerDirectoryService, messageHistoryService, messageNotifier, peerChangeNotifier);
         GroupChatService groupChatService = new GroupChatImpl(localPeer, messageSender, bootstrapGateway,
                 peerDirectoryService, messageHistoryService,
                 bootstrapGroupService, groupManager,

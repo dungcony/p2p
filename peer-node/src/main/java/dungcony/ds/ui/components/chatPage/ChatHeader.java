@@ -91,6 +91,17 @@ public class ChatHeader extends JPanel {
         }
     }
 
+    // Hiển thị header khi đang mở broadcast toàn mạng
+    public void setBroadcastStatus() {
+        try {
+            statusLabel.setText("Broadcast");
+            statusLabel.setForeground(ColorPalette.PRIMARY);
+        } catch (Exception e) {
+            log.error("Không thể cập nhật trạng thái broadcast\nChi tiết lỗi: {}", e.getMessage());
+            log.error("Chi tiết lỗi", e);
+        }
+    }
+
     // Tạo panel thông tin người dùng
     // @param userName Tên người dùng
     // @param isOnline Trạng thái online

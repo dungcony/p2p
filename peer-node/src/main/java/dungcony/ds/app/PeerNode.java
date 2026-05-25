@@ -209,6 +209,16 @@ public class PeerNode {
         return conversationService.getLastMessage(hostAndMaybePort);
     }
 
+    // Lấy lịch sử broadcast toàn mạng
+    public List<Message> getBroadcastMessages() {
+        return conversationService.getBroadcastMessages();
+    }
+
+    // Lấy broadcast cuối cùng để hiển thị preview
+    public Message getLastBroadcastMessage() {
+        return conversationService.getLastBroadcastMessage();
+    }
+
     // Lấy lịch sử message của group
     public List<Message> getMessagesWithGroup(String groupId) {
         return groupChatService.getMessagesWithGroup(groupId);

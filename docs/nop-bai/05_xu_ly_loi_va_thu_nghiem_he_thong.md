@@ -155,7 +155,7 @@ Kết quả kiểm tra gần nhất trên môi trường hiện tại:
 
 | Thời điểm | Lệnh | Kết quả |
 | --- | --- | --- |
-| 25/05/2026 16:32:24 GMT+7 | `mvn test` | `BUILD SUCCESS`, 9 tests, 0 failures, 0 errors, 0 skipped. |
+| 25/05/2026 17:15:28 GMT+7 | `mvn test` | `BUILD SUCCESS`, 13 tests, 0 failures, 0 errors, 0 skipped. |
 
 ### 8.1. Test bootstrap server
 

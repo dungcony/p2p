@@ -9,13 +9,13 @@ Khi chạy cùng `bootstrap-server`, peer có thêm peer discovery, danh sách o
 Từ thư mục gốc project:
 
 ```bat
-run.bat --peer-port=5001 --data-dir=tmp/alice
+run.bat --profile=alice
 ```
 
 Mở peer khác ở terminal mới:
 
 ```bat
-run.bat --peer-port=5002 --data-dir=tmp/bob
+run.bat --profile=bob
 ```
 
 Nếu muốn dùng discovery/offline message, chạy bootstrap server ở terminal riêng:
@@ -30,10 +30,13 @@ run-bootstrap.bat
 
 | Tham số | Ý nghĩa |
 | --- | --- |
+| `--profile=alice` | Nạp profile có sẵn trong `<data-root>/alice/config.properties`. |
+| `--peer-name=Alice` | Tên hiển thị của peer; nếu chưa có profile cùng tên thì app tự sinh `peer.id` và tự chọn port trống. |
 | `--peer-port=5001` hoặc `--port=5001` | Port TCP mà peer lắng nghe. |
-| `--data-dir=tmp/alice` | Thư mục chứa profile, message history và group cache. |
+| `--data-dir=tmp/demo-data` | Thư mục gốc chứa các profile, message history và group cache. |
 
-Nếu không truyền `--peer-port`, app dùng port đã lưu trong profile hoặc hỏi khi tạo profile mới.
+Nếu chạy `run.bat` không truyền tham số, script chỉ hỏi tên hiển thị trong terminal rồi truyền vào app. Luồng chọn/tạo profile bằng dialog đã được bỏ để mỗi tiến trình peer có cấu hình rõ ràng ngay từ lúc khởi động.
+Khi tạo profile mới, người dùng không nhập `peer.id`; id là UUID nội bộ do app tự sinh.
 
 ## Cấu Hình
 
@@ -53,7 +56,7 @@ bootstrap.port=9000
 Mỗi profile peer có thư mục riêng:
 
 ```text
-<data-root>/<peer-id>/
+<data-root>/<peer-id-uuid>/
   config.properties
   messages.json
   groups.json
@@ -63,7 +66,7 @@ Mỗi profile peer có thư mục riêng:
 
 ## Chức Năng
 
-- Chọn/tạo profile peer bằng Swing UI.
+- Khởi động trực tiếp bằng profile hoặc tham số CLI.
 - Gửi/nhận chat 1-1 trực tiếp qua TCP.
 - Gửi/nhận group chat.
 - Tạo nhóm, thêm thành viên, đổi tên nhóm.
@@ -138,4 +141,3 @@ mvn test
 - Nếu bootstrap chạy, peer tự refresh danh sách online và group định kỳ.
 - Group membership được lưu ở bootstrap để peer mới join sau vẫn đồng bộ được group.
 - Direct sync group là best-effort chạy nền; thất bại không làm UI bị đứng.
-

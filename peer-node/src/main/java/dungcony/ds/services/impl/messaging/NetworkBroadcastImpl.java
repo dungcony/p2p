@@ -1,15 +1,19 @@
 package dungcony.ds.services.impl.messaging;
 
 import dungcony.ds.dtos.BroadcastResult;
+import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.services.interfaces.bootstrap.PeerBootstrapGateway;
+import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.messaging.NetworkBroadcastService;
 import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
+import dungcony.ds.utils.BroadcastConversation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 @Slf4j
 // Service xử lý broadcast toàn mạng dựa trên bootstrap và danh bạ peer runtime
@@ -19,6 +23,8 @@ public class NetworkBroadcastImpl implements NetworkBroadcastService {
     private final PeerMessageSender messageSender;
     private final PeerBootstrapGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
+    private final MessageHistoryService messageHistoryService;
+    private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
     // Khởi tạo service broadcast với peer local, sender, bootstrap và danh bạ peer
@@ -26,11 +32,15 @@ public class NetworkBroadcastImpl implements NetworkBroadcastService {
                                 PeerMessageSender messageSender,
                                 PeerBootstrapGateway bootstrapGateway,
                                 PeerDirectoryService peerDirectoryService,
+                                MessageHistoryService messageHistoryService,
+                                Consumer<Message> messageNotifier,
                                 Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
         this.messageSender = messageSender;
         this.bootstrapGateway = bootstrapGateway;
         this.peerDirectoryService = peerDirectoryService;
+        this.messageHistoryService = messageHistoryService;
+        this.messageNotifier = messageNotifier;
         this.peerChangeNotifier = peerChangeNotifier;
     }
 
@@ -56,6 +66,13 @@ public class NetworkBroadcastImpl implements NetworkBroadcastService {
             }
             log.info("Kết quả broadcast toàn mạng. receiver={}, sent={}", target.addressKey(), sent);
         }
+        Message localMessage = Message.broadcast(localPeer, BroadcastConversation.conversationPeer(), content);
+        localMessage.setStatus(delivered > 0 ? MessageStatus.SENT : MessageStatus.FAILED);
+        messageHistoryService.addAndSave(
+                BroadcastConversation.historyKey(),
+                BroadcastConversation.conversationPeer(),
+                localMessage);
+        messageNotifier.accept(localMessage);
         peerChangeNotifier.run();
         BroadcastResult result = new BroadcastResult(targets.size(), delivered, failed);
         log.info("Broadcast toàn mạng hoàn tất. total={}, delivered={}, failed={}",

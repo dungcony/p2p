@@ -1,6 +1,7 @@
 package dungcony.ds.services.impl.messaging;
 
 import dungcony.ds.enums.MessageStatus;
+import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
@@ -8,6 +9,7 @@ import dungcony.ds.services.interfaces.group.GroupRegistry;
 import dungcony.ds.services.interfaces.messaging.InboundMessageService;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
+import dungcony.ds.utils.BroadcastConversation;
 import dungcony.ds.utils.GroupConverstation;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +49,12 @@ public class InboundMessageImpl implements InboundMessageService {
         message.setStatus(MessageStatus.SENT);
         PeerInfo sender = peerDirectoryService.mergeSenderFromKnownPeers(message);
         peerDirectoryService.put(sender);
-        if (message.getGroupId() != null && !message.getGroupId().isBlank()) {
+        if (message.getType() == MessageType.BROADCAST) {
+            messageHistoryService.addAndSave(
+                    BroadcastConversation.historyKey(),
+                    BroadcastConversation.conversationPeer(),
+                    message);
+        } else if (message.getGroupId() != null && !message.getGroupId().isBlank()) {
             Group group = groupManager.getGroup(message.getGroupId());
             if (group == null) {
                 group = groupManager.ensureLocalGroup(

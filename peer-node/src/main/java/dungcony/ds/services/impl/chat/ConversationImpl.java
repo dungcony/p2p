@@ -5,6 +5,7 @@ import dungcony.ds.model.PeerInfo;
 import dungcony.ds.services.interfaces.chat.ConversationService;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
+import dungcony.ds.utils.BroadcastConversation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
@@ -68,5 +69,15 @@ public class ConversationImpl implements ConversationService {
     public Message getLastMessage(String hostAndMaybePort) {
         PeerInfo peerInfo = peerDirectoryService.resolvePeer(hostAndMaybePort);
         return messageHistoryService.getLastMessage(peerInfo, hostAndMaybePort);
+    }
+
+    @Override
+    public List<Message> getBroadcastMessages() {
+        return messageHistoryService.getMessages(BroadcastConversation.conversationPeer(), BroadcastConversation.historyKey());
+    }
+
+    @Override
+    public Message getLastBroadcastMessage() {
+        return messageHistoryService.getLastMessage(BroadcastConversation.conversationPeer(), BroadcastConversation.historyKey());
     }
 }

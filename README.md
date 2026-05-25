@@ -25,20 +25,28 @@ Chạy tracker trước nếu muốn dùng discovery và offline message:
 run-bootstrap.bat
 ```
 
-Mở peer ở terminal khác:
+Mở peer Alice ở terminal khác:
 
 ```bat
-run.bat --peer-port=5001 --data-dir=tmp/alice
+run.bat --profile=alice
 ```
 
 Mở thêm peer:
 
 ```bat
-run.bat --peer-port=5002 --data-dir=tmp/bob
-run.bat --peer-port=5003 --data-dir=tmp/carol
+run.bat --profile=bob
+run.bat --profile=carol
 ```
 
-Nếu chạy `run.bat` không truyền tham số, app sẽ dùng profile đã lưu hoặc hỏi port khi tạo profile mới.
+Hoặc mở bootstrap + 3 peer demo cùng lúc:
+
+```bat
+run-all-peers.bat
+```
+
+Ứng dụng không còn mở màn chọn profile khi khởi động. Hãy truyền `--profile=<id>` để chạy profile có sẵn hoặc `--peer-name=<name>` để tạo/chạy profile theo tên; `peer.id` và port sẽ được hệ thống tự sinh/tự chọn.
+
+Nếu chạy `run.bat` không có tham số, script chỉ hỏi tên hiển thị trong terminal rồi tạo/chạy profile đó.
 
 ## Build Và Test
 
@@ -156,4 +164,3 @@ p2p/
   peer-node/
   bootstrap-server/
 ```
-

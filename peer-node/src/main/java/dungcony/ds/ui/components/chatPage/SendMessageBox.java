@@ -112,15 +112,17 @@ class SendMessageBox extends JPanel {
             if (!messageText.isBlank()) {
                 String ip = parentScreen.getIpAddress();
                 String groupId = parentScreen.getGroupId();
-                if (!parentScreen.isGroupChat() && (ip == null || ip.isBlank())) {
+                if (!parentScreen.isGroupChat() && !parentScreen.isBroadcastChat() && (ip == null || ip.isBlank())) {
                     log.warn("Bỏ qua gửi tin vì chưa chọn peer.");
                     return;
                 }
-                if (!parentScreen.isGroupChat() && App.peerNode != null && App.peerNode.isSelfAddress(ip)) {
+                if (!parentScreen.isGroupChat() && !parentScreen.isBroadcastChat() && App.peerNode != null && App.peerNode.isSelfAddress(ip)) {
                     log.warn("Bỏ qua gửi tin vì peer được chọn là peer hiện tại: {}", ip);
                     return;
                 }
-                log.info("UI yêu cầu gửi tin. đích={}, độDài={}", (parentScreen.isGroupChat() ? groupId : ip), messageText.length());
+                log.info("UI yêu cầu gửi tin. đích={}, độDài={}",
+                        (parentScreen.isBroadcastChat() ? "broadcast" : parentScreen.isGroupChat() ? groupId : ip),
+                        messageText.length());
 
                 // Xóa ô nhập ngay để cải thiện trải nghiệm
                 messageField.setText("");
@@ -135,7 +137,9 @@ class SendMessageBox extends JPanel {
                     protected Void doInBackground() throws Exception {
                         try {
                             if (App.peerNode != null) {
-                                if (parentScreen.isGroupChat()) {
+                                if (parentScreen.isBroadcastChat()) {
+                                    App.peerNode.broadcastToNetwork(messageText);
+                                } else if (parentScreen.isGroupChat()) {
                                     App.peerNode.sendGroupMessage(groupId, messageText);
                                 } else {
                                     App.peerNode.sendMessage(messageText, ip);

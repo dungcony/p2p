@@ -7,6 +7,7 @@ import dungcony.ds.dtos.MesRecord;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.services.interfaces.persistence.MessageRepository;
+import dungcony.ds.utils.BroadcastConversation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -88,6 +89,13 @@ public class LocalMessageRepo implements MessageRepository {
             if (!conversationPeerId.equals(record.conversationPeerId())) {
                 continue;
             }
+            if (BroadcastConversation.ID.equals(conversationPeerId)) {
+                if (!"BROADCAST".equals(record.messageType())) {
+                    continue;
+                }
+            } else if ("BROADCAST".equals(record.messageType())) {
+                continue;
+            }
             try {
                 messages.add(record.toMessage());
             } catch (IllegalArgumentException e) {
@@ -111,7 +119,7 @@ public class LocalMessageRepo implements MessageRepository {
             if (record.groupId() != null && !record.groupId().isBlank()) {
                 continue;
             }
-            if (!"CHAT".equals(record.messageType()) && !"BROADCAST".equals(record.messageType())) {
+            if (!"CHAT".equals(record.messageType())) {
                 continue;
             }
             PeerInfo peerInfo = toPeerInfo(record);

@@ -1,0 +1,36 @@
+[
+  {
+    "groupId": "81030885-89ab-4188-a485-4c01bea4f710",
+    "name": "hihi",
+    "members": [
+      {
+        "id": "68dcfa65-6e35-4b33-b9c1-5254307ea6ab",
+        "name": "dungcony",
+        "host": "172.17.48.1",
+        "port": 5004,
+        "online": false
+      },
+      {
+        "id": "carol",
+        "name": "Carol",
+        "host": "172.17.48.1",
+        "port": 5003,
+        "online": false
+      },
+      {
+        "id": "bob",
+        "name": "Bob",
+        "host": "172.17.48.1",
+        "port": 5002,
+        "online": true
+      },
+      {
+        "id": "alice",
+        "name": "Alice",
+        "host": "172.17.48.1",
+        "port": 5001,
+        "online": true
+      }
+    ]
+  }
+]

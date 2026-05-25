@@ -1,6 +1,7 @@
 package dungcony.ds.ui.components.chatPage;
 
 import dungcony.ds.App;
+import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Message;
 import dungcony.ds.services.interfaces.messaging.MessageListener;
 import dungcony.ds.ui.utils.ColorPalette;
@@ -17,6 +18,7 @@ public class ChatScreen extends JPanel implements MessageListener {
     private String selectedUser = "Chọn một cuộc chat";
     private String ipAddress;
     private String groupId;
+    private boolean broadcastChat;
     private ChatHistory chatHistory;
     private SendMessageBox sendMessageBox;
     private ChatHeader chatHeader;
@@ -67,6 +69,7 @@ public class ChatScreen extends JPanel implements MessageListener {
     }
 
     public void setSelectedUser(String userName) {
+        this.broadcastChat = false;
         this.selectedUser = userName;
         chatHeader.setUserName(userName);
         messages.clear();
@@ -76,11 +79,24 @@ public class ChatScreen extends JPanel implements MessageListener {
 
     // Chọn group chat để UI gửi/nhận message theo groupId thay vì host:port
     public void setSelectedGroup(String groupName, String groupId) {
+        this.broadcastChat = false;
         this.groupId = groupId;
         this.ipAddress = null;
         this.selectedUser = groupName;
         chatHeader.setUserName(groupName);
         chatHeader.setGroupStatus();
+        messages.clear();
+        chatHistory.clearMessages();
+        showChatControls(true);
+    }
+
+    public void setSelectedBroadcast() {
+        this.broadcastChat = true;
+        this.groupId = null;
+        this.ipAddress = null;
+        this.selectedUser = "Thế giới";
+        chatHeader.setUserName(selectedUser);
+        chatHeader.setBroadcastStatus();
         messages.clear();
         chatHistory.clearMessages();
         showChatControls(true);
@@ -98,7 +114,12 @@ public class ChatScreen extends JPanel implements MessageListener {
         return groupId != null && !groupId.isBlank();
     }
 
+    public boolean isBroadcastChat() {
+        return broadcastChat;
+    }
+
     public void setIpAddress(String ipAddress) {
+        this.broadcastChat = false;
         this.ipAddress = ipAddress;
         this.groupId = null;
         showChatControls(ipAddress != null && !ipAddress.isBlank());
@@ -109,10 +130,22 @@ public class ChatScreen extends JPanel implements MessageListener {
         if (message == null) {
             return;
         }
+        if (isBroadcastChat()) {
+            if (message.getType() == MessageType.BROADCAST) {
+                upsertAndRender(message);
+            }
+            return;
+        }
         if (isGroupChat()) {
             if (groupId.equals(message.getGroupId())) {
                 upsertAndRender(message);
             }
+            return;
+        }
+        if (message.getGroupId() != null && !message.getGroupId().isBlank()) {
+            return;
+        }
+        if (message.getType() == MessageType.BROADCAST) {
             return;
         }
         if (ipAddress == null) {

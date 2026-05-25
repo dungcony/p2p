@@ -15,9 +15,11 @@ public final class RuntimeOptionParser {
         // Utility class không cần khởi tạo
     }
 
-    // Đọc tham số runtime: --data-dir và --peer-port
+    // Đọc tham số runtime: --data-dir, --profile, --peer-name và --peer-port
     public static RuntimeOption resolveRuntimeOptions(String[] args) {
         Path dataRoot = Path.of("peer-node", "src", "main", "resources", "data");
+        String profileId = null;
+        String peerName = null;
         Integer peerPort = null;
 
         for (int index = 0; args != null && index < args.length; index++) {
@@ -34,6 +36,30 @@ public final class RuntimeOptionParser {
                     log.warn("Thiếu giá trị cho --data-dir. Giữ thư mục dữ liệu={}", dataRoot.toAbsolutePath());
                 } else {
                     dataRoot = parseDataRoot(args[++index], dataRoot);
+                }
+                continue;
+            }
+            if (arg.startsWith("--profile=")) {
+                profileId = parseTextOption("profile", arg.substring("--profile=".length()), profileId);
+                continue;
+            }
+            if ("--profile".equals(arg)) {
+                if (index + 1 >= args.length || isOptionName(args[index + 1])) {
+                    log.warn("Thiếu giá trị cho --profile. Giữ profile={}", profileId);
+                } else {
+                    profileId = parseTextOption("profile", args[++index], profileId);
+                }
+                continue;
+            }
+            if (arg.startsWith("--peer-name=")) {
+                peerName = parseTextOption("peer-name", arg.substring("--peer-name=".length()), peerName);
+                continue;
+            }
+            if ("--peer-name".equals(arg)) {
+                if (index + 1 >= args.length || isOptionName(args[index + 1])) {
+                    log.warn("Thiếu giá trị cho --peer-name. Giữ peerName={}", peerName);
+                } else {
+                    peerName = parseTextOption("peer-name", args[++index], peerName);
                 }
                 continue;
             }
@@ -57,10 +83,16 @@ public final class RuntimeOptionParser {
         }
 
         log.info("Thư mục dữ liệu runtime={}", dataRoot.toAbsolutePath());
+        if (profileId != null) {
+            log.info("Profile runtime={}", profileId);
+        }
+        if (peerName != null) {
+            log.info("Peer name runtime={}", peerName);
+        }
         if (peerPort != null) {
             log.info("Cổng peer runtime={}", peerPort);
         }
-        return new RuntimeOption(dataRoot, peerPort);
+        return new RuntimeOption(dataRoot, profileId, peerName, peerPort);
     }
 
 
@@ -94,6 +126,15 @@ public final class RuntimeOptionParser {
             log.warn("Đã bỏ qua giá trị --peer-port không hợp lệ={}. Giữ cổng peer runtime={}", value, currentPeerPort);
             return currentPeerPort;
         }
+    }
+
+    // Parse text option, giữ giá trị hiện tại nếu value rỗng
+    private static String parseTextOption(String optionName, String value, String currentValue) {
+        if (value == null || value.isBlank()) {
+            log.warn("Đã bỏ qua giá trị --{} rỗng. Giữ giá trị hiện tại={}", optionName, currentValue);
+            return currentValue;
+        }
+        return value.trim();
     }
 
     private static boolean isOptionName(String value) {

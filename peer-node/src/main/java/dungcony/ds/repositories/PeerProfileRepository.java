@@ -1,18 +1,21 @@
-package dungcony.ds.config;
+package dungcony.ds.repositories;
 
 import dungcony.ds.app.PeerNode;
+import dungcony.ds.config.PeerProfile;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
 
 /**
- * Repository chịu trách nhiệm duy nhất: đọc/ghi/liệt kê peer profiles từ filesystem.
+ * Repository chịu trách nhiệm duy nhất: đọc/ghi/liệt kê peer profiles từ
+ * filesystem.
  */
 @Slf4j
 public class PeerProfileRepository {
@@ -49,19 +52,87 @@ public class PeerProfileRepository {
         Path resolvedRoot = resolve(dataRoot);
         Properties globalProps = loadGlobalProperties(resolvedRoot);
         String newId = UUID.randomUUID().toString();
+        int bootstrapPort = readInt(globalProps, "bootstrap.port", 9000);
         PeerProfile profile = new PeerProfile(
                 newId,
                 System.getProperty("user.name", "peer"),
-                PeerNode.DEFAULT_PORT,
+                findAvailablePeerPort(resolvedRoot, bootstrapPort),
                 readString(globalProps, "bootstrap.host", "localhost"),
-                readInt(globalProps, "bootstrap.port", 9000),
-                resolvedRoot
-        );
-        log.info("Đã tạo nháp profile peer mới. peerId={}, thưMụcDữLiệu={}", profile.getPeerId(), profile.getDataDir().toAbsolutePath());
+                bootstrapPort,
+                resolvedRoot);
+        log.info("Đã tạo nháp profile peer mới. peerId={}, thưMụcDữLiệu={}", profile.getPeerId(),
+                profile.getDataDir().toAbsolutePath());
         return profile;
     }
 
-    // Liệt kê các profile đã có trong data root; mỗi profile là folder UUID có config.properties
+    // Tạo profile mới từ tên hiển thị; peer.id luôn là UUID nội bộ, không nhập từ
+    // người dùng
+    public PeerProfile createNewWithName(Path dataRoot, String peerName) {
+        Path resolvedRoot = resolve(dataRoot);
+        Properties globalProps = loadGlobalProperties(resolvedRoot);
+        String newId = UUID.randomUUID().toString();
+        int bootstrapPort = readInt(globalProps, "bootstrap.port", 9000);
+        PeerProfile profile = new PeerProfile(
+                newId,
+                peerName == null || peerName.isBlank() ? System.getProperty("user.name", "peer") : peerName.trim(),
+                findAvailablePeerPort(resolvedRoot, bootstrapPort),
+                readString(globalProps, "bootstrap.host", "localhost"),
+                bootstrapPort,
+                resolvedRoot);
+        log.info("Đã tạo profile mới từ tên hiển thị. {}", profile.getDisplayLabel());
+        return profile;
+    }
+
+    // Tìm profile theo tên hiển thị để người dùng chỉ cần nhập name khi chạy lại
+    public Optional<PeerProfile> findByName(Path dataRoot, String peerName) {
+        if (peerName == null || peerName.isBlank()) {
+            return Optional.empty();
+        }
+        String expectedName = peerName.trim();
+        List<PeerProfile> matches = listProfiles(dataRoot).stream()
+                .filter(profile -> expectedName.equalsIgnoreCase(profile.getPeerName()))
+                .toList();
+        if (matches.size() > 1) {
+            log.warn("Tìm thấy nhiều profile cùng tên '{}'. Dùng profile đầu tiên: {}", expectedName,
+                    matches.getFirst().getDisplayLabel());
+        }
+        return matches.isEmpty() ? Optional.empty() : Optional.of(matches.getFirst());
+    }
+
+    // Nạp profile theo peer.id/folder cụ thể, dùng cho --profile=<id>
+    public Optional<PeerProfile> loadById(Path dataRoot, String profileId) {
+        if (profileId == null || profileId.isBlank()) {
+            return Optional.empty();
+        }
+        Path resolvedRoot = resolve(dataRoot);
+        Properties globalProps = loadGlobalProperties(resolvedRoot);
+        Path configPath = resolvedRoot.resolve(safePathSegment(profileId)).resolve("config.properties");
+        if (!Files.exists(configPath)) {
+            log.warn("Không tìm thấy profile runtime. profile={}, path={}", profileId, configPath.toAbsolutePath());
+            return Optional.empty();
+        }
+        return Optional.of(loadFromConfigPath(resolvedRoot, configPath, globalProps));
+    }
+
+    // Kiểm tra peer.id đã tồn tại trong data root chưa để tránh tạo trùng định danh
+    // peer
+    public boolean existsByPeerId(Path dataRoot, String peerId) {
+        if (peerId == null || peerId.isBlank()) {
+            return false;
+        }
+        String expectedPeerId = peerId.trim();
+        Path resolvedRoot = resolve(dataRoot);
+        Path directConfigPath = resolvedRoot.resolve(safePathSegment(expectedPeerId))
+                .resolve("config.properties");
+        if (Files.exists(directConfigPath)) {
+            return true;
+        }
+        return listProfiles(resolvedRoot).stream()
+                .anyMatch(profile -> expectedPeerId.equalsIgnoreCase(profile.getPeerId()));
+    }
+
+    // Liệt kê các profile đã có trong data root; mỗi profile là folder UUID có
+    // config.properties
     public List<PeerProfile> listProfiles(Path dataRoot) {
         Path resolvedRoot = resolve(dataRoot);
         List<PeerProfile> profiles = new ArrayList<>();
@@ -92,7 +163,8 @@ public class PeerProfileRepository {
         return profiles;
     }
 
-    // Lưu profile vào file config.properties của profile và lưu bootstrap config chung
+    // Lưu profile vào file config.properties của profile và lưu bootstrap config
+    // chung
     public void save(PeerProfile profile) {
         Path configPath = profile.getDataDir().resolve("config.properties");
         Properties profileProps = new Properties();
@@ -106,7 +178,8 @@ public class PeerProfileRepository {
             }
             saveGlobalConfig(profile);
             log.info("Đã lưu cấu hình peer. peerId={}, tênPeer={}, cổng={}, thưMụcDữLiệu={}",
-                    profile.getPeerId(), profile.getPeerName(), profile.getPeerPort(), profile.getDataDir().toAbsolutePath());
+                    profile.getPeerId(), profile.getPeerName(), profile.getPeerPort(),
+                    profile.getDataDir().toAbsolutePath());
         } catch (IOException e) {
             log.error("Không thể lưu cấu hình peer: {}", e.getMessage());
         }
@@ -125,7 +198,8 @@ public class PeerProfileRepository {
                 ? UUID.randomUUID().toString()
                 : configPath.getParent().getFileName().toString();
         PeerProfile profile = buildProfile(dataRoot, props, globalProps, defaultId);
-        log.info("Đã nạp profile peer. {}, thưMụcDữLiệu={}", profile.getDisplayLabel(), profile.getDataDir().toAbsolutePath());
+        log.info("Đã nạp profile peer. {}, thưMụcDữLiệu={}", profile.getDisplayLabel(),
+                profile.getDataDir().toAbsolutePath());
         return profile;
     }
 
@@ -170,7 +244,8 @@ public class PeerProfileRepository {
         return null;
     }
 
-    // Lưu bootstrap config chung vào dataRoot/config.properties, không ghi vào từng profile
+    // Lưu bootstrap config chung vào dataRoot/config.properties, không ghi vào từng
+    // profile
     private void saveGlobalConfig(PeerProfile profile) throws IOException {
         Properties globalProps = new Properties();
         globalProps.setProperty("bootstrap.host", profile.getBootstrapHost());
@@ -221,6 +296,37 @@ public class PeerProfileRepository {
         } catch (IOException e) {
             log.error("Không thể tạo thư mục dữ liệu peer: {}", e.getMessage());
         }
+    }
+
+    private int findAvailablePeerPort(Path dataRoot, int bootstrapPort) {
+        Set<Integer> usedPorts = new HashSet<>();
+        usedPorts.add(bootstrapPort);
+        for (PeerProfile profile : listProfiles(dataRoot)) {
+            usedPorts.add(profile.getPeerPort());
+        }
+        for (int port = PeerNode.DEFAULT_PORT; port <= 65535; port++) {
+            if (!usedPorts.contains(port) && isPortAvailable(port)) {
+                return port;
+            }
+        }
+        log.warn("Không tìm được cổng trống. Fallback về cổng mặc định={}", PeerNode.DEFAULT_PORT);
+        return PeerNode.DEFAULT_PORT;
+    }
+
+    private boolean isPortAvailable(int port) {
+        try (ServerSocket socket = new ServerSocket(port)) {
+            socket.setReuseAddress(true);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private static String safePathSegment(String value) {
+        if (value == null || value.isBlank()) {
+            return UUID.randomUUID().toString();
+        }
+        return value.replaceAll("[^a-zA-Z0-9._-]", "_");
     }
 
     private static String readString(Properties properties, String key, String defaultValue) {

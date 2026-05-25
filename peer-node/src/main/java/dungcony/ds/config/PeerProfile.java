@@ -1,6 +1,7 @@
 package dungcony.ds.config;
 
 import dungcony.ds.app.PeerNode;
+import dungcony.ds.repositories.PeerProfileRepository;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,10 +10,14 @@ import java.nio.file.Path;
 /**
  * Value object chứa định danh và cấu hình của một peer profile.
  *
- * <p>Chỉ chịu trách nhiệm duy nhất: giữ và cho phép cập nhật thông tin
- * profile peer. Không biết gì về file I/O hay filesystem.</p>
+ * <p>
+ * Chỉ chịu trách nhiệm duy nhất: giữ và cho phép cập nhật thông tin
+ * profile peer. Không biết gì về file I/O hay filesystem.
+ * </p>
  *
- * <p>Để load/save/list profiles, dùng {@link PeerProfileRepository}.</p>
+ * <p>
+ * Để load/save/list profiles, dùng {@link PeerProfileRepository}.
+ * </p>
  */
 @Getter
 @Slf4j
@@ -26,9 +31,9 @@ public class PeerProfile {
     private final Path dataRoot;
     private Path dataDir;
 
-    // Package-visible với repositories — chỉ PeerProfileRepository nên tạo instance này
+    // Chỉ PeerProfileRepository nên tạo instance này.
     public PeerProfile(String peerId, String peerName, int peerPort,
-                String bootstrapHost, int bootstrapPort, Path dataRoot) {
+            String bootstrapHost, int bootstrapPort, Path dataRoot) {
         this.peerId = peerId;
         this.peerName = peerName;
         this.peerPort = peerPort;
@@ -90,7 +95,8 @@ public class PeerProfile {
     // Nếu peer.port trùng bootstrap.port thì không cho PeerNode chiếm cổng tracker
     private void protectBootstrapPort() {
         if (peerPort == bootstrapPort) {
-            log.warn("peer.port trùng với cổng bootstrap={}. Chuyển về cổng mặc định của peer={}", bootstrapPort, PeerNode.DEFAULT_PORT);
+            log.warn("peer.port trùng với cổng bootstrap={}. Chuyển về cổng mặc định của peer={}", bootstrapPort,
+                    PeerNode.DEFAULT_PORT);
             peerPort = PeerNode.DEFAULT_PORT;
         }
     }

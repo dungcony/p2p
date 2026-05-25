@@ -17,4 +17,10 @@ public interface ConversationService {
 
     // Lấy tin nhắn cuối cùng với một peer để UI hiển thị preview
     Message getLastMessage(String hostAndMaybePort);
+
+    // Lấy lịch sử broadcast toàn mạng
+    List<Message> getBroadcastMessages();
+
+    // Lấy broadcast cuối cùng để UI hiển thị preview
+    Message getLastBroadcastMessage();
 }

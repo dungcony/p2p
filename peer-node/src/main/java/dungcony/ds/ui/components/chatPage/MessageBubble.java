@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import dungcony.ds.App;
 import dungcony.ds.enums.MessageStatus;
+import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Message;
 import dungcony.ds.ui.utils.ColorPalette;
 
@@ -94,6 +95,7 @@ class MessageBubble extends JPanel {
             textArea.setForeground(textColor);
             textArea.setOpaque(false);
             textArea.setVerticalAlignment(SwingConstants.TOP);
+            JLabel senderLabel = createBroadcastSenderLabel(textColor);
 
             // Nhãn thời gian
             JLabel timeLabel = new JLabel(message.getFormattedTime());
@@ -106,6 +108,9 @@ class MessageBubble extends JPanel {
 
             // Đặt căn chỉnh
             textArea.setAlignmentX(Component.LEFT_ALIGNMENT);
+            if (senderLabel != null) {
+                senderLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            }
             timeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             if (statusLabel != null) {
                 statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -118,6 +123,10 @@ class MessageBubble extends JPanel {
             int maxWidth = 320; // 300 + some padding
             panel.setMaximumSize(new Dimension(maxWidth, Integer.MAX_VALUE));
 
+            if (senderLabel != null) {
+                panel.add(senderLabel);
+                panel.add(Box.createVerticalStrut(4));
+            }
             panel.add(textArea);
             panel.add(timeLabel);
             if (statusLabel != null) {
@@ -134,6 +143,19 @@ class MessageBubble extends JPanel {
             log.error("Chi tiết lỗi", e);
             return new JPanel();
         }
+    }
+
+    private JLabel createBroadcastSenderLabel(Color textColor) {
+        if (message.getType() != MessageType.BROADCAST || message.isFromCurrentUser()) {
+            return null;
+        }
+        String sender = message.getSenderId() == null || message.getSenderId().isBlank()
+                ? "Peer"
+                : message.getSenderId();
+        JLabel label = new JLabel(sender);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        label.setForeground(textColor);
+        return label;
     }
 
     // Tạo label trạng thái gửi tin cho message của user hiện tại
@@ -154,6 +176,7 @@ class MessageBubble extends JPanel {
     private JButton createRetryButton() {
         if (!message.isFromCurrentUser()
                 || message.getStatus() != MessageStatus.FAILED
+                || message.getType() == MessageType.BROADCAST
                 || (message.getGroupId() != null && !message.getGroupId().isBlank())) {
             return null;
         }

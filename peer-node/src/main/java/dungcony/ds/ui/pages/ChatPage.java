@@ -136,6 +136,22 @@ public class ChatPage extends JPanel {
         }
     }
 
+    // Xử lý khi chọn conversation broadcast toàn mạng
+    public void onBroadcastSelected() {
+        try {
+            log.info("UI đã chọn broadcast toàn mạng.");
+            chatScreen.setSelectedBroadcast();
+            chatScreen.setMessages(App.peerNode == null
+                    ? java.util.Collections.emptyList()
+                    : App.peerNode.getBroadcastMessages());
+            chatScreen.revalidate();
+            chatScreen.repaint();
+        } catch (Exception e) {
+            log.error("Không thể xử lý chọn broadcast\nChi tiết lỗi: {}", e.getMessage());
+            log.error("Chi tiết lỗi", e);
+        }
+    }
+
     // Cập nhật header nếu group đang mở được đổi tên ở ChatList
     public void refreshSelectedGroupName(Group group) {
         if (group == null || !group.getGroupId().equals(chatScreen.getGroupId())) {

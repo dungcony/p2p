@@ -1,6 +1,7 @@
 package dungcony.ds;
 
-import dungcony.ds.utils.RuntimeOption;
+import dungcony.ds.config.RuntimeOption;
+import dungcony.ds.config.RuntimeOptionParser;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -48,6 +49,6 @@ class AppRuntimeOptionsTest {
     }
 
     private static RuntimeOption resolve(String... args) {
-        return dungcony.ds.utils.ProfileRead.resolveRuntimeOptions(args);
+        return RuntimeOptionParser.resolveRuntimeOptions(args);
     }
 }

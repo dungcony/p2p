@@ -1,5 +1,6 @@
 package dungcony.ds.peer;
 
+import dungcony.ds.app.PeerNode;
 import dungcony.ds.dtos.BroadcastResult;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.enums.MessageType;

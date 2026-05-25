@@ -2,9 +2,6 @@ package dungcony.ds.network;
 
 import lombok.extern.slf4j.Slf4j;
 
-
-// MessageReceiver is in the same package (dungcony.ds.network) — no import needed
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,7 +13,7 @@ import java.util.concurrent.Executors;
  */
 @Slf4j
 public class TCPServer {
-private final int port;
+    private final int port;
     private final MessageReceiver receiver;
     private final ExecutorService connectionPool = Executors.newCachedThreadPool();
     private volatile boolean running;
@@ -36,6 +33,10 @@ private final int port;
             log.info("TCPServer đang lắng nghe trên cổng {}", port);
             while (running) {
                 Socket socket = openedSocket.accept();
+                if (!running || connectionPool.isShutdown()) {
+                    socket.close();
+                    break;
+                }
                 log.debug("TCPServer đã nhận kết nối từ {}", socket.getRemoteSocketAddress());
                 connectionPool.submit(new ConnectionHandler(socket, receiver));
             }
@@ -51,7 +52,6 @@ private final int port;
     // Dừng server và đóng connection pool để peer thoát sạch
     public void stop() {
         running = false;
-        connectionPool.shutdownNow();
         log.info("TCPServer đang dừng trên cổng {}", port);
         if (serverSocket != null) {
             try {
@@ -59,5 +59,6 @@ private final int port;
             } catch (IOException ignored) {
             }
         }
+        connectionPool.shutdownNow();
     }
 }

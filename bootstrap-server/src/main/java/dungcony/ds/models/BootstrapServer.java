@@ -52,6 +52,7 @@ public class BootstrapServer {
     private final Gson gson = new Gson();
     private final ExecutorService connectionPool = Executors.newCachedThreadPool();
     private volatile boolean running;
+    private ServerSocket serverSocket;
 
     // Khởi tạo tracker lắng nghe trên port được truyền vào.
     public BootstrapServer(int port) {
@@ -76,10 +77,15 @@ public class BootstrapServer {
     // Bắt đầu vòng lặp accept request từ các peer, mỗi kết nối xử lý trên thread pool.
     public void start() {
         running = true;
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        try (ServerSocket openedSocket = new ServerSocket(port)) {
+            serverSocket = openedSocket;
             log.info("Bootstrap server đang lắng nghe trên cổng {}", port);
             while (running) {
-                Socket socket = serverSocket.accept();
+                Socket socket = openedSocket.accept();
+                if (!running || connectionPool.isShutdown()) {
+                    socket.close();
+                    break;
+                }
                 log.debug("Bootstrap đã nhận kết nối từ {}", socket.getRemoteSocketAddress());
                 connectionPool.submit(() -> handle(socket));
             }
@@ -93,8 +99,14 @@ public class BootstrapServer {
     // Đánh dấu server dừng nhận request mới và tắt thread pool.
     public void stop() {
         running = false;
-        connectionPool.shutdownNow();
         log.info("Bootstrap server đã được đánh dấu dừng trên cổng {}", port);
+        if (serverSocket != null) {
+            try {
+                serverSocket.close();
+            } catch (IOException ignored) {
+            }
+        }
+        connectionPool.shutdownNow();
     }
 
     // Đọc một dòng command từ socket, phân loại và xử lý tương ứng.

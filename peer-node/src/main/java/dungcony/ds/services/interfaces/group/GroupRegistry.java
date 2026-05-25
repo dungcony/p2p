@@ -18,6 +18,9 @@ public interface GroupRegistry {
     // Thêm thành viên vào nhóm đã tồn tại
     Group addMembers(String groupId, Collection<PeerInfo> members);
 
+    // Đổi tên nhóm đã tồn tại
+    Group renameGroup(String groupId, String name);
+
     // Tạo hoặc cập nhật nhóm local khi nhận được GROUP_CHAT trực tiếp
     Group ensureLocalGroup(String groupId, String name, Collection<PeerInfo> members);
 

@@ -1,9 +1,8 @@
 package dungcony.ds.repositories;
 
-import lombok.extern.slf4j.Slf4j;
-
-
+import dungcony.ds.config.Conn;
 import dungcony.ds.entities.GroupEntity;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 public record GroupRepo(Conn conn) {
-// Tạo/cập nhật metadata group trong bảng groups.
+    // Tạo/cập nhật metadata group trong bảng groups.
     public void upsert(GroupEntity groupEntity) {
         try (Connection connection = conn.getConnection();
              PreparedStatement statement = connection.prepareStatement("""

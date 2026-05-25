@@ -189,6 +189,11 @@ public class PeerNode {
         return groupChatService.addMembersToGroup(groupId, members);
     }
 
+    // Đổi tên group hiện có
+    public Group renameGroup(String groupId, String name) {
+        return groupChatService.renameGroup(groupId, name);
+    }
+
     // Lấy các group hiện tại của peer để UI hiển thị
     public Collection<Group> getGroups() {
         return groupChatService.getGroups();

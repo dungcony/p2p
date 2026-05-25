@@ -1,9 +1,8 @@
 package dungcony.ds.repositories;
 
-import lombok.extern.slf4j.Slf4j;
-
-
+import dungcony.ds.config.Conn;
 import dungcony.ds.entities.GroupMemberEntity;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 public record GroupMemberRepo(Conn conn) {
-// Thêm thành viên vào group_members.
+    // Thêm thành viên vào group_members.
     public void add(GroupMemberEntity memberEntity) {
         try (Connection connection = conn.getConnection();
              PreparedStatement statement = connection.prepareStatement("""

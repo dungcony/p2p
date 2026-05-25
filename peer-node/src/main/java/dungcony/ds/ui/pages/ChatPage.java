@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 import dungcony.ds.App;
+import dungcony.ds.model.Group;
 import dungcony.ds.ui.components.chatPage.ChatList;
 import dungcony.ds.ui.components.chatPage.ChatScreen;
 
@@ -133,5 +134,16 @@ public class ChatPage extends JPanel {
             log.error("Không thể xử lý chọn nhóm\nChi tiết lỗi: {}", e.getMessage());
             log.error("Chi tiết lỗi", e);
         }
+    }
+
+    // Cập nhật header nếu group đang mở được đổi tên ở ChatList
+    public void refreshSelectedGroupName(Group group) {
+        if (group == null || !group.getGroupId().equals(chatScreen.getGroupId())) {
+            return;
+        }
+        chatScreen.setSelectedGroup(group.getName(), group.getGroupId());
+        chatScreen.setMessages(App.peerNode == null
+                ? java.util.Collections.emptyList()
+                : App.peerNode.getMessagesWithGroup(group.getGroupId()));
     }
 }

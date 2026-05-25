@@ -75,6 +75,22 @@ public class GroupManager implements GroupRegistry {
         return group;
     }
 
+    // Đổi tên group đã tồn tại và lưu lại local cache
+    @Override
+    public Group renameGroup(String groupId, String name) {
+        Group group = groups.get(groupId);
+        if (group == null) {
+            log.warn("Không thể đổi tên vì không tìm thấy groupId={}", groupId);
+            return null;
+        }
+        String oldName = group.getName();
+        group.rename(name);
+        saveGroup(group);
+        log.info("Đã đổi tên nhóm local. groupId={}, tênCũ={}, tênMới={}",
+                groupId, oldName, group.getName());
+        return group;
+    }
+
     // Tạo hoặc cập nhật group local khi nhận được GROUP_CHAT trực tiếp từ peer khác
     public Group ensureLocalGroup(String groupId, String name, Collection<PeerInfo> members) {
         Group group = groups.get(groupId);
@@ -84,6 +100,7 @@ public class GroupManager implements GroupRegistry {
             log.info("Đã tạo nhóm local từ tin nhắn nhận vào. groupId={}, tên={}",
                     group.getGroupId(), group.getName());
         } else if (members != null) {
+            group.rename(name);
             members.forEach(group::addMember);
             log.debug("Đã refresh thành viên nhóm local từ tin nhắn nhận vào. groupId={}, sốThànhViên={}",
                     group.getGroupId(), group.getMembers().size());
@@ -101,6 +118,7 @@ public class GroupManager implements GroupRegistry {
             log.info("Đã tạo nhóm local từ GROUP_MEMBERS_SYNC. groupId={}, tên={}",
                     group.getGroupId(), group.getName());
         } else {
+            group.rename(name);
             group.replaceMembers(members);
             log.info("Đã cập nhật membership nhóm từ GROUP_MEMBERS_SYNC. groupId={}, sốThànhViên={}",
                     groupId, group.getMembers().size());

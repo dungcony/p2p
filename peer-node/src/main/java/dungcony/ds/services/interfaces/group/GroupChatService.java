@@ -19,6 +19,9 @@ public interface GroupChatService {
     // Thêm thành viên vào group và đồng bộ membership mới
     Group addMembersToGroup(String groupId, Collection<PeerInfo> members);
 
+    // Đổi tên group và đồng bộ metadata/membership mới
+    Group renameGroup(String groupId, String name);
+
     // Lấy toàn bộ group hiện có của peer local
     Collection<Group> getGroups();
 

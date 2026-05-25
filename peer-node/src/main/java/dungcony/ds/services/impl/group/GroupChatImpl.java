@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -107,7 +108,7 @@ public class GroupChatImpl implements GroupChatService {
             initialMembers.addAll(members);
         }
         Group group = groupManager.createGroup(name, initialMembers);
-        broadcastGroupMembersSync(group);
+        scheduleGroupMembersSync(group);
         peerChangeNotifier.run();
         return group;
     }
@@ -118,7 +119,19 @@ public class GroupChatImpl implements GroupChatService {
         Group group = groupManager.addMembers(groupId, members);
         if (group != null) {
             bootstrapGroupService.addMembersToGroup(groupId, members);
-            broadcastGroupMembersSync(group);
+            scheduleGroupMembersSync(group);
+            peerChangeNotifier.run();
+        }
+        return group;
+    }
+
+    // Đổi tên group local, cập nhật metadata trên bootstrap và sync tên mới tới member reachable
+    @Override
+    public Group renameGroup(String groupId, String name) {
+        Group group = groupManager.renameGroup(groupId, name);
+        if (group != null) {
+            bootstrapGroupService.publishGroup(group);
+            scheduleGroupMembersSync(group);
             peerChangeNotifier.run();
         }
         return group;
@@ -166,6 +179,20 @@ public class GroupChatImpl implements GroupChatService {
         log.info("Đã lưu fallback tin nhóm offline={}, messageId={}, groupId={}, receiverId={}",
                 stored, message.getId(), message.getGroupId(), member.getId());
         return stored;
+    }
+
+    // Lên lịch sync membership trực tiếp, không chặn luồng UI đang gọi service
+    private void scheduleGroupMembersSync(Group group) {
+        if (group == null) {
+            return;
+        }
+        Group snapshot = new Group(group.getGroupId(), group.getName(), new ArrayList<>(group.getMembers()));
+        CompletableFuture.runAsync(() -> broadcastGroupMembersSync(snapshot))
+                .exceptionally(error -> {
+                    log.warn("Sync membership nhóm nền thất bại. groupId={}, lỗi={}",
+                            snapshot.getGroupId(), error.getMessage());
+                    return null;
+                });
     }
 
     // Gửi snapshot thành viên group trực tiếp tới các member reachable

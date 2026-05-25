@@ -1,9 +1,8 @@
 package dungcony.ds.repositories;
 
-import lombok.extern.slf4j.Slf4j;
-
-
+import dungcony.ds.config.Conn;
 import dungcony.ds.entities.OfflineMessageEntity;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 public record OfflineMessageRepo(Conn conn) {
-// Lưu message vào bảng offline_messages khi receiver đang offline.
+    // Lưu message vào bảng offline_messages khi receiver đang offline.
     public void save(OfflineMessageEntity message) {
         try (Connection connection = conn.getConnection();
              PreparedStatement statement = connection.prepareStatement("""

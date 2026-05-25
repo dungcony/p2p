@@ -164,8 +164,7 @@ public class ChatList extends JPanel {
         ChatProfile chatProfile = new ChatProfile(10, deviceInfoPanel, ColorPalette.BACKGROUND);
         chatProfile.setBackground(ColorPalette.BACKGROUND);
 
-        JButton addMemberButton = createAddMemberButton(group);
-        chatProfile.add(addMemberButton, BorderLayout.EAST);
+        chatProfile.add(createGroupActionPanel(group), BorderLayout.EAST);
 
         MouseAdapter selector = new MouseAdapter() {
             @Override
@@ -184,15 +183,34 @@ public class ChatList extends JPanel {
         devicesContainer.add(chatProfile);
     }
 
+    private JPanel createGroupActionPanel(Group group) {
+        JPanel panel = new JPanel(new GridLayout(1, 2, 4, 0));
+        panel.setOpaque(false);
+        panel.add(createRenameGroupButton(group));
+        panel.add(createAddMemberButton(group));
+        return panel;
+    }
+
+    private JButton createRenameGroupButton(Group group) {
+        JButton button = createIconButton(FontAwesome.EDIT, "Đổi tên nhóm");
+        button.addActionListener(event -> openRenameGroupDialog(group, button));
+        return button;
+    }
+
     private JButton createAddMemberButton(Group group) {
+        JButton button = createIconButton(FontAwesome.USER_PLUS, "Thêm peer vào nhóm");
+        button.addActionListener(event -> openAddMembersDialog(group, button));
+        return button;
+    }
+
+    private JButton createIconButton(FontAwesome icon, String tooltip) {
         JButton button = new JButton();
-        button.setIcon(FontIcon.of(FontAwesome.USER_PLUS, 14, ColorPalette.PRIMARY));
-        button.setToolTipText("Thêm peer vào nhóm");
+        button.setIcon(FontIcon.of(icon, 14, ColorPalette.PRIMARY));
+        button.setToolTipText(tooltip);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
         button.setContentAreaFilled(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.addActionListener(event -> openAddMembersDialog(group));
         return button;
     }
 
@@ -267,12 +285,15 @@ public class ChatList extends JPanel {
 
             @Override
             protected void done() {
+                boolean submitted = false;
                 try {
-                    showCreateGroupDialog(get());
+                    submitted = showCreateGroupDialog(get());
                 } catch (Exception e) {
                     log.error("Không thể mở hộp thoại tạo nhóm: {}", e.getMessage());
                 } finally {
-                    createGroupButton.setEnabled(true);
+                    if (!submitted) {
+                        createGroupButton.setEnabled(true);
+                    }
                 }
             }
         }.execute();
@@ -333,10 +354,11 @@ public class ChatList extends JPanel {
         }.execute();
     }
 
-    private void openAddMembersDialog(Group group) {
+    private void openAddMembersDialog(Group group, JButton sourceButton) {
         if (App.peerNode == null || group == null) {
             return;
         }
+        sourceButton.setEnabled(false);
         new SwingWorker<List<PeerInfo>, Void>() {
             @Override
             protected List<PeerInfo> doInBackground() {
@@ -345,10 +367,65 @@ public class ChatList extends JPanel {
 
             @Override
             protected void done() {
+                boolean submitted = false;
                 try {
-                    showAddMembersDialog(group, get());
+                    submitted = showAddMembersDialog(group, get(), sourceButton);
                 } catch (Exception e) {
                     log.error("Không thể mở hộp thoại thêm peer vào nhóm: {}", e.getMessage());
+                } finally {
+                    if (!submitted) {
+                        sourceButton.setEnabled(true);
+                    }
+                }
+            }
+        }.execute();
+    }
+
+    private void openRenameGroupDialog(Group group, JButton sourceButton) {
+        if (App.peerNode == null || group == null) {
+            return;
+        }
+        JTextField nameField = new JTextField(group.getName());
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                nameField,
+                "Đổi tên nhóm",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+        if (choice != JOptionPane.OK_OPTION) {
+            return;
+        }
+        String newName = nameField.getText();
+        if (newName == null || newName.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Tên nhóm không được để trống.", "Đổi tên nhóm",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        sourceButton.setEnabled(false);
+        new SwingWorker<Group, Void>() {
+            @Override
+            protected Group doInBackground() {
+                return App.peerNode.renameGroup(group.getGroupId(), newName);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    Group renamedGroup = get();
+                    if (renamedGroup == null) {
+                        throw new IllegalStateException("Không tìm thấy nhóm.");
+                    }
+                    renderFriends();
+                    if (parentChatPage != null) {
+                        parentChatPage.refreshSelectedGroupName(renamedGroup);
+                    }
+                } catch (Exception e) {
+                    log.error("Không thể đổi tên nhóm: {}", e.getMessage());
+                    JOptionPane.showMessageDialog(ChatList.this, "Không thể đổi tên nhóm.", "Đổi tên nhóm",
+                            JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    sourceButton.setEnabled(true);
                 }
             }
         }.execute();
@@ -390,7 +467,7 @@ public class ChatList extends JPanel {
     }
 
     // Hiển thị dialog tạo group sau khi trạng thái peer đã được refresh
-    private void showCreateGroupDialog(List<PeerInfo> groupCandidates) {
+    private boolean showCreateGroupDialog(List<PeerInfo> groupCandidates) {
         JTextField groupNameField = new JTextField("Nhóm mới");
         JTextField peerIdField = new JTextField();
         peerIdField.setToolTipText("Nhập peerId, có thể nhập nhiều id cách nhau bằng dấu phẩy hoặc xuống dòng");
@@ -414,32 +491,15 @@ public class ChatList extends JPanel {
         int choice = JOptionPane.showConfirmDialog(this, panel, "Tạo nhóm",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (choice != JOptionPane.OK_OPTION) {
-            return;
+            return false;
         }
 
-        boolean bootstrapAvailable = App.peerNode.isBootstrapAvailable();
-        List<PeerInfo> selectedPeers = mergeSelectedAndManualPeers(
-                peerList.getSelectedValuesList(),
-                peerIdField.getText(),
-                groupCandidates,
-                Set.of(),
-                bootstrapAvailable
-        );
-        if (selectedPeers == null || selectedPeers.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn peer hoặc nhập peerId.", "Tạo nhóm",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        if (!bootstrapAvailable && !validateDirectGroupMembers(selectedPeers)) {
-            return;
-        }
-
-        Group group = App.peerNode.createGroup(groupNameField.getText(), selectedPeers);
-        log.info("UI đã tạo nhóm. groupId={}, sốThànhViên={}", group.getGroupId(), group.getMembers().size());
-        renderFriends();
+        createGroupAsync(groupNameField.getText(), peerList.getSelectedValuesList(),
+                peerIdField.getText(), groupCandidates);
+        return true;
     }
 
-    private void showAddMembersDialog(Group group, List<PeerInfo> groupCandidates) {
+    private boolean showAddMembersDialog(Group group, List<PeerInfo> groupCandidates, JButton sourceButton) {
         JTextField peerIdField = new JTextField();
         peerIdField.setToolTipText("Nhập peerId, có thể nhập nhiều id cách nhau bằng dấu phẩy hoặc xuống dòng");
         JList<PeerInfo> peerList = new JList<>(groupCandidates.toArray(new PeerInfo[0]));
@@ -466,30 +526,80 @@ public class ChatList extends JPanel {
                 JOptionPane.PLAIN_MESSAGE
         );
         if (choice != JOptionPane.OK_OPTION) {
-            return;
+            return false;
         }
 
-        boolean bootstrapAvailable = App.peerNode.isBootstrapAvailable();
-        Set<String> existingMemberIds = collectMemberIds(group);
-        List<PeerInfo> selectedPeers = mergeSelectedAndManualPeers(
-                peerList.getSelectedValuesList(),
-                peerIdField.getText(),
-                groupCandidates,
-                existingMemberIds,
-                bootstrapAvailable
-        );
-        if (selectedPeers == null || selectedPeers.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn peer hoặc nhập peerId.", "Thêm peer",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        if (!bootstrapAvailable && !validateDirectGroupMembers(selectedPeers)) {
-            return;
-        }
+        addMembersAsync(group, peerList.getSelectedValuesList(), peerIdField.getText(),
+                groupCandidates, sourceButton);
+        return true;
+    }
 
-        App.peerNode.addMembersToGroup(group.getGroupId(), selectedPeers);
-        log.info("UI đã thêm peer vào nhóm. groupId={}, sốPeerThêm={}", group.getGroupId(), selectedPeers.size());
-        renderFriends();
+    private void createGroupAsync(String groupName,
+                                  List<PeerInfo> selectedPeers,
+                                  String manualPeerIds,
+                                  List<PeerInfo> groupCandidates) {
+        createGroupButton.setEnabled(false);
+        new SwingWorker<Group, Void>() {
+            @Override
+            protected Group doInBackground() {
+                boolean bootstrapAvailable = App.peerNode.isBootstrapAvailable();
+                List<PeerInfo> peers = resolveSelectedPeers(
+                        selectedPeers, manualPeerIds, groupCandidates, Set.of(), bootstrapAvailable);
+                validateGroupSelection(peers, bootstrapAvailable);
+                return App.peerNode.createGroup(groupName, peers);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    Group group = get();
+                    log.info("UI đã tạo nhóm. groupId={}, sốThànhViên={}",
+                            group.getGroupId(), group.getMembers().size());
+                    renderFriends();
+                } catch (Exception e) {
+                    showGroupOperationError("Tạo nhóm", e);
+                } finally {
+                    createGroupButton.setEnabled(true);
+                }
+            }
+        }.execute();
+    }
+
+    private void addMembersAsync(Group group,
+                                 List<PeerInfo> selectedPeers,
+                                 String manualPeerIds,
+                                 List<PeerInfo> groupCandidates,
+                                 JButton sourceButton) {
+        sourceButton.setEnabled(false);
+        new SwingWorker<Group, Void>() {
+            @Override
+            protected Group doInBackground() {
+                boolean bootstrapAvailable = App.peerNode.isBootstrapAvailable();
+                List<PeerInfo> peers = resolveSelectedPeers(
+                        selectedPeers, manualPeerIds, groupCandidates, collectMemberIds(group), bootstrapAvailable);
+                validateGroupSelection(peers, bootstrapAvailable);
+                return App.peerNode.addMembersToGroup(group.getGroupId(), peers);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    Group updatedGroup = get();
+                    if (updatedGroup == null) {
+                        throw new IllegalStateException("Không tìm thấy nhóm.");
+                    }
+                    log.info("UI đã thêm peer vào nhóm. groupId={}", updatedGroup.getGroupId());
+                    renderFriends();
+                    if (parentChatPage != null) {
+                        parentChatPage.refreshSelectedGroupName(updatedGroup);
+                    }
+                } catch (Exception e) {
+                    showGroupOperationError("Thêm peer", e);
+                } finally {
+                    sourceButton.setEnabled(true);
+                }
+            }
+        }.execute();
     }
 
     private JPanel createManualPeerIdPanel(JTextField peerIdField) {
@@ -502,11 +612,11 @@ public class ChatList extends JPanel {
         return panel;
     }
 
-    private List<PeerInfo> mergeSelectedAndManualPeers(List<PeerInfo> selectedPeers,
-                                                       String manualPeerIds,
-                                                       List<PeerInfo> candidates,
-                                                       Set<String> excludedIds,
-                                                       boolean bootstrapAvailable) {
+    private List<PeerInfo> resolveSelectedPeers(List<PeerInfo> selectedPeers,
+                                                String manualPeerIds,
+                                                List<PeerInfo> candidates,
+                                                Set<String> excludedIds,
+                                                boolean bootstrapAvailable) {
         List<PeerInfo> result = new ArrayList<>();
         Set<String> addedIds = new HashSet<>();
         for (PeerInfo selectedPeer : selectedPeers) {
@@ -529,17 +639,36 @@ public class ChatList extends JPanel {
                 continue;
             }
             if (!bootstrapAvailable) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Không tìm thấy peer này: " + peerId,
-                        "Không tìm thấy peer",
-                        JOptionPane.WARNING_MESSAGE
-                );
-                return null;
+                throw new IllegalArgumentException("Không tìm thấy peer này: " + peerId);
             }
             result.add(new PeerInfo(peerId, peerId, "", 0, false));
         }
         return result;
+    }
+
+    private void validateGroupSelection(List<PeerInfo> selectedPeers, boolean bootstrapAvailable) {
+        if (selectedPeers == null || selectedPeers.isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn peer hoặc nhập peerId.");
+        }
+        if (!bootstrapAvailable) {
+            List<String> offlinePeers = findUnreachableDirectGroupMembers(selectedPeers);
+            if (!offlinePeers.isEmpty()) {
+                throw new IllegalArgumentException("Không tìm thấy peer này hoặc peer không phản hồi ACK:\n"
+                        + String.join("\n", offlinePeers));
+            }
+        }
+    }
+
+    private void showGroupOperationError(String title, Exception e) {
+        Throwable cause = e;
+        while (cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        String message = cause.getMessage() == null || cause.getMessage().isBlank()
+                ? "Không thể thực hiện thao tác nhóm."
+                : cause.getMessage();
+        log.error("{} thất bại: {}", title, message);
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.WARNING_MESSAGE);
     }
 
     private List<String> parsePeerIds(String text) {
@@ -569,7 +698,7 @@ public class ChatList extends JPanel {
     }
 
     // Khi bootstrap-server tắt, group chỉ được tạo với peer đang TCP reachable
-    private boolean validateDirectGroupMembers(List<PeerInfo> selectedPeers) {
+    private List<String> findUnreachableDirectGroupMembers(List<PeerInfo> selectedPeers) {
         List<String> offlinePeers = new ArrayList<>();
         for (PeerInfo peerInfo : selectedPeers) {
             if (peerInfo.getHost() == null || peerInfo.getHost().isBlank() || peerInfo.getPort() <= 0) {
@@ -582,16 +711,8 @@ public class ChatList extends JPanel {
             }
         }
         if (!offlinePeers.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Không tìm thấy peer này hoặc peer không phản hồi ACK:\n"
-                            + String.join("\n", offlinePeers),
-                    "Không tìm thấy peer",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            log.warn("Đã chặn tạo nhóm vì bootstrap không khả dụng và có peer ngoại tuyến: {}", offlinePeers);
-            return false;
+            log.warn("Đã chặn thao tác nhóm vì bootstrap không khả dụng và có peer ngoại tuyến: {}", offlinePeers);
         }
-        return true;
+        return offlinePeers;
     }
 }

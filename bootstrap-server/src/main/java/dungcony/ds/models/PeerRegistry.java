@@ -1,28 +1,22 @@
 package dungcony.ds.models;
 
-import lombok.extern.slf4j.Slf4j;
-
-
+import dungcony.ds.config.Conn;
 import dungcony.ds.entities.GroupEntity;
 import dungcony.ds.entities.GroupMemberEntity;
 import dungcony.ds.entities.OfflineMessageEntity;
 import dungcony.ds.entities.UserEntity;
-import dungcony.ds.repositories.Conn;
 import dungcony.ds.repositories.GroupMemberRepo;
 import dungcony.ds.repositories.GroupRepo;
 import dungcony.ds.repositories.OfflineMessageRepo;
 import dungcony.ds.repositories.UserRepo;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class PeerRegistry {
-private static final long ONLINE_TTL_MS = 15_000;
+    private static final long ONLINE_TTL_MS = 15_000;
 
     private final Map<String, PeerInfo> peers = new ConcurrentHashMap<>();
     private final Map<String, Long> lastSeenByPeerKey = new ConcurrentHashMap<>();

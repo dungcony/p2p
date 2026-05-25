@@ -2,11 +2,11 @@ package dungcony.ds.models;
 
 import com.google.gson.Gson;
 import dungcony.ds.config.Config;
+import dungcony.ds.config.Conn;
+import dungcony.ds.config.Init;
 import dungcony.ds.entities.GroupEntity;
 import dungcony.ds.entities.GroupMemberEntity;
 import dungcony.ds.entities.OfflineMessageEntity;
-import dungcony.ds.repositories.Conn;
-import dungcony.ds.repositories.Init;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -122,9 +122,9 @@ public class BootstrapServer {
                 log.warn("Bootstrap nhận request rỗng.");
                 return;
             }
-            String[] parts   = line.split(" ", 2);
-            String command   = parts[0].toUpperCase(Locale.ROOT);
-            String payload   = parts.length > 1 ? parts[1] : "";
+            String[] parts = line.split(" ", 2);
+            String command = parts[0].toUpperCase(Locale.ROOT);
+            String payload = parts.length > 1 ? parts[1] : "";
             log.info("Bootstrap nhận command={}", command);
 
             switch (command) {

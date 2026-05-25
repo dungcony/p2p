@@ -41,6 +41,13 @@ public class Group {
         }
     }
 
+    // Cập nhật tên hiển thị của group, bỏ qua giá trị rỗng
+    public void rename(String newName) {
+        if (newName != null && !newName.isBlank()) {
+            this.name = newName.trim();
+        }
+    }
+
     // Thay danh sách thành viên bằng snapshot mới nhận từ bootstrap/peer sync
     public void replaceMembers(Collection<PeerInfo> newMembers) {
         members.clear();

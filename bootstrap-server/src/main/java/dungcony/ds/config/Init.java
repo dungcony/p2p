@@ -1,4 +1,4 @@
-package dungcony.ds.repositories;
+package dungcony.ds.config;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,9 +1,12 @@
 package dungcony.ds.dtos;
 
-import dungcony.ds.config.PeerConfig;
+import dungcony.ds.config.PeerProfile;
 
+/**
+ * Kết quả chọn profile trước khi khởi động peer
+ */
 public record ProfileSelection(
-        PeerConfig config,
+        PeerProfile config,
         boolean editBeforeStart,
         boolean newProfile) {
 }

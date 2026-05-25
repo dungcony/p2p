@@ -13,6 +13,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Xử lý một kết nối TCP đến và chuyển payload vào router nhận message
+ */
 @Slf4j
 public class ConnectionHandler implements Runnable {
 private final Socket socket;

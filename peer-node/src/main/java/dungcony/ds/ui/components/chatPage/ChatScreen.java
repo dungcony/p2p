@@ -10,6 +10,9 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Khu vực hiển thị lịch sử chat và ô gửi tin nhắn hiện tại
+ */
 public class ChatScreen extends JPanel implements MessageListener {
     private String selectedUser = "Chọn một cuộc chat";
     private String ipAddress;

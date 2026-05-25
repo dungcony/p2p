@@ -7,6 +7,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dungcony.ds.model.Message;
 
+/**
+ * Chuyển đổi Message qua lại giữa object runtime và JSON TCP payload
+ */
 @Slf4j
 public class MessageProtocol {
 private final Gson gson = new GsonBuilder().create();

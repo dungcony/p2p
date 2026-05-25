@@ -1,5 +1,8 @@
 package dungcony.ds.enums;
 
+/**
+ * Các loại message điều phối qua giao thức P2P
+ */
 public enum MessageType {
     CHAT,
     GROUP_CHAT,

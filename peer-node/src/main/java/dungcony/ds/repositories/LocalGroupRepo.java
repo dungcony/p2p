@@ -19,6 +19,9 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Repository JSON local lưu danh sách group của profile hiện tại
+ */
 @Slf4j
 public class LocalGroupRepo implements GroupRepository {
 private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
@@ -84,7 +87,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
                 return new ArrayList<>();
             }
             String json = Files.readString(groupFilePath, StandardCharsets.UTF_8);
-            if (json == null || json.isBlank()) {
+            if (json.isBlank()) {
                 return new ArrayList<>();
             }
             List<Group> groups = gson.fromJson(json, GROUP_LIST_TYPE);

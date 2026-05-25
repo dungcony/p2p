@@ -2,6 +2,9 @@ package dungcony.ds.model;
 
 import java.util.Objects;
 
+/**
+ * Thông tin định danh và địa chỉ kết nối của một peer
+ */
 public class PeerInfo {
     private String id;
     private String name;

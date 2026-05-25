@@ -8,6 +8,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+/**
+ * Nút Swing tuỳ biến màu nền hover và bo góc
+ */
 public class ModernButton extends JButton {
     // Cờ hover
     private boolean isHover = false;

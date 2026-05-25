@@ -4,6 +4,9 @@ import dungcony.ds.ui.pages.MainPage;
 
 import javax.swing.*;
 
+/**
+ * Frame chính chứa toàn bộ giao diện chat
+ */
 public class Main extends JFrame {
     // Khởi tạo cửa sổ chính và gắn MainPage vào frame
     public Main() {

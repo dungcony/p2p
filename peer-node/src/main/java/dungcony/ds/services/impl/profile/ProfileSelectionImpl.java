@@ -1,6 +1,7 @@
 package dungcony.ds.services.impl.profile;
 
-import dungcony.ds.config.PeerConfig;
+import dungcony.ds.config.PeerProfile;
+import dungcony.ds.config.PeerProfileRepository;
 import dungcony.ds.dtos.ProfileSelection;
 import dungcony.ds.services.interfaces.profile.ProfileSelectionService;
 import lombok.extern.slf4j.Slf4j;
@@ -13,19 +14,21 @@ import java.util.List;
 // Service hiển thị luồng chọn profile peer trước khi khởi động node
 public class ProfileSelectionImpl implements ProfileSelectionService {
     private final Path dataRoot;
+    private final PeerProfileRepository profileRepository;
 
-    // Khởi tạo service chọn profile với data root runtime
-    public ProfileSelectionImpl(Path dataRoot) {
+    // Khởi tạo service chọn profile với data root và repository I/O
+    public ProfileSelectionImpl(Path dataRoot, PeerProfileRepository profileRepository) {
         this.dataRoot = dataRoot;
+        this.profileRepository = profileRepository;
     }
 
     // Chọn profile cũ hoặc tạo profile mới cho peer local
     @Override
     public ProfileSelection selectProfile() {
-        List<PeerConfig> profiles = PeerConfig.listProfiles(dataRoot);
+        List<PeerProfile> profiles = profileRepository.listProfiles(dataRoot);
         if (profiles.isEmpty()) {
             log.info("Không tìm thấy profile cũ. Đang tạo profile UUID mới.");
-            return new ProfileSelection(PeerConfig.createNew(dataRoot), true, true);
+            return new ProfileSelection(profileRepository.createNew(dataRoot), true, true);
         }
 
         Object[] options = {"Tạo profile mới", "Dùng profile có sẵn", "Hủy"};
@@ -41,7 +44,7 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
         );
 
         if (choice == 0) {
-            return new ProfileSelection(PeerConfig.createNew(dataRoot), true, true);
+            return new ProfileSelection(profileRepository.createNew(dataRoot), true, true);
         }
         if (choice == 1) {
             return selectExistingProfile(profiles);
@@ -53,11 +56,11 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
     // ------------------------- PRIVATE -----------------------------//
 
     // Cho người dùng click profile cũ, Start trực tiếp hoặc Sửa nếu muốn sửa name/port
-    private ProfileSelection selectExistingProfile(List<PeerConfig> profiles) {
-        DefaultListModel<PeerConfig> listModel = new DefaultListModel<>();
+    private ProfileSelection selectExistingProfile(List<PeerProfile> profiles) {
+        DefaultListModel<PeerProfile> listModel = new DefaultListModel<>();
         profiles.forEach(listModel::addElement);
 
-        JList<PeerConfig> profileList = new JList<>(listModel);
+        JList<PeerProfile> profileList = new JList<>(listModel);
         profileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         profileList.setSelectedIndex(0);
         profileList.setVisibleRowCount(Math.min(8, Math.max(1, profiles.size())));
@@ -82,7 +85,7 @@ public class ProfileSelectionImpl implements ProfileSelectionService {
                 options[0]
         );
 
-        PeerConfig selectedProfile = profileList.getSelectedValue();
+        PeerProfile selectedProfile = profileList.getSelectedValue();
         if (selectedProfile == null || choice == 2 || choice == JOptionPane.CLOSED_OPTION) {
             return null;
         }

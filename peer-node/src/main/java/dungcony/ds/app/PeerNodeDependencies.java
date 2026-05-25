@@ -13,6 +13,9 @@ import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
 import dungcony.ds.services.interfaces.peer.PeerDiscoverService;
 import dungcony.ds.services.interfaces.peer.PeerPresenceService;
 
+/**
+ * Gói dependency runtime để PeerNode chỉ giữ vai trò facade
+ */
 public record PeerNodeDependencies(
         PeerInfo localPeer,
         PeerDirectoryService peerDirectoryService,

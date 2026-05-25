@@ -4,7 +4,7 @@ import dungcony.ds.dtos.GroupMemberPayload;
 import dungcony.ds.dtos.GroupPayload;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
+import dungcony.ds.services.interfaces.bootstrap.GroupBootstrapGateway;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapGroupService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,11 +16,11 @@ import java.util.List;
 // Service đồng bộ group chat với bootstrap-server gồm tạo group, thêm member và nạp group đã tham gia
 public class BootstrapGroupImpl implements BootstrapGroupService {
 
-    private final BootstrapGateway bootstrapGateway;
+    private final GroupBootstrapGateway bootstrapGateway;
     private final PeerInfo localPeer;
 
     // Khởi tạo service group bootstrap với client tracker và peer local
-    public BootstrapGroupImpl(BootstrapGateway bootstrapGateway, PeerInfo localPeer) {
+    public BootstrapGroupImpl(GroupBootstrapGateway bootstrapGateway, PeerInfo localPeer) {
         this.bootstrapGateway = bootstrapGateway;
         this.localPeer = localPeer;
     }

@@ -3,7 +3,7 @@ package dungcony.ds.services.impl.messaging;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
+import dungcony.ds.services.interfaces.bootstrap.OfflineMessageGateway;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.messaging.MessageRetryService;
 import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 public class MessageRetryImpl implements MessageRetryService {
 
     private final PeerMessageSender messageSender;
-    private final BootstrapGateway bootstrapGateway;
+    private final OfflineMessageGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
     private final Consumer<Message> messageNotifier;
@@ -26,7 +26,7 @@ public class MessageRetryImpl implements MessageRetryService {
 
     // Khởi tạo service retry với sender, bootstrap fallback, danh bạ và history
     public MessageRetryImpl(PeerMessageSender messageSender,
-                            BootstrapGateway bootstrapGateway,
+                            OfflineMessageGateway bootstrapGateway,
                             PeerDirectoryService peerDirectoryService,
                             MessageHistoryService messageHistoryService,
                             Consumer<Message> messageNotifier,

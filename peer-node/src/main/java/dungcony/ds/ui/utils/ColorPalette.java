@@ -2,6 +2,9 @@ package dungcony.ds.ui.utils;
 
 import java.awt.*;
 
+/**
+ * Bảng màu dùng chung cho giao diện Swing
+ */
 public class ColorPalette {
     // Bảng màu hiện đại
     // Màu chủ đạo

@@ -16,6 +16,9 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
+/**
+ * Panel nhập peer đích và mở cuộc chat trực tiếp
+ */
 @Slf4j
 public class BottomPanel extends RoundedPanel {
 private ModernButton checkConnectionButton;

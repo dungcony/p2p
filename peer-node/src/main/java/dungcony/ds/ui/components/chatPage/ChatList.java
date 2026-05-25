@@ -22,6 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Danh sách conversation, group và hành động nhanh của trang chat
+ */
 @Slf4j
 public class ChatList extends JPanel {
     private static final Color ONLINE_COLOR = new Color(46, 125, 50);

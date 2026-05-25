@@ -4,13 +4,14 @@ import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapGroupService;
+import dungcony.ds.services.interfaces.bootstrap.OfflineMessageGateway;
 import dungcony.ds.services.interfaces.group.GroupChatService;
+import dungcony.ds.services.interfaces.group.GroupRegistry;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
-import dungcony.ds.utils.GroupConversationHelper;
+import dungcony.ds.utils.GroupConverstation;
 import dungcony.ds.utils.Mes;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,22 +26,22 @@ public class GroupChatImpl implements GroupChatService {
 
     private final PeerInfo localPeer;
     private final PeerMessageSender messageSender;
-    private final BootstrapGateway bootstrapGateway;
+    private final OfflineMessageGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
     private final BootstrapGroupService bootstrapGroupService;
-    private final GroupManager groupManager;
+    private final GroupRegistry groupManager;
     private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
     // Khởi tạo service group chat với các dependency mạng, bootstrap, history và group manager
     public GroupChatImpl(PeerInfo localPeer,
                          PeerMessageSender messageSender,
-                         BootstrapGateway bootstrapGateway,
+                         OfflineMessageGateway bootstrapGateway,
                          PeerDirectoryService peerDirectoryService,
                          MessageHistoryService messageHistoryService,
                          BootstrapGroupService bootstrapGroupService,
-                         GroupManager groupManager,
+                         GroupRegistry groupManager,
                          Consumer<Message> messageNotifier,
                          Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
@@ -90,8 +91,8 @@ public class GroupChatImpl implements GroupChatService {
             message.setStatus(MessageStatus.FAILED);
         }
         messageHistoryService.addAndSave(
-                GroupConversationHelper.historyKey(groupId),
-                GroupConversationHelper.conversationPeer(group),
+                GroupConverstation.historyKey(groupId),
+                GroupConverstation.conversationPeer(group),
                 message);
         messageNotifier.accept(message);
         peerChangeNotifier.run();
@@ -134,9 +135,9 @@ public class GroupChatImpl implements GroupChatService {
     public List<Message> getMessagesWithGroup(String groupId) {
         Group group = groupManager.getGroup(groupId);
         PeerInfo groupPeer = group == null
-                ? new PeerInfo(groupId, groupId, GroupConversationHelper.historyKey(groupId), 0, false)
-                : GroupConversationHelper.conversationPeer(group);
-        return messageHistoryService.getMessages(groupPeer, GroupConversationHelper.historyKey(groupId));
+                ? new PeerInfo(groupId, groupId, GroupConverstation.historyKey(groupId), 0, false)
+                : GroupConverstation.conversationPeer(group);
+        return messageHistoryService.getMessages(groupPeer, GroupConverstation.historyKey(groupId));
     }
 
     // Lấy message cuối cùng của group theo groupId
@@ -144,9 +145,9 @@ public class GroupChatImpl implements GroupChatService {
     public Message getLastGroupMessage(String groupId) {
         Group group = groupManager.getGroup(groupId);
         PeerInfo groupPeer = group == null
-                ? new PeerInfo(groupId, groupId, GroupConversationHelper.historyKey(groupId), 0, false)
-                : GroupConversationHelper.conversationPeer(group);
-        return messageHistoryService.getLastMessage(groupPeer, GroupConversationHelper.historyKey(groupId));
+                ? new PeerInfo(groupId, groupId, GroupConverstation.historyKey(groupId), 0, false)
+                : GroupConverstation.conversationPeer(group);
+        return messageHistoryService.getLastMessage(groupPeer, GroupConverstation.historyKey(groupId));
     }
 
     // Tìm target runtime mới nhất cho member hoặc dùng lại member trong group

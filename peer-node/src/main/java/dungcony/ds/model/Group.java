@@ -7,6 +7,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Model group chat cùng danh sách thành viên hiện tại
+ */
 @Getter
 public class Group {
     private String groupId;

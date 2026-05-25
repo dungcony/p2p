@@ -16,6 +16,9 @@ import java.util.UUID;
 
 import static dungcony.ds.utils.Mes.getMessage;
 
+/**
+ * Model message dùng chung cho chat, group, broadcast và control packet
+ */
 @Getter
 @Setter
 public class Message {

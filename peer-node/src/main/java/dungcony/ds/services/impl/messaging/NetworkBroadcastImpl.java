@@ -3,7 +3,7 @@ package dungcony.ds.services.impl.messaging;
 import dungcony.ds.dtos.BroadcastResult;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
+import dungcony.ds.services.interfaces.bootstrap.PeerBootstrapGateway;
 import dungcony.ds.services.interfaces.messaging.NetworkBroadcastService;
 import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
@@ -17,14 +17,14 @@ public class NetworkBroadcastImpl implements NetworkBroadcastService {
 
     private final PeerInfo localPeer;
     private final PeerMessageSender messageSender;
-    private final BootstrapGateway bootstrapGateway;
+    private final PeerBootstrapGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
     private final Runnable peerChangeNotifier;
 
     // Khởi tạo service broadcast với peer local, sender, bootstrap và danh bạ peer
     public NetworkBroadcastImpl(PeerInfo localPeer,
                                 PeerMessageSender messageSender,
-                                BootstrapGateway bootstrapGateway,
+                                PeerBootstrapGateway bootstrapGateway,
                                 PeerDirectoryService peerDirectoryService,
                                 Runnable peerChangeNotifier) {
         this.localPeer = localPeer;

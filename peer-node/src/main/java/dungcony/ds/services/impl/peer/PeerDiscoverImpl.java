@@ -6,7 +6,7 @@ import dungcony.ds.model.PeerInfo;
 import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
 import dungcony.ds.services.interfaces.peer.PeerDiscoverService;
-import dungcony.ds.utils.GroupConversationHelper;
+import dungcony.ds.utils.GroupConverstation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -90,7 +90,7 @@ public class PeerDiscoverImpl implements PeerDiscoverService {
         for (PeerInfo peerInfo : response.getPeers()) {
             if (peerInfo == null
                     || peerDirectoryService.isSelfPeer(peerInfo)
-                    || GroupConversationHelper.isGroupHost(peerInfo.getHost())) {
+                    || GroupConverstation.isGroupHost(peerInfo.getHost())) {
                 continue;
             }
             discoveredPeers.add(peerInfo);

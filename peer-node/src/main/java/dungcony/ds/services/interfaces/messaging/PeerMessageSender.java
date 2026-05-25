@@ -4,6 +4,9 @@ import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 
+/**
+ * Abstraction gửi message tới một peer qua network transport
+ */
 public interface PeerMessageSender {
     boolean send(PeerInfo peerInfo, Message message);
 

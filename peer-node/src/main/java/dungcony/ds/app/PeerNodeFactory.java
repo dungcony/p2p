@@ -44,6 +44,9 @@ import dungcony.ds.services.interfaces.peer.PeerPresenceService;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
+/**
+ * Factory lắp ráp dependency graph cho một PeerNode
+ */
 public class PeerNodeFactory {
     public PeerNodeDependencies create(String peerId,
                                        String peerName,

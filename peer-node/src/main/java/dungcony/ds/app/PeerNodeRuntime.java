@@ -2,23 +2,26 @@ package dungcony.ds.app;
 
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.network.TCPServer;
-import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
+import dungcony.ds.services.interfaces.bootstrap.PeerBootstrapGateway;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapSyncService;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Quản lý vòng đời TCP server và đồng bộ bootstrap của peer
+ */
 @Slf4j
 public class PeerNodeRuntime {
     private static final long BOOTSTRAP_REFRESH_INTERVAL_MS = 5000;
 
     private final PeerInfo localPeer;
     private final TCPServer tcpServer;
-    private final BootstrapGateway bootstrapGateway;
+    private final PeerBootstrapGateway bootstrapGateway;
     private final BootstrapSyncService bootstrapSyncService;
     private volatile boolean running;
 
     public PeerNodeRuntime(PeerInfo localPeer,
                            TCPServer tcpServer,
-                           BootstrapGateway bootstrapGateway,
+                           PeerBootstrapGateway bootstrapGateway,
                            BootstrapSyncService bootstrapSyncService) {
         this.localPeer = localPeer;
         this.tcpServer = tcpServer;

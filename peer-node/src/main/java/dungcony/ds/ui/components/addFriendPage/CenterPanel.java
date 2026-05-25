@@ -11,6 +11,9 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
+/**
+ * Panel bố cục nội dung trang thêm bạn theo kích thước cửa sổ
+ */
 @Slf4j
 public class CenterPanel extends JPanel {
 

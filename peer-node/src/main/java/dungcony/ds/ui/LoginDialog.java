@@ -6,6 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Dialog nhập hoặc chỉnh tên peer trước khi khởi động
+ */
 @Slf4j
 public class LoginDialog extends JDialog {
 private final JTextField idField;

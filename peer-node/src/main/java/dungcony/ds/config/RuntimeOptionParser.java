@@ -1,12 +1,19 @@
-package dungcony.ds.utils;
+package dungcony.ds.config;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 
+/**
+ * Helper đọc option runtime từ command line
+ */
 @Slf4j
-public class ProfileRead {
+public final class RuntimeOptionParser {
+
+    private RuntimeOptionParser() {
+        // Utility class không cần khởi tạo
+    }
 
     // Đọc tham số runtime: --data-dir và --peer-port
     public static RuntimeOption resolveRuntimeOptions(String[] args) {

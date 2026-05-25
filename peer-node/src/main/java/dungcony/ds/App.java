@@ -1,14 +1,15 @@
 package dungcony.ds;
 
-import dungcony.ds.config.PeerConfig;
+import dungcony.ds.config.PeerProfile;
+import dungcony.ds.config.PeerProfileRepository;
+import dungcony.ds.config.RuntimeOption;
 import dungcony.ds.dtos.ProfileSelection;
-import dungcony.ds.model.PeerNode;
+import dungcony.ds.app.PeerNode;
 import dungcony.ds.services.impl.profile.ProfileSelectionImpl;
 import dungcony.ds.services.interfaces.profile.ProfileSelectionService;
 import dungcony.ds.ui.LoginDialog;
 import dungcony.ds.ui.Main;
 import dungcony.ds.ui.PeerPortDialog;
-import dungcony.ds.utils.RuntimeOption;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -16,8 +17,11 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.file.Path;
 
-import static dungcony.ds.utils.ProfileRead.resolveRuntimeOptions;
+import static dungcony.ds.config.RuntimeOptionParser.resolveRuntimeOptions;
 
+/**
+ * Điểm khởi chạy ứng dụng desktop và điều phối vòng đời PeerNode
+ */
 @Slf4j
 public class App {
     public static PeerNode peerNode;
@@ -29,14 +33,15 @@ public class App {
         Path dataRoot = runtimeOptions.dataRoot();
 
         SwingUtilities.invokeLater(() -> {
-            ProfileSelectionService profileSelectionService = new ProfileSelectionImpl(dataRoot);
+            PeerProfileRepository profileRepository = new PeerProfileRepository();
+            ProfileSelectionService profileSelectionService = new ProfileSelectionImpl(dataRoot, profileRepository);
             ProfileSelection selection = profileSelectionService.selectProfile();
             if (selection == null) {
                 log.info("Đã hủy chọn profile. Ứng dụng sẽ không khởi động PeerNode.");
                 return;
             }
 
-            PeerConfig config = selection.config();
+            PeerProfile config = selection.config();
             config.applyRuntimePeerPort(runtimeOptions.peerPort());
             if (selection.newProfile() && runtimeOptions.peerPort() == null) {
                 PeerPortDialog peerPortDialog = new PeerPortDialog(config.getPeerPort(), config.getBootstrapPort());
@@ -49,7 +54,7 @@ public class App {
                     log.warn("Cổng peer không hợp lệ. Ứng dụng sẽ không khởi động PeerNode.");
                     return;
                 }
-                config.save();
+                profileRepository.save(config);
             }
             if (selection.editBeforeStart()) {
                 LoginDialog loginDialog = new LoginDialog(config.getPeerId(), config.getPeerName());
@@ -59,10 +64,10 @@ public class App {
                     return;
                 }
                 config.updateIdentity(loginDialog.getPeerId(), loginDialog.getPeerName());
-                config.save();
+                profileRepository.save(config);
             } else {
                 log.info("Đang khởi động bằng profile đã chọn, không chỉnh sửa. {}", config.getDisplayLabel());
-                config.save();
+                profileRepository.save(config);
             }
 
             log.info("Đang khởi động PeerNode với tên={}, cổng={}, bootstrap={}:{}", config.getPeerName(), config.getPeerPort(), config.getBootstrapHost(), config.getBootstrapPort());

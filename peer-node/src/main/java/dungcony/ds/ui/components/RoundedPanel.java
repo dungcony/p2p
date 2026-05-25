@@ -3,6 +3,9 @@ package dungcony.ds.ui.components;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * JPanel vẽ nền bo góc theo màu truyền vào
+ */
 public class RoundedPanel extends JPanel {
     private int radius;
     private Color backgroundColor;

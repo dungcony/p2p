@@ -2,7 +2,7 @@ package dungcony.ds.services.impl.peer;
 
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
+import dungcony.ds.services.interfaces.bootstrap.PeerBootstrapGateway;
 import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
 import dungcony.ds.services.interfaces.peer.PeerPresenceService;
@@ -14,12 +14,12 @@ public class PeerPresenceImpl implements PeerPresenceService {
 
     private final PeerInfo localPeer;
     private final PeerMessageSender messageSender;
-    private final BootstrapGateway bootstrapGateway;
+    private final PeerBootstrapGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
     private final Runnable peerChangeNotifier;
 
     // Khởi tạo service quản lý trạng thái online/offline của peer
-    public PeerPresenceImpl(PeerInfo localPeer, PeerMessageSender messageSender, BootstrapGateway bootstrapGateway,
+    public PeerPresenceImpl(PeerInfo localPeer, PeerMessageSender messageSender, PeerBootstrapGateway bootstrapGateway,
                             PeerDirectoryService peerDirectoryService, Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
         this.messageSender = messageSender;

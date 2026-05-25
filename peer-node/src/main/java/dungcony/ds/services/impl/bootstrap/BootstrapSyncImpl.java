@@ -6,13 +6,13 @@ import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapGroupService;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapSyncService;
+import dungcony.ds.services.interfaces.bootstrap.PeerBootstrapGateway;
+import dungcony.ds.services.interfaces.group.GroupRegistry;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
-import dungcony.ds.services.impl.group.GroupManager;
-import dungcony.ds.utils.GroupConversationHelper;
+import dungcony.ds.utils.GroupConverstation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -22,20 +22,20 @@ import java.util.function.Consumer;
 // Service điều phối đăng ký peer, heartbeat bootstrap, đồng bộ peer, group và offline message
 public class BootstrapSyncImpl implements BootstrapSyncService {
 
-    private final BootstrapGateway bootstrapGateway;
+    private final PeerBootstrapGateway bootstrapGateway;
     private final PeerInfo localPeer;
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
-    private final GroupManager groupManager;
+    private final GroupRegistry groupManager;
     private final BootstrapGroupService bootstrapGroupService;
     private final Runnable peerChangeNotifier;
     private final Consumer<Message> messageNotifier;
 
     // Khởi tạo service xử lý REGISTER/JOIN/offline/group sync với bootstrap
-    public BootstrapSyncImpl(BootstrapGateway bootstrapGateway, PeerInfo localPeer,
+    public BootstrapSyncImpl(PeerBootstrapGateway bootstrapGateway, PeerInfo localPeer,
                              PeerDirectoryService peerDirectoryService,
                              MessageHistoryService messageHistoryService,
-                             GroupManager groupManager,
+                             GroupRegistry groupManager,
                              BootstrapGroupService bootstrapGroupService,
                              Runnable peerChangeNotifier,
                              Consumer<Message> messageNotifier) {
@@ -124,7 +124,7 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
         if (isGroupMessage) {
             Group group = groupManager.getGroup(msg.groupId());
             String name = group == null ? msg.groupId() : group.getName();
-            return new PeerInfo(msg.groupId(), name, GroupConversationHelper.historyKey(msg.groupId()), 0, false);
+            return new PeerInfo(msg.groupId(), name, GroupConverstation.historyKey(msg.groupId()), 0, false);
         }
         return sender == null
                 ? new PeerInfo(msg.senderId(), msg.senderId(), "", 0, false)
@@ -134,7 +134,7 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
     // Xác định history key cho tin offline: group key hoặc sender addressKey
     private String resolveHistoryKey(OfflineMessage msg, PeerInfo sender, boolean isGroupMessage) {
         if (isGroupMessage) {
-            return GroupConversationHelper.historyKey(msg.groupId());
+            return GroupConverstation.historyKey(msg.groupId());
         }
         return sender == null ? msg.senderId() : sender.addressKey();
     }

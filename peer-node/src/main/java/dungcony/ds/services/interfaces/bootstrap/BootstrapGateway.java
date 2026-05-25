@@ -1,34 +1,18 @@
 package dungcony.ds.services.interfaces.bootstrap;
 
-import dungcony.ds.dtos.GroupMemberPayload;
-import dungcony.ds.dtos.GroupPayload;
-import dungcony.ds.dtos.JoinResponse;
-import dungcony.ds.dtos.OfflineMessage;
-import dungcony.ds.model.Group;
-import dungcony.ds.model.PeerInfo;
-
-import java.util.Collection;
-
-public interface BootstrapGateway {
-    boolean register(PeerInfo peerInfo);
-
-    JoinResponse join(PeerInfo peerInfo);
-
-    JoinResponse joinOrNull(PeerInfo peerInfo);
-
-    boolean storeOffline(OfflineMessage message);
-
-    boolean createGroup(Group group, String createdBy);
-
-    boolean addGroupMember(String groupId, String userId);
-
-    Collection<GroupPayload> listGroups();
-
-    Collection<GroupMemberPayload> listGroupMembers(String groupId);
-
-    void leave(String peerKey);
-
-    Collection<PeerInfo> list();
-
-    Collection<PeerInfo> listOrNull();
+/**
+ * Cổng giao tiếp đầy đủ với bootstrap-server.
+ * Kết hợp peer lifecycle, offline message và group management.
+ *
+ * <p>Được tách thành 3 sub-interface theo ISP:
+ * <ul>
+ *   <li>{@link PeerBootstrapGateway} — register/join/leave/list peer</li>
+ *   <li>{@link OfflineMessageGateway} — lưu tin nhắn offline</li>
+ *   <li>{@link GroupBootstrapGateway} — quản lý group chat</li>
+ * </ul>
+ * Các service chỉ nên inject sub-interface phù hợp thay vì toàn bộ BootstrapGateway.
+ * </p>
+ */
+public interface BootstrapGateway extends PeerBootstrapGateway, OfflineMessageGateway, GroupBootstrapGateway {
 }
+

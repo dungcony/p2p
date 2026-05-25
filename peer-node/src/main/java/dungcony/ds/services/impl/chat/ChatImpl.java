@@ -3,7 +3,7 @@ package dungcony.ds.services.impl.chat;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
+import dungcony.ds.services.interfaces.bootstrap.OfflineMessageGateway;
 import dungcony.ds.services.interfaces.chat.ChatService;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
@@ -19,14 +19,14 @@ public class ChatImpl implements ChatService {
 
     private final PeerInfo localPeer;
     private final PeerMessageSender messageSender;
-    private final BootstrapGateway bootstrapGateway;
+    private final OfflineMessageGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
     private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
     // Khởi tạo service xử lý heartbeat và gửi chat 1-1
-    public ChatImpl(PeerInfo localPeer, PeerMessageSender messageSender, BootstrapGateway bootstrapGateway,
+    public ChatImpl(PeerInfo localPeer, PeerMessageSender messageSender, OfflineMessageGateway bootstrapGateway,
                     PeerDirectoryService peerDirectoryService, MessageHistoryService messageHistoryService,
                     Consumer<Message> messageNotifier, Runnable peerChangeNotifier) {
         this.localPeer = localPeer;

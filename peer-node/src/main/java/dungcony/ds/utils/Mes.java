@@ -9,7 +9,14 @@ import dungcony.ds.model.PeerInfo;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Helper tạo và phục hồi Message ở tầng model
+ */
 public class Mes {
+
+    private Mes() {
+    }
+
     // Tạo offline message từ message P2P khi gửi trực tiếp thất bại
     public static OfflineMessage fromMessage(Message message) {
         return new OfflineMessage(

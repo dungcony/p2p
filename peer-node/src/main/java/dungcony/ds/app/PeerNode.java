@@ -1,11 +1,14 @@
-package dungcony.ds.model;
+package dungcony.ds.app;
 
 import dungcony.ds.app.PeerNodeDependencies;
 import dungcony.ds.app.PeerNodeFactory;
 import dungcony.ds.app.PeerNodeRuntime;
 import dungcony.ds.dtos.BroadcastResult;
+import dungcony.ds.model.Group;
+import dungcony.ds.model.Message;
+import dungcony.ds.model.PeerInfo;
 import dungcony.ds.services.impl.event.SwingEventDispatcher;
-import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
+import dungcony.ds.services.interfaces.bootstrap.PeerBootstrapGateway;
 import dungcony.ds.services.interfaces.chat.ChatService;
 import dungcony.ds.services.interfaces.chat.ConversationService;
 import dungcony.ds.services.interfaces.event.EventDispatcher;
@@ -25,6 +28,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * Facade công khai của peer node, ủy quyền nghiệp vụ cho các service
+ */
 @Slf4j
 @Getter
 public class PeerNode {
@@ -34,7 +40,8 @@ public class PeerNode {
     private final PeerInfo localPeer;
     private final List<MessageListener> messageListeners = new CopyOnWriteArrayList<>();
     private final List<Runnable> peerChangeListeners = new CopyOnWriteArrayList<>();
-    private final EventDispatcher eventDispatcher = new SwingEventDispatcher();
+    // DIP fix: EventDispatcher được inject thay vì hard-wire SwingEventDispatcher
+    private final EventDispatcher eventDispatcher;
 
     // ── Dịch vụ lõi ─────
     private final PeerDirectoryService peerDirectoryService;
@@ -49,14 +56,26 @@ public class PeerNode {
     private final InboundMessageService inboundMessageService;
     private final MessageRetryService messageRetryService;
 
-    private final BootstrapGateway bootstrapGateway;
+    private final PeerBootstrapGateway bootstrapGateway;
     private final PeerNodeRuntime runtime;
 
     /**
-     * Khởi tạo facade PeerNode và nhận dependency graph từ PeerNodeFactory
+     * Khởi tạo facade PeerNode với SwingEventDispatcher mặc định (tương thích ngược).
+     * App.java không cần thay đổi.
      */
     public PeerNode(String peerId, String peerName, int port,
                     String bootstrapHost, int bootstrapPort, Path dataDir) {
+        this(peerId, peerName, port, bootstrapHost, bootstrapPort, dataDir, new SwingEventDispatcher());
+    }
+
+    /**
+     * Khởi tạo facade PeerNode với EventDispatcher tùy chỉnh.
+     * Dùng khi cần swap UI framework hoặc inject mock trong test.
+     */
+    public PeerNode(String peerId, String peerName, int port,
+                    String bootstrapHost, int bootstrapPort, Path dataDir,
+                    EventDispatcher eventDispatcher) {
+        this.eventDispatcher = eventDispatcher;
         PeerNodeDependencies dependencies = new PeerNodeFactory().create(
                 peerId,
                 peerName,

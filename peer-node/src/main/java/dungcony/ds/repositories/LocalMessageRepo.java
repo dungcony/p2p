@@ -3,10 +3,10 @@ package dungcony.ds.repositories;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import dungcony.ds.dtos.MesRecord;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.services.interfaces.persistence.MessageRepository;
-import dungcony.ds.utils.MesRecord;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -16,6 +16,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * Repository JSON local lưu lịch sử message theo conversation
+ */
 @Slf4j
 public class LocalMessageRepo implements MessageRepository {
     private static final Type MESSAGE_RECORD_LIST_TYPE = new TypeToken<List<MesRecord>>() {
@@ -57,7 +60,7 @@ public class LocalMessageRepo implements MessageRepository {
         List<MesRecord> records = readAllRecords();
         MesRecord newRecord = MesRecord.from(conversationPeer, message);
         Optional<MesRecord> existingRecord = records.stream()
-                .filter(record -> newRecord.getMessageId().equals(record.getMessageId()))
+                .filter(record -> newRecord.messageId().equals(record.messageId()))
                 .findFirst();
 
         if (existingRecord.isPresent()) {
@@ -68,7 +71,7 @@ public class LocalMessageRepo implements MessageRepository {
             log.debug("Đã thêm tin nhắn vào JSON local. messageId={}", message.getId());
         }
 
-        records.sort(Comparator.comparingLong(MesRecord::getTimestamp));
+        records.sort(Comparator.comparingLong(MesRecord::timestamp));
         writeAllRecords(records);
         log.info("Đã lưu tin nhắn local. conversationPeerId={}, messageId={}", conversationPeer.getId(), message.getId());
     }
@@ -82,13 +85,13 @@ public class LocalMessageRepo implements MessageRepository {
         }
 
         for (MesRecord record : readAllRecords()) {
-            if (!conversationPeerId.equals(record.getConversationPeerId())) {
+            if (!conversationPeerId.equals(record.conversationPeerId())) {
                 continue;
             }
             try {
                 messages.add(record.toMessage());
             } catch (IllegalArgumentException e) {
-                log.warn("Đã bỏ qua record tin nhắn local không hợp lệ. messageId={}, lỗi={}", record.getMessageId(), e.getMessage());
+                log.warn("Đã bỏ qua record tin nhắn local không hợp lệ. messageId={}, lỗi={}", record.messageId(), e.getMessage());
             }
         }
 
@@ -102,13 +105,13 @@ public class LocalMessageRepo implements MessageRepository {
     public synchronized List<PeerInfo> findDirectConversationPeers() {
         Map<String, PeerInfo> peersById = new LinkedHashMap<>();
         for (MesRecord record : readAllRecords()) {
-            if (record.getConversationPeerId() == null || record.getConversationPeerId().isBlank()) {
+            if (record.conversationPeerId() == null || record.conversationPeerId().isBlank()) {
                 continue;
             }
-            if (record.getGroupId() != null && !record.getGroupId().isBlank()) {
+            if (record.groupId() != null && !record.groupId().isBlank()) {
                 continue;
             }
-            if (!"CHAT".equals(record.getMessageType()) && !"BROADCAST".equals(record.getMessageType())) {
+            if (!"CHAT".equals(record.messageType()) && !"BROADCAST".equals(record.messageType())) {
                 continue;
             }
             PeerInfo peerInfo = toPeerInfo(record);
@@ -127,7 +130,7 @@ public class LocalMessageRepo implements MessageRepository {
                 return new ArrayList<>();
             }
             String json = Files.readString(messageFilePath, StandardCharsets.UTF_8);
-            if (json == null || json.isBlank()) {
+            if (json.isBlank()) {
                 return new ArrayList<>();
             }
             List<MesRecord> records = gson.fromJson(json, MESSAGE_RECORD_LIST_TYPE);
@@ -140,7 +143,7 @@ public class LocalMessageRepo implements MessageRepository {
 
     // Chuyển metadata conversation trong JSON thành PeerInfo để UI có thể hiển thị history offline
     private PeerInfo toPeerInfo(MesRecord record) {
-        String peerKey = record.getConversationPeerKey();
+        String peerKey = record.conversationPeerKey();
         if (peerKey == null || peerKey.isBlank()) {
             return null;
         }
@@ -152,8 +155,8 @@ public class LocalMessageRepo implements MessageRepository {
             String host = peerKey.substring(0, colonIndex);
             int port = Integer.parseInt(peerKey.substring(colonIndex + 1));
             return new PeerInfo(
-                    record.getConversationPeerId(),
-                    record.getConversationPeerName(),
+                    record.conversationPeerId(),
+                    record.conversationPeerName(),
                     host,
                     port,
                     false

@@ -3,14 +3,17 @@ package dungcony.ds.utils;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.PeerInfo;
 
-public final class GroupConversationHelper {
+/**
+ * Helper tạo khóa conversation riêng cho group chat
+ */
+public final class GroupConverstation {
 
     /**
      * Tiền tố dùng để phân biệt group key khỏi conversation 1-1
      */
     public static final String GROUP_PREFIX = "group:";
 
-    private GroupConversationHelper() {
+    private GroupConverstation() {
         // utility class — không khởi tạo
     }
 

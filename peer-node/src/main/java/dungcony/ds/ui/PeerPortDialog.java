@@ -6,6 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Dialog chọn cổng TCP cho profile peer mới
+ */
 @Slf4j
 public class PeerPortDialog extends JDialog {
 private final JTextField portField;

@@ -4,11 +4,11 @@ import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
+import dungcony.ds.services.interfaces.group.GroupRegistry;
 import dungcony.ds.services.interfaces.messaging.InboundMessageService;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
-import dungcony.ds.services.impl.group.GroupManager;
-import dungcony.ds.utils.GroupConversationHelper;
+import dungcony.ds.utils.GroupConverstation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class InboundMessageImpl implements InboundMessageService {
     private final PeerInfo localPeer;
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
-    private final GroupManager groupManager;
+    private final GroupRegistry groupManager;
     private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
@@ -30,7 +30,7 @@ public class InboundMessageImpl implements InboundMessageService {
     public InboundMessageImpl(PeerInfo localPeer,
                               PeerDirectoryService peerDirectoryService,
                               MessageHistoryService messageHistoryService,
-                              GroupManager groupManager,
+                              GroupRegistry groupManager,
                               Consumer<Message> messageNotifier,
                               Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
@@ -58,8 +58,8 @@ public class InboundMessageImpl implements InboundMessageService {
                 groupManager.ensureLocalGroup(message.getGroupId(), group.getName(), List.of(localPeer, sender));
             }
             messageHistoryService.addAndSave(
-                    GroupConversationHelper.historyKey(message.getGroupId()),
-                    GroupConversationHelper.conversationPeer(group),
+                    GroupConverstation.historyKey(message.getGroupId()),
+                    GroupConverstation.conversationPeer(group),
                     message);
         } else {
             messageHistoryService.addAndSave(sender, message);

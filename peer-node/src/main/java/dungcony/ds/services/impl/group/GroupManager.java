@@ -2,6 +2,7 @@ package dungcony.ds.services.impl.group;
 
 import dungcony.ds.model.Group;
 import dungcony.ds.model.PeerInfo;
+import dungcony.ds.services.interfaces.group.GroupRegistry;
 import dungcony.ds.services.interfaces.persistence.GroupRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +26,7 @@ import java.util.function.Consumer;
  * </pre>
  */
 @Slf4j
-public class GroupManager {
+public class GroupManager implements GroupRegistry {
 
     private final Map<String, Group> groups = new ConcurrentHashMap<>();
     private final GroupRepository groupRepository;

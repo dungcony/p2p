@@ -5,6 +5,9 @@ import dungcony.ds.model.PeerInfo;
 
 import java.util.List;
 
+/**
+ * Repository lưu và đọc lịch sử message local
+ */
 public interface MessageRepository {
     void save(PeerInfo conversationPeer, Message message);
 

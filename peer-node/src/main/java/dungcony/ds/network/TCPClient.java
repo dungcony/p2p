@@ -15,6 +15,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Client TCP gửi message tới peer khác và đọc ACK hoặc response
+ */
 @Slf4j
 public class TCPClient {
 private static final int CONNECT_TIMEOUT_MS = 2000;

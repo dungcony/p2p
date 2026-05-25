@@ -5,6 +5,9 @@ import dungcony.ds.model.PeerInfo;
 import java.util.Collection;
 import java.util.Collections;
 
+/**
+ * Kết quả bootstrap trả về sau khi peer join mạng
+ */
 public record JoinResponse(
         Collection<PeerInfo> onlinePeers,
         Collection<OfflineMessage> offlineMessages

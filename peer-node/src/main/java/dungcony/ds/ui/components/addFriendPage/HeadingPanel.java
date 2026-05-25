@@ -8,6 +8,9 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
+/**
+ * Panel tiêu đề tự điều chỉnh cỡ chữ theo chiều rộng
+ */
 public class HeadingPanel extends JPanel {
     private static final int SMALL_WIDTH = 576;
     private static final int MEDIUM_WIDTH = 768;

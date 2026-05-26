@@ -1,5 +1,7 @@
 package dungcony.ds.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import dungcony.ds.dtos.OfflineMessage;
 import dungcony.ds.enums.MessageStatus;
 import dungcony.ds.enums.MessageType;
@@ -12,10 +14,7 @@ import java.util.UUID;
 /**
  * Helper tạo và phục hồi Message ở tầng model
  */
-public class Mes {
-
-    private Mes() {
-    }
+public final class Mes {
 
     // Tạo offline message từ message P2P khi gửi trực tiếp thất bại
     public static OfflineMessage fromMessage(Message message) {
@@ -117,4 +116,18 @@ public class Mes {
         return message;
     }
 
+    // Chuyển Message thành chuỗi JSON để gửi qua TCP socket
+    public static String serialize(Message message) {
+
+        Gson gson = new GsonBuilder().create();
+
+        return gson.toJson(message);
+    }
+
+    // Chuyển chuỗi JSON nhận qua TCP socket thành đối tượng Message
+    public static Message deserialize(String payload) {
+        Gson gson = new GsonBuilder().create();
+
+        return gson.fromJson(payload, Message.class);
+    }
 }

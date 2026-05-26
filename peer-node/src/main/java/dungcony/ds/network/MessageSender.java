@@ -1,5 +1,6 @@
 package dungcony.ds.network;
 
+import dungcony.ds.config.TCPConfig;
 import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
@@ -12,16 +13,13 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>Luồng gửi:</p>
  * <pre>
- *   send()            → TCPClient.send() → kiểm tra ACK → retry nếu thất bại
- *   sendForResponse() → TCPClient.sendForResponse() → kiểm tra type + id
+ *   send()            → TCPClient.sendForResponse() → validate ACK → retry nếu thất bại
+ *   sendForResponse() → TCPClient.sendForResponse() → validate response type + id → retry
  *   broadcast()       → gọi send() cho từng member trong group
  * </pre>
  */
 @Slf4j
 public class MessageSender implements PeerMessageSender {
-
-    private static final int RETRY_COUNT      = 3;
-    private static final int RETRY_DELAY_MS   = 300;
 
     private final TCPClient tcpClient;
 
@@ -33,10 +31,11 @@ public class MessageSender implements PeerMessageSender {
     // Gửi message tới một peer, retry vài lần nếu chưa nhận ACK
     @Override
     public boolean send(PeerInfo peerInfo, Message message) {
-        for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
+        for (int attempt = 1; attempt <= TCPConfig.retry_mes_count; attempt++) {
             log.debug("Đang gửi {} message id={} tới={}, attempt={}/{}",
-                    message.getType(), message.getId(), peerInfo.addressKey(), attempt, RETRY_COUNT);
-            if (tcpClient.send(peerInfo, message)) {
+                    message.getType(), message.getId(), peerInfo.addressKey(), attempt, TCPConfig.retry_mes_count);
+            Message response = tcpClient.transmit(peerInfo, message);
+            if (isValidResponse(response, message.getId(), MessageType.ACK)) {
                 log.debug("Đã nhận ACK cho message id={} từ={}", message.getId(), peerInfo.addressKey());
                 return true;
             }
@@ -50,13 +49,11 @@ public class MessageSender implements PeerMessageSender {
     // Gửi request và chờ response có type cụ thể, dùng cho peer discovery
     @Override
     public Message sendForResponse(PeerInfo peerInfo, Message message, MessageType expectedType) {
-        for (int attempt = 1; attempt <= RETRY_COUNT; attempt++) {
+        for (int attempt = 1; attempt <= TCPConfig.retry_mes_count; attempt++) {
             log.debug("Đang gửi request {} id={} tới={}, attempt={}/{}",
-                    message.getType(), message.getId(), peerInfo.addressKey(), attempt, RETRY_COUNT);
-            Message response = tcpClient.sendForResponse(peerInfo, message);
-            if (response != null
-                    && response.getType() == expectedType
-                    && message.getId().equals(response.getId())) {
+                    message.getType(), message.getId(), peerInfo.addressKey(), attempt, TCPConfig.retry_mes_count);
+            Message response = tcpClient.transmit(peerInfo, message);
+            if (isValidResponse(response, message.getId(), expectedType)) {
                 log.debug("Đã nhận response hợp lệ. requestId={}, responseType={}",
                         message.getId(), response.getType());
                 return response;
@@ -76,12 +73,20 @@ public class MessageSender implements PeerMessageSender {
         }
     }
 
+    // Kiểm tra response có hợp lệ: không null, đúng type, đúng message id
+    private boolean isValidResponse(Message response, String expectedId, MessageType expectedType) {
+        return response != null
+                && response.getType() == expectedType
+                && expectedId.equals(response.getId());
+    }
+
     // Nghỉ ngắn giữa các lần retry để tránh gửi dồn dập khi peer chưa phản hồi
     private void sleepBeforeRetry() {
         try {
-            Thread.sleep(RETRY_DELAY_MS);
+            Thread.sleep(TCPConfig.retry_mes_delay_ms);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
 }
+

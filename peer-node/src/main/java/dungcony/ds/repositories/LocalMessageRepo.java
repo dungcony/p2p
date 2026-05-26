@@ -6,7 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import dungcony.ds.dtos.MesRecord;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
-import dungcony.ds.services.interfaces.persistence.MessageRepository;
+import dungcony.ds.repositories.MessageRepository;
 import dungcony.ds.utils.BroadcastConversation;
 import lombok.extern.slf4j.Slf4j;
 

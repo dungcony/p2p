@@ -28,8 +28,8 @@ public class PeerProfile {
     private String peerId;
     private String peerName;
     private int peerPort;
-    private String publicKey;
-    private String privateKey;
+    private final String publicKey;
+    private final String privateKey;
     private final String bootstrapHost;
     private final int bootstrapPort;
     private final Path dataRoot;
@@ -37,13 +37,13 @@ public class PeerProfile {
 
     // Chỉ PeerProfileRepository nên tạo instance này.
     public PeerProfile(String peerId, String peerName, int peerPort,
-            String bootstrapHost, int bootstrapPort, Path dataRoot) {
+                       String bootstrapHost, int bootstrapPort, Path dataRoot) {
         this(peerId, peerName, peerPort, bootstrapHost, bootstrapPort, dataRoot, null, null);
     }
 
     public PeerProfile(String peerId, String peerName, int peerPort,
-            String bootstrapHost, int bootstrapPort, Path dataRoot,
-            String publicKey, String privateKey) {
+                       String bootstrapHost, int bootstrapPort, Path dataRoot,
+                       String publicKey, String privateKey) {
         PeerKeyPair keyPair = RsaKeyPairUtil.resolveOrGenerate(publicKey, privateKey);
         this.peerId = peerId;
         this.peerName = peerName;

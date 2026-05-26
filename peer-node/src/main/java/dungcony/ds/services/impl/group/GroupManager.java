@@ -3,7 +3,7 @@ package dungcony.ds.services.impl.group;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.services.interfaces.group.GroupRegistry;
-import dungcony.ds.services.interfaces.persistence.GroupRepository;
+import dungcony.ds.repositories.GroupRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;

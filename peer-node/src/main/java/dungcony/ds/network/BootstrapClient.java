@@ -1,6 +1,7 @@
 package dungcony.ds.network;
 
 import com.google.gson.Gson;
+import dungcony.ds.config.BootrapConfig;
 import dungcony.ds.dtos.GroupMemberPayload;
 import dungcony.ds.dtos.GroupPayload;
 import dungcony.ds.dtos.JoinResponse;
@@ -37,12 +38,9 @@ import java.util.List;
 @Slf4j
 public class BootstrapClient implements BootstrapGateway {
 
-    private static final int CONNECT_TIMEOUT_MS = 3000;
-    private static final int READ_TIMEOUT_MS    = 5000;
-
     private final String host;
-    private final int    port;
-    private final Gson   gson = new Gson();
+    private final int port;
+    private final Gson gson = new Gson();
 
     // Khởi tạo client kết nối tới bootstrap-server/tracker
     public BootstrapClient(String host, int port) {
@@ -185,10 +183,10 @@ public class BootstrapClient implements BootstrapGateway {
         String line = (payload == null || payload.isBlank()) ? command : command + " " + payload;
         try (Socket socket = new Socket()) {
             log.debug("Bắt đầu kết nối bootstrap {}:{}, command={}", host, port, command);
-            socket.connect(new InetSocketAddress(host, port), CONNECT_TIMEOUT_MS);
-            socket.setSoTimeout(READ_TIMEOUT_MS);
+            socket.connect(new InetSocketAddress(host, port), BootrapConfig.connect_timeout_ms);
+            socket.setSoTimeout(BootrapConfig.read_timeout_ms);
             try (BufferedReader reader = new BufferedReader(
-                         new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+                    new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
                  PrintWriter writer = new PrintWriter(
                          socket.getOutputStream(), true, StandardCharsets.UTF_8)) {
                 writer.println(line);

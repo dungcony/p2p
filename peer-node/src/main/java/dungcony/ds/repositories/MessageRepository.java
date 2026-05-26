@@ -1,4 +1,4 @@
-package dungcony.ds.services.interfaces.persistence;
+package dungcony.ds.repositories;
 
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;

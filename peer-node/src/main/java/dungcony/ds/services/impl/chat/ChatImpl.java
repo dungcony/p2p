@@ -12,6 +12,7 @@ import dungcony.ds.services.interfaces.security.MessageEncryptionService;
 import dungcony.ds.utils.Mes;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -29,9 +30,9 @@ public class ChatImpl implements ChatService {
 
     // Khởi tạo service xử lý heartbeat và gửi chat 1-1
     public ChatImpl(PeerInfo localPeer, PeerMessageSender messageSender, OfflineMessageGateway bootstrapGateway,
-                    PeerDirectoryService peerDirectoryService, MessageHistoryService messageHistoryService,
-                    MessageEncryptionService encryptionService,
-                    Consumer<Message> messageNotifier, Runnable peerChangeNotifier) {
+            PeerDirectoryService peerDirectoryService, MessageHistoryService messageHistoryService,
+            MessageEncryptionService encryptionService,
+            Consumer<Message> messageNotifier, Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
         this.messageSender = messageSender;
         this.bootstrapGateway = bootstrapGateway;
@@ -42,7 +43,8 @@ public class ChatImpl implements ChatService {
         this.peerChangeNotifier = peerChangeNotifier;
     }
 
-    // Gửi tin nhắn 1-1 trực tiếp tới peer đích, lưu lịch sử nếu gửi được hoặc store offline thành công
+    // Gửi tin nhắn 1-1 trực tiếp tới peer đích, lưu lịch sử nếu gửi được hoặc store
+    // offline thành công
     @Override
     public boolean sendMessage(String content, String hostAndMaybePort) {
         if (content == null || content.isBlank()) {
@@ -59,7 +61,10 @@ public class ChatImpl implements ChatService {
             return false;
         }
         Message message = Message.chat(localPeer, receiver, content);
-        java.util.Optional<Message> outboundMessage = encryptionService.encryptForReceiver(message, receiver);
+
+        // Mã hóa message cho receiver, nếu thất bại thì đánh dấu message lỗi
+        Optional<Message> outboundMessage = encryptionService.encryptForReceiver(message, receiver);
+
         if (outboundMessage.isEmpty()) {
             message.setStatus(MessageStatus.FAILED);
             messageHistoryService.addAndSave(receiver, message);

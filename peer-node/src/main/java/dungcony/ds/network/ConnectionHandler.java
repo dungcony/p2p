@@ -1,10 +1,8 @@
 package dungcony.ds.network;
 
-import lombok.extern.slf4j.Slf4j;
-
-
 import dungcony.ds.model.Message;
-// MessageReceiver is in the same package (dungcony.ds.network) — no import needed
+import dungcony.ds.utils.Mes;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,14 +11,15 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+// MessageReceiver is in the same package (dungcony.ds.network) — no import needed
+
 /**
  * Xử lý một kết nối TCP đến và chuyển payload vào router nhận message
  */
 @Slf4j
 public class ConnectionHandler implements Runnable {
-private final Socket socket;
+    private final Socket socket;
     private final MessageReceiver receiver;
-    private final MessageProtocol protocol = new MessageProtocol();
 
     // Khởi tạo handler cho một socket đã accept từ TCPServer
     public ConnectionHandler(Socket socket, MessageReceiver receiver) {
@@ -42,11 +41,11 @@ private final Socket socket;
                 return;
             }
 
-            Message incoming = protocol.deserialize(payload);
+            Message incoming = Mes.deserialize(payload);
             log.debug("Đã deserialize payload đến. messageId={}", (incoming == null ? "null" : incoming.getId()));
             Message response = receiver.receive(incoming);
             if (response != null) {
-                writer.println(protocol.serialize(response));
+                writer.println(Mes.serialize(response));
                 log.debug("Đã gửi phản hồi. messageId={}, type={}", response.getId(), response.getType());
             } else {
                 log.warn("Receiver trả về phản hồi null.");

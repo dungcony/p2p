@@ -1,11 +1,9 @@
 package dungcony.ds.network;
 
-import lombok.extern.slf4j.Slf4j;
-
-
-import dungcony.ds.enums.MessageType;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
+import dungcony.ds.utils.Mes;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,24 +14,16 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Client TCP gửi message tới peer khác và đọc ACK hoặc response
+ * Client TCP thuần transport: mở socket, gửi message, nhận response, đóng socket.
+ * Không chứa business logic (ACK validation, retry, broadcast).
  */
 @Slf4j
 public class TCPClient {
-private static final int CONNECT_TIMEOUT_MS = 2000;
+    private static final int CONNECT_TIMEOUT_MS = 2000;
     private static final int READ_TIMEOUT_MS = 3000;
-    private final MessageProtocol protocol = new MessageProtocol();
 
-    // Mở kết nối TCP tới peer đích, gửi một message và trả về true khi nhận ACK hợp lệ
-    public boolean send(PeerInfo peerInfo, Message message) {
-        Message response = sendForResponse(peerInfo, message);
-        boolean validAck = response != null && response.getType() == MessageType.ACK && message.getId().equals(response.getId());
-        log.debug("Đã nhận phản hồi TCP. peer={}, messageId={}, validAck={}", peerInfo.addressKey(), message.getId(), validAck);
-        return validAck;
-    }
-
-    // Mở kết nối TCP tới peer đích, gửi một message và trả về response raw để xử lý các request không phải ACK
-    public Message sendForResponse(PeerInfo peerInfo, Message message) {
+    // Mở kết nối TCP tới peer đích, gửi một message và trả về response raw
+    public Message transmit(PeerInfo peerInfo, Message message) {
         try (Socket socket = new Socket()) {
             log.debug("Bắt đầu kết nối TCP: {}, messageId={}", peerInfo.addressKey(), message.getId());
             socket.connect(new InetSocketAddress(peerInfo.getHost(), peerInfo.getPort()), CONNECT_TIMEOUT_MS);
@@ -43,7 +33,7 @@ private static final int CONNECT_TIMEOUT_MS = 2000;
             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
 
-            writer.println(protocol.serialize(message));
+            writer.println(Mes.serialize(message));
             log.debug("Đã gửi payload TCP. messageId={}", message.getId());
             String response = reader.readLine();
             if (response == null || response.isBlank()) {
@@ -51,7 +41,7 @@ private static final int CONNECT_TIMEOUT_MS = 2000;
                 return null;
             }
 
-            Message decoded = protocol.deserialize(response);
+            Message decoded = Mes.deserialize(response);
             log.debug("Đã nhận phản hồi TCP. peer={}, messageId={}, responseType={}", peerInfo.addressKey(), message.getId(), (decoded == null ? "null" : decoded.getType()));
             return decoded;
         } catch (IOException e) {

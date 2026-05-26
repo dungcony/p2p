@@ -3,7 +3,7 @@ package dungcony.ds.services.impl.messaging;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
-import dungcony.ds.services.interfaces.persistence.MessageRepository;
+import dungcony.ds.repositories.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;

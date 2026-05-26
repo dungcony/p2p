@@ -10,7 +10,9 @@ import java.util.Properties;
 
 @Slf4j
 public class Config {
-private final int serverPort;
+    private static final String DEFAULT_DATABASE_PATH = "runtime-data/bootstrap-server/bootstrap-server.db";
+
+    private final int serverPort;
     private final Path databasePath;
 
     public Config(int serverPort, Path databasePath) {
@@ -40,7 +42,7 @@ private final int serverPort;
                 System.getProperty("database.path"),
                 System.getenv("BOOTSTRAP_DATABASE_PATH"),
                 properties.getProperty("database.path"),
-                "bootstrap-server/src/main/resources/database/bootstrap-server.db"
+                DEFAULT_DATABASE_PATH
         ));
         return new Config(port, databasePath);
     }

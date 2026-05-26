@@ -15,10 +15,10 @@ echo [INFO] Opening bootstrap server and three peer windows...
 start "P2P Bootstrap" /D "%~dp0" cmd /k run-bootstrap.bat
 timeout /t 2 /nobreak > nul
 
-start "P2P Alice" /D "%~dp0" cmd /k "mvn -pl peer-node exec:java -Dexec.mainClass=dungcony.ds.App -Dexec.args=--profile=alice"
+start "P2P Alice" /D "%~dp0" cmd /k mvn -pl peer-node exec:java -Dexec.mainClass=dungcony.ds.App "-Dexec.args=--profile=alice"
 timeout /t 1 /nobreak > nul
-start "P2P Bob" /D "%~dp0" cmd /k "mvn -pl peer-node exec:java -Dexec.mainClass=dungcony.ds.App -Dexec.args=--profile=bob"
+start "P2P Bob" /D "%~dp0" cmd /k mvn -pl peer-node exec:java -Dexec.mainClass=dungcony.ds.App "-Dexec.args=--profile=bob"
 timeout /t 1 /nobreak > nul
-start "P2P Carol" /D "%~dp0" cmd /k "mvn -pl peer-node exec:java -Dexec.mainClass=dungcony.ds.App -Dexec.args=--profile=carol"
+start "P2P Carol" /D "%~dp0" cmd /k mvn -pl peer-node exec:java -Dexec.mainClass=dungcony.ds.App "-Dexec.args=--profile=carol"
 
 echo [INFO] Started demo windows. Close each window when you are done.

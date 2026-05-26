@@ -37,7 +37,7 @@ Ví dụ:
 
 ```properties
 server.port=9000
-database.path=bootstrap-server/src/main/resources/database/bootstrap-server.db
+database.path=runtime-data/bootstrap-server/bootstrap-server.db
 ```
 
 Thứ tự ưu tiên cấu hình:
@@ -47,7 +47,7 @@ Thứ tự ưu tiên cấu hình:
 | JVM system property | `-Dserver.port=9000` | `-Ddatabase.path=...` |
 | Environment variable | `BOOTSTRAP_SERVER_PORT` hoặc `PORT` | `BOOTSTRAP_DATABASE_PATH` |
 | Resource file | `server.port` | `database.path` |
-| Fallback | `9000` | `bootstrap-server/src/main/resources/database/bootstrap-server.db` |
+| Fallback | `9000` | `runtime-data/bootstrap-server/bootstrap-server.db` |
 
 ## Docker
 
@@ -129,4 +129,3 @@ peer-node -> BootstrapClient -> BootstrapServer
 mvn -pl bootstrap-server test
 mvn test
 ```
-

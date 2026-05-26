@@ -135,10 +135,10 @@ public class App {
                         %s
 
                         Ví dụ dùng profile có sẵn:
-                          run.bat --profile=alice
+                          run-peer.bat --profile=<id>
 
                         Ví dụ tạo/chạy bằng tên:
-                          run.bat --peer-name=Dave
+                          run-peer.bat --peer-name=Dave
                         """.formatted(errorMessage),
                 "P2P Chat",
                 JOptionPane.ERROR_MESSAGE);

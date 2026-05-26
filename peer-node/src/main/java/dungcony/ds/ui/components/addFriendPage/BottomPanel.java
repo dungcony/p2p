@@ -1,9 +1,7 @@
 package dungcony.ds.ui.components.addFriendPage;
 
-import lombok.extern.slf4j.Slf4j;
-
-
 import dungcony.ds.App;
+import dungcony.ds.app.PeerNode;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.ui.components.ModernButton;
 import dungcony.ds.ui.components.RoundedPanel;
@@ -11,6 +9,7 @@ import dungcony.ds.ui.pages.ChatPage;
 import dungcony.ds.ui.router.RouterManager;
 import dungcony.ds.ui.utils.ColorPalette;
 import dungcony.ds.ui.utils.Dialog;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -21,9 +20,9 @@ import java.awt.*;
  */
 @Slf4j
 public class BottomPanel extends RoundedPanel {
-private ModernButton checkConnectionButton;
-    private InputField nameField;
-    private InputField ipField;
+
+    private final InputField nameField;
+    private final InputField ipField;
 
     public BottomPanel() {
         super(15, ColorPalette.BACKGROUND);
@@ -31,7 +30,7 @@ private ModernButton checkConnectionButton;
         nameField = new InputField("Tên", 50);
         ipField = new InputField("Địa chỉ IP hoặc host:port", 50);
 
-        checkConnectionButton = new ModernButton("Chat", ColorPalette.PRIMARY, ColorPalette.SECONDARY);
+        ModernButton checkConnectionButton = new ModernButton("Chat", ColorPalette.PRIMARY, ColorPalette.SECONDARY);
         checkConnectionButton.setPreferredSize(new Dimension(140, 40));
         checkConnectionButton.addActionListener(e -> connectAndOpenChat());
 
@@ -62,34 +61,42 @@ private ModernButton checkConnectionButton;
 
     private boolean connectAndOpenChat() {
         String name = nameField.getTextField().getText();
-        String address = ipField.getTextField().getText();
+        String addressInput = ipField.getTextField().getText();
+        String address = addressInput == null ? "" : addressInput.trim();
+        PeerNode peerNode = App.peerNode;
         log.info("Yêu cầu chat trực tiếp. tên={}, địaChỉ={}", name, address);
+
+        if (peerNode == null) {
+            log.warn("Từ chối chat trực tiếp: PeerNode chưa sẵn sàng.");
+            Dialog.showMessageDialog(null, "Peer hiện tại chưa sẵn sàng.", "Peer chưa sẵn sàng", Dialog.WARNING_MESSAGE);
+            return false;
+        }
 
         if (!isValidPeerAddress(address)) {
             log.warn("Từ chối chat trực tiếp: địa chỉ không hợp lệ={}", address);
             Dialog.showMessageDialog(null, "Vui lòng nhập địa chỉ IP hoặc host:port hợp lệ", "Địa chỉ không hợp lệ", Dialog.ERROR_MESSAGE);
             return false;
         }
-        if (App.peerNode != null && App.peerNode.isSelfAddress(address)) {
+        if (peerNode.isSelfAddress(address)) {
             log.warn("Từ chối chat trực tiếp: địa chỉ trỏ về peer hiện tại={}", address);
             Dialog.showMessageDialog(null, "Bạn không thể kết nối tới chính peer hiện tại.", "Peer không hợp lệ", Dialog.WARNING_MESSAGE);
             return false;
         }
 
-        boolean online = App.peerNode != null && App.peerNode.checkUserIsOnline(address);
+        boolean online = peerNode.checkUserIsOnline(address);
         if (!online) {
             log.warn("Chat trực tiếp thất bại heartbeat. địa chỉ={}", address);
             Dialog.showMessageDialog(null, "Peer không phản hồi heartbeat.", "Peer ngoại tuyến", Dialog.WARNING_MESSAGE);
             return false;
         }
 
-        String displayName = name == null || name.isBlank() ? address.trim() : name.trim();
-        PeerInfo peerInfo = App.peerNode.addKnownPeer(displayName, address);
+        String displayName = name == null || name.isBlank() ? address : name.trim();
+        PeerInfo peerInfo = peerNode.addKnownPeer(displayName, address);
         if (peerInfo == null) {
             Dialog.showMessageDialog(null, "Không thể mở cuộc chat với peer.", "Mở chat thất bại", Dialog.WARNING_MESSAGE);
             return false;
         }
-        App.peerNode.discoverPeersFromKnownPeer(peerInfo);
+        peerNode.discoverPeersFromKnownPeer(peerInfo);
         openChat(peerInfo);
         nameField.getTextField().setText("");
         ipField.getTextField().setText("");

@@ -1,6 +1,7 @@
 package dungcony.ds.app;
 
 import dungcony.ds.dtos.BroadcastResult;
+import dungcony.ds.config.PeerDataPaths;
 import dungcony.ds.model.Group;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
@@ -70,7 +71,9 @@ public class PeerNode {
     public PeerNode(String peerId, String peerName, int port,
                     String bootstrapHost, int bootstrapPort, Path dataDir,
                     EventDispatcher eventDispatcher) {
+
         this.eventDispatcher = eventDispatcher;
+
         PeerNodeDependencies dependencies = new PeerNodeFactory().create(
                 peerId,
                 peerName,
@@ -97,7 +100,7 @@ public class PeerNode {
 
         String bootstrapAddress = bootstrapGateway == null
                 ? "đã tắt" : "%s:%d".formatted(bootstrapHost, bootstrapPort);
-        Path resolvedDataDir = dataDir == null ? Path.of("peer-node", "src", "main", "resources", "data") : dataDir;
+        Path resolvedDataDir = PeerDataPaths.resolve(dataDir);
         log.info("Đã khởi tạo PeerNode: id={}, tên={}, địaChỉ={}, bootstrap={}, thưMụcDữLiệu={}",
                 localPeer.getId(), localPeer.getName(), localPeer.addressKey(),
                 bootstrapAddress, resolvedDataDir.toAbsolutePath());
@@ -227,31 +230,6 @@ public class PeerNode {
     // Hỏi một peer đã biết danh sách peer mà nó đang biết (fallback khi không có bootstrap)
     public List<PeerInfo> discoverPeersFromKnownPeer(PeerInfo knownPeer) {
         return peerDiscoverService.discoverPeersFromKnownPeer(knownPeer);
-    }
-
-    // Tạo PEER_LIST_RESPONSE gồm local peer và danh bạ runtime hiện tại
-    public Message buildPeerListResponse(Message request) {
-        return peerDiscoverService.buildPeerListResponse(request);
-    }
-
-    // Merge danh sách peer nhận từ PEER_LIST_RESPONSE vào danh bạ local
-    public int onPeerListResponse(Message response) {
-        return peerDiscoverService.onPeerListResponse(response);
-    }
-
-    // Xử lý tin nhắn đến từ network
-    public void onInboundMessage(Message message) {
-        inboundMessageService.onInboundMessage(message);
-    }
-
-    // Cập nhật group local khi nhận snapshot membership từ peer khác
-    public void onGroupMembersSync(Message message) {
-        inboundMessageService.onGroupMembersSync(message);
-    }
-
-    // Đánh dấu peer gửi heartbeat/JOIN là online
-    public void markPeerOnline(Message message) {
-        inboundMessageService.markPeerOnline(message);
     }
 
     // Retry thủ công một tin nhắn 1-1 FAILED/PENDING

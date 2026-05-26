@@ -20,13 +20,13 @@ run-bootstrap.bat
 Chạy một peer:
 
 ```bat
-run.bat
+run-peer.bat
 ```
 
-`run.bat` là wrapper của `run-peer.bat`. Khi không truyền tham số, app mở UI profile:
+Khi không truyền tham số, app mở UI profile:
 
 - Có profile người dùng thật thì vào thẳng màn chat.
-- Nếu chỉ có demo `alice`, `bob`, `carol` hoặc chưa có profile thì app mở dialog nhập tên.
+- Nếu chưa có profile thì app mở dialog nhập tên.
 - Không nhập tên trong terminal; `peer.id` và port được app tự sinh/tự chọn.
 
 Chạy demo:
@@ -35,7 +35,7 @@ Chạy demo:
 run-all-peers.bat
 ```
 
-Chạy profile cụ thể:
+Chạy profile demo:
 
 ```bat
 run-peer.bat --profile=alice
@@ -112,19 +112,15 @@ Luồng chính:
 Mặc định:
 
 ```text
-peer-node/src/main/resources/data/
+runtime-data/peer-node/
 ```
 
 Cấu trúc:
 
 ```text
-data/
+runtime-data/peer-node/
 ├── config.properties
-├── alice/
-│   ├── config.properties
-│   ├── messages.json
-│   └── groups.json
-└── <uuid-profile>/
+└── <peer-id-or-profile-id>/
     ├── config.properties
     ├── messages.json
     └── groups.json
@@ -137,4 +133,3 @@ data/
 - [Bộ báo cáo nộp bài](docs/nop-bai/00_muc_luc.md)
 - [Peer node README](peer-node/README.md)
 - [Bootstrap server README](bootstrap-server/README.md)
-

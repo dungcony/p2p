@@ -40,4 +40,16 @@ class PeerProfileRepositoryTest {
         assertTrue(repository.existsByPeerId(tempDir, profile.getPeerId()));
         assertFalse(repository.existsByPeerId(tempDir, "missing-id"));
     }
+
+    @Test
+    void prefersProfileIdMatchingNameWhenDuplicateDisplayNamesExist() {
+        PeerProfileRepository repository = new PeerProfileRepository();
+        repository.save(repository.createNewWithName(tempDir, "Alice"));
+        repository.save(new PeerProfile("alice", "Alice", 5001, "localhost", 9000, tempDir));
+
+        Optional<PeerProfile> loaded = repository.findByName(tempDir, "Alice");
+
+        assertTrue(loaded.isPresent());
+        assertEquals("alice", loaded.get().getPeerId());
+    }
 }

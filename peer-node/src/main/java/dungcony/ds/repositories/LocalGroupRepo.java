@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import dungcony.ds.config.PeerDataPaths;
 import dungcony.ds.model.Group;
 import dungcony.ds.repositories.GroupRepository;
 
@@ -32,9 +33,7 @@ private static final Type GROUP_LIST_TYPE = new TypeToken<List<Group>>() {
 
     // Khởi tạo local JSON store cho group trong dataDir của profile hiện tại
     public LocalGroupRepo(Path dataDir) {
-        Path resolvedDataDir = dataDir == null
-                ? Path.of("peer-node", "src", "main", "resources", "data")
-                : dataDir.normalize();
+        Path resolvedDataDir = PeerDataPaths.resolve(dataDir);
         this.groupFilePath = resolvedDataDir.resolve("groups.json");
         initializeStorage();
     }

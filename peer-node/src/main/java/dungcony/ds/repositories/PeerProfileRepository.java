@@ -1,6 +1,7 @@
 package dungcony.ds.repositories;
 
 import dungcony.ds.app.PeerNode;
+import dungcony.ds.config.PeerDataPaths;
 import dungcony.ds.config.PeerProfile;
 import dungcony.ds.security.PeerKeyStore;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +22,9 @@ import java.util.stream.Stream;
 @Slf4j
 public class PeerProfileRepository {
 
-    private static final Path DEFAULT_DATA_DIR = Path.of("peer-node", "src", "main", "resources", "data");
+    private static final Path DEFAULT_DATA_DIR = PeerDataPaths.DEFAULT_DATA_ROOT;
 
-    // Nạp profile đầu tiên tìm được trong DEFAULT_DATA_DIR (backward-compat)
+    // Nạp profile đầu tiên tìm được trong data root mặc định
     public PeerProfile load() {
         return load(DEFAULT_DATA_DIR);
     }
@@ -93,11 +94,15 @@ public class PeerProfileRepository {
         List<PeerProfile> matches = listProfiles(dataRoot).stream()
                 .filter(profile -> expectedName.equalsIgnoreCase(profile.getPeerName()))
                 .toList();
+        PeerProfile selectedProfile = matches.stream()
+                .filter(profile -> expectedName.equalsIgnoreCase(profile.getPeerId()))
+                .findFirst()
+                .orElse(matches.isEmpty() ? null : matches.getFirst());
         if (matches.size() > 1) {
-            log.warn("Tìm thấy nhiều profile cùng tên '{}'. Dùng profile đầu tiên: {}", expectedName,
-                    matches.getFirst().getDisplayLabel());
+            log.warn("Tìm thấy nhiều profile cùng tên '{}'. Dùng profile: {}", expectedName,
+                    selectedProfile.getDisplayLabel());
         }
-        return matches.isEmpty() ? Optional.empty() : Optional.of(matches.getFirst());
+        return selectedProfile == null ? Optional.empty() : Optional.of(selectedProfile);
     }
 
     // Nạp profile theo peer.id/folder cụ thể, dùng cho --profile=<id>
@@ -349,6 +354,51 @@ public class PeerProfileRepository {
     }
 
     private static Path resolve(Path dataRoot) {
-        return dataRoot == null ? DEFAULT_DATA_DIR : dataRoot.normalize();
+        Path resolvedRoot = dataRoot == null ? DEFAULT_DATA_DIR : dataRoot.normalize();
+        if (DEFAULT_DATA_DIR.equals(resolvedRoot)) {
+            migrateLegacyDefaultData(resolvedRoot);
+        }
+        return resolvedRoot;
+    }
+
+    private static void migrateLegacyDefaultData(Path targetRoot) {
+        Path sourceRoot = resolveLegacyDataRoot();
+        if (sourceRoot == null || !Files.exists(sourceRoot)) {
+            return;
+        }
+        try (Stream<Path> paths = Files.walk(sourceRoot)) {
+            paths.forEach(source -> copyLegacyPath(sourceRoot, targetRoot, source));
+        } catch (IOException e) {
+            log.warn("Không thể migrate dữ liệu peer cũ từ {} sang {}: {}",
+                    sourceRoot.toAbsolutePath(), targetRoot.toAbsolutePath(), e.getMessage());
+        }
+    }
+
+    private static Path resolveLegacyDataRoot() {
+        if (Files.exists(PeerDataPaths.LEGACY_PROJECT_DATA_ROOT)) {
+            return PeerDataPaths.LEGACY_PROJECT_DATA_ROOT;
+        }
+        if (Files.exists(PeerDataPaths.LEGACY_MODULE_DATA_ROOT)) {
+            return PeerDataPaths.LEGACY_MODULE_DATA_ROOT;
+        }
+        return null;
+    }
+
+    private static void copyLegacyPath(Path sourceRoot, Path targetRoot, Path source) {
+        try {
+            Path target = targetRoot.resolve(sourceRoot.relativize(source));
+            if (Files.isDirectory(source)) {
+                Files.createDirectories(target);
+                return;
+            }
+            if (Files.exists(target)) {
+                return;
+            }
+            Files.createDirectories(target.getParent());
+            Files.copy(source, target);
+            log.info("Đã migrate dữ liệu peer cũ. nguồn={}, đích={}", source.toAbsolutePath(), target.toAbsolutePath());
+        } catch (IOException e) {
+            log.warn("Bỏ qua migrate file dữ liệu peer cũ={}: {}", source.toAbsolutePath(), e.getMessage());
+        }
     }
 }

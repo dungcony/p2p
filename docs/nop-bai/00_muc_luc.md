@@ -38,7 +38,6 @@ p2p/
 │   └── nop-bai/               # Bộ báo cáo nộp bài
 ├── run-bootstrap.bat          # Chạy tracker
 ├── run-peer.bat               # Chạy một peer
-├── run.bat                    # Wrapper tương thích ngược cho run-peer.bat
 └── run-all-peers.bat          # Chạy bootstrap + Alice/Bob/Carol demo
 ```
 
@@ -46,10 +45,10 @@ p2p/
 
 ```bat
 run-bootstrap.bat
-run.bat
+run-peer.bat
 ```
 
-Khi chạy `run.bat` không tham số:
+Khi chạy `run-peer.bat` không tham số:
 
 - Nếu đã có profile người dùng thật, app vào thẳng màn chat.
 - Nếu chỉ có profile demo `alice`, `bob`, `carol` hoặc chưa có profile, app mở dialog nhập tên.
@@ -69,4 +68,3 @@ run-all-peers.bat
 - Broadcast toàn mạng nằm trong conversation `[Thế giới]`; chỉ peer online nhận, không lưu offline.
 - Group member được lưu theo `peer.id`, còn việc ACK/gửi TCP dùng IP:port runtime lấy từ discovery.
 - Hệ thống có test tự động cho bootstrap, chat trực tiếp, offline message, group, broadcast, profile và local history.
-

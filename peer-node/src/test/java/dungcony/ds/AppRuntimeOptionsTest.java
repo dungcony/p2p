@@ -2,6 +2,7 @@ package dungcony.ds;
 
 import dungcony.ds.config.RuntimeOption;
 import dungcony.ds.config.RuntimeOptionParser;
+import dungcony.ds.config.PeerDataPaths;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -47,7 +48,7 @@ class AppRuntimeOptionsTest {
     void missingDataDirValueDoesNotConsumeNextOption() {
         RuntimeOption options = resolve("--data-dir", "--peer-port", "15004");
 
-        assertEquals(Path.of("peer-node", "src", "main", "resources", "data"), options.dataRoot());
+        assertEquals(PeerDataPaths.DEFAULT_DATA_ROOT, options.dataRoot());
         assertEquals(15004, options.peerPort());
     }
 

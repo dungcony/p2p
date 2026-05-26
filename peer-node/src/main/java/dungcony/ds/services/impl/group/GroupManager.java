@@ -22,7 +22,7 @@ import java.util.function.Consumer;
  *   addMembers()       → thêm member → saveGroup()
  *   ensureLocalGroup() → tạo nếu chưa có, hoặc thêm member mới từ tin nhận vào
  *   syncMembers()      → thay thế toàn bộ membership theo snapshot từ GROUP_MEMBERS_SYNC
- *   replaceAll()       → reset cache theo dữ liệu authoritative từ bootstrap
+ *   replaceAll()       → merge cache theo dữ liệu authoritative từ bootstrap
  * </pre>
  */
 @Slf4j
@@ -137,18 +137,19 @@ public class GroupManager implements GroupRegistry {
         return Collections.unmodifiableCollection(groups.values());
     }
 
-    // Thay thế local group cache bằng danh sách group bootstrap trả về
+    // Merge local group cache bằng danh sách group bootstrap trả về, không xóa nhóm local-only
     public void replaceAll(Collection<Group> authoritativeGroups) {
-        groups.clear();
-        if (authoritativeGroups != null) {
-            for (Group group : authoritativeGroups) {
-                groups.put(group.getGroupId(), group);
-            }
+        if (authoritativeGroups == null || authoritativeGroups.isEmpty()) {
+            log.info("Bootstrap không trả về nhóm nào. Giữ nguyên nhóm local hiện có. sốLượng={}", groups.size());
+            return;
+        }
+        for (Group group : authoritativeGroups) {
+            groups.put(group.getGroupId(), group);
         }
         if (groupRepository != null) {
             groupRepository.saveAll(groups.values());
         }
-        log.info("GroupManager đã thay nhóm bằng dữ liệu bootstrap. sốLượng={}", groups.size());
+        log.info("GroupManager đã merge nhóm bằng dữ liệu bootstrap. sốLượng={}", groups.size());
     }
 
     // Lưu group mới/cập nhật xuống groups.json nếu local repo được cấu hình

@@ -1,5 +1,6 @@
 package dungcony.ds.security;
 
+import dungcony.ds.config.PeerDataPaths;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -17,9 +18,7 @@ public class PeerKeyStore {
     public static final String PRIVATE_KEY_PROPERTY = "peer.privateKey";
 
     public PeerKeyPair loadOrCreate(Path dataDir, String peerId, String peerName, int peerPort) {
-        Path resolvedDir = dataDir == null
-                ? Path.of("peer-node", "src", "main", "resources", "data")
-                : dataDir.normalize();
+        Path resolvedDir = PeerDataPaths.resolve(dataDir);
         Path configPath = resolvedDir.resolve("config.properties");
         Properties properties = loadProperties(configPath);
         PeerKeyPair keys = resolveKeys(properties, resolvedDir, peerId);

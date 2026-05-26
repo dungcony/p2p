@@ -1,4 +1,7 @@
 target/
+runtime-data/
+peer-node/src/main/resources/data/
+bootstrap-server/src/main/resources/database/*.db
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

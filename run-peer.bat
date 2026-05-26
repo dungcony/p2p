@@ -6,7 +6,7 @@ cd /d "%~dp0"
 
 if "%~1"=="" (
     echo [INFO] No peer args supplied. Opening app profile selection.
-    echo [TIP] Existing demo profiles: run-peer.bat --profile=alice ^| --profile=bob ^| --profile=carol
+    echo [TIP] Demo profiles: run-peer.bat --profile=alice ^| --profile=bob ^| --profile=carol
     set "EXEC_ARGS="
 ) else (
     set "EXEC_ARGS=%*"

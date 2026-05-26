@@ -17,7 +17,7 @@ public final class RuntimeOptionParser {
 
     // Đọc tham số runtime: --data-dir, --profile, --peer-name và --peer-port
     public static RuntimeOption resolveRuntimeOptions(String[] args) {
-        Path dataRoot = Path.of("peer-node", "src", "main", "resources", "data");
+        Path dataRoot = PeerDataPaths.DEFAULT_DATA_ROOT;
         String profileId = null;
         String peerName = null;
         Integer peerPort = null;

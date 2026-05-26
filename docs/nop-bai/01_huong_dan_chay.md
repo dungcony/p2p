@@ -62,17 +62,17 @@ Bootstrap không chuyển tiếp tin chat online giữa peer.
 Mở terminal khác:
 
 ```bat
-run.bat
+run-peer.bat
 ```
 
-`run.bat` chỉ là wrapper gọi `run-peer.bat`. Khi không có tham số, app mở UI chọn/tạo profile:
+Khi không có tham số, app mở UI chọn/tạo profile:
 
 - Có profile người dùng thật: vào thẳng màn chat.
-- Chỉ có profile demo `alice`, `bob`, `carol` hoặc chưa có profile: mở dialog nhập tên peer.
+- Chưa có profile: mở dialog nhập tên peer.
 - `peer.id` là UUID nội bộ, người dùng không nhập.
 - `peer.port` được tự chọn tránh trùng bootstrap và tránh port đang bận.
 
-Chạy bằng profile demo:
+Chạy profile demo:
 
 ```bat
 run-peer.bat --profile=alice
@@ -110,7 +110,7 @@ Các port có thể thay đổi nếu port đang bị chiếm hoặc nếu truy�
 
 | Tham số | Ví dụ | Ý nghĩa |
 | --- | --- | --- |
-| `--profile` | `--profile=alice` | Nạp profile theo folder/id trong data root. |
+| `--profile` | `--profile=<id>` | Nạp profile theo folder/id trong data root. |
 | `--peer-name` | `--peer-name=Dung` | Tìm profile theo tên hoặc tạo mới. |
 | `--peer-port` / `--port` | `--peer-port=5010` | Override port lắng nghe của peer. |
 | `--data-dir` | `--data-dir=tmp/demo-data` | Thư mục gốc chứa profiles và dữ liệu local. |
@@ -127,19 +127,15 @@ run-peer.bat --data-dir=tmp/demo --peer-name=Bob --peer-port=5102
 Mặc định:
 
 ```text
-peer-node/src/main/resources/data/
+runtime-data/peer-node/
 ```
 
 Cấu trúc:
 
 ```text
-data/
+runtime-data/peer-node/
 ├── config.properties          # bootstrap.host, bootstrap.port dùng chung
-├── alice/
-│   ├── config.properties      # peer.id, peer.name, peer.port
-│   ├── messages.json
-│   └── groups.json
-└── <uuid-profile>/
+└── <peer-id-or-profile-id>/
     ├── config.properties
     ├── messages.json
     └── groups.json
@@ -228,4 +224,3 @@ Các test quan trọng:
 | Tin chuyển `FAILED` | Peer đích offline và bootstrap không lưu được offline | Chạy lại bootstrap/peer nhận rồi thử lại. |
 | Tin chuyển `PENDING` | Gửi trực tiếp thất bại nhưng bootstrap đã lưu offline | Mở lại receiver cùng `peer.id`. |
 | Broadcast không tới peer offline | Thiết kế broadcast chỉ gửi realtime | Đây là hành vi đúng của `[Thế giới]`. |
-

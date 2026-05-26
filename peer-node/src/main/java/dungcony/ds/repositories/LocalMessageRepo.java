@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import dungcony.ds.dtos.MesRecord;
+import dungcony.ds.config.PeerDataPaths;
 import dungcony.ds.model.Message;
 import dungcony.ds.model.PeerInfo;
 import dungcony.ds.repositories.MessageRepository;
@@ -30,9 +31,7 @@ public class LocalMessageRepo implements MessageRepository {
 
     // Khởi tạo local JSON store trong dataDir riêng của instance hiện tại
     public LocalMessageRepo(Path dataDir) {
-        Path resolvedDataDir = dataDir == null
-                ? Path.of("peer-node", "src", "main", "resources", "data")
-                : dataDir.normalize();
+        Path resolvedDataDir = PeerDataPaths.resolve(dataDir);
         this.messageFilePath = resolvedDataDir.resolve("messages.json");
         initializeStorage();
     }

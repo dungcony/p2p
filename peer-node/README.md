@@ -9,13 +9,13 @@ Khi chạy cùng `bootstrap-server`, peer có thêm discovery tự động, tr�
 Từ thư mục gốc project:
 
 ```bat
-run.bat
+run-peer.bat
 ```
 
 Không truyền tham số thì app tự chọn luồng profile:
 
 - Có profile người dùng thật: vào thẳng màn chat.
-- Chỉ có demo `alice`, `bob`, `carol` hoặc chưa có profile: mở dialog nhập tên peer.
+- Chưa có profile: mở dialog nhập tên peer.
 - Không hỏi tên trong terminal.
 
 Chạy profile demo:
@@ -42,7 +42,7 @@ run-bootstrap.bat
 
 | Tham số | Ý nghĩa |
 | --- | --- |
-| `--profile=alice` | Nạp profile có sẵn trong `<data-root>/alice/config.properties`. |
+| `--profile=<id>` | Nạp profile có sẵn trong `<data-root>/<id>/config.properties`. |
 | `--peer-name=Dung` | Tìm profile theo tên hoặc tạo profile mới. |
 | `--peer-port=5001` / `--port=5001` | Override port TCP peer lắng nghe. |
 | `--data-dir=tmp/demo-data` | Thư mục gốc chứa profile, message history và group cache. |
@@ -51,10 +51,12 @@ Khi tạo profile mới, `peer.id` là UUID nội bộ do app tự sinh. Ngườ
 
 ## Cấu Hình Và Dữ Liệu
 
+Data root mặc định là `runtime-data/peer-node`.
+
 Bootstrap config dùng chung:
 
 ```text
-<data-root>/config.properties
+runtime-data/peer-node/config.properties
 ```
 
 Ví dụ:
@@ -163,4 +165,3 @@ mvn -pl peer-node test
 - Nếu bootstrap chạy, peer tự refresh online peers, group và offline messages mỗi 5 giây.
 - Broadcast `[Thế giới]` là realtime: peer offline không nhận lại tin cũ.
 - Group member lưu theo `peer.id`, nhưng gửi TCP cần IP:port runtime từ discovery.
-

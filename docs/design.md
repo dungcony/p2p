@@ -93,7 +93,7 @@ sequenceDiagram
     participant TCP as TCPServer
     participant BS as Bootstrap
 
-    User->>App: run.bat / run-peer.bat
+    User->>App: run-peer.bat
     App->>Repo: đọc profile từ data root
     alt Có --profile
         Repo-->>App: profile theo id
@@ -201,7 +201,7 @@ Các command hiện dùng:
 Mặc định dữ liệu peer nằm trong:
 
 ```text
-peer-node/src/main/resources/data/
+runtime-data/peer-node/
 ```
 
 Mỗi profile có folder riêng:

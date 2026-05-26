@@ -100,7 +100,7 @@ sequenceDiagram
     participant TCP as TCPServer
     participant BS as BootstrapServer
 
-    U->>App: run.bat / run-peer.bat
+    U->>App: run-peer.bat
     App->>Repo: load profile theo CLI hoặc UI
     alt Không có args
         Repo-->>App: profile thật đầu tiên, bỏ qua alice/bob/carol
@@ -257,4 +257,3 @@ Terminal chỉ dùng chạy script. App tự quyết định profile:
 - Bootstrap vẫn là điểm phụ thuộc cho discovery tự động và offline message.
 - Broadcast không store offline.
 - Offline message được drain khi receiver `JOIN`, chưa cần receiver ACK lại bootstrap.
-

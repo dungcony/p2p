@@ -17,6 +17,7 @@ import dungcony.ds.utils.GroupConverstation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Collection;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -89,6 +90,15 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
     // Load group membership từ bootstrap và cache lại vào groups.json của profile hiện tại
     private void syncGroupsFromBootstrap() {
         List<Group> joinedGroups = bootstrapGroupService.fetchJoinedGroups(peerDirectoryService.list());
+        Collection<Group> localGroups = groupManager.getAllGroups();
+        if (joinedGroups.isEmpty() && !localGroups.isEmpty()) {
+            for (Group group : localGroups) {
+                bootstrapGroupService.publishGroup(group);
+            }
+            log.info("Bootstrap chưa có nhóm cho peer local. Giữ và publish lại nhóm local. sốLượng={}",
+                    localGroups.size());
+            return;
+        }
         groupManager.replaceAll(joinedGroups);
         log.info("Đồng bộ nhóm bootstrap xong. nhómĐãThamGia={}", joinedGroups.size());
     }

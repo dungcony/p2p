@@ -11,6 +11,7 @@ public class PeerInfo {
     private String host;
     private int port;
     private boolean online;
+    private String publicKey;
 
     public PeerInfo() {
     }
@@ -39,6 +40,11 @@ public class PeerInfo {
         this.online = online;
     }
 
+    public PeerInfo(String id, String name, String host, int port, boolean online, String publicKey) {
+        this(id, name, host, port, online);
+        this.publicKey = publicKey == null ? "" : publicKey.trim();
+    }
+
     // Lấy tên/id hiển thị của peer
     public String getId() {
         return id;
@@ -62,6 +68,14 @@ public class PeerInfo {
     // Cho biết peer đang được đánh dấu online hay offline
     public boolean isOnline() {
         return online;
+    }
+
+    public String getPublicKey() {
+        return publicKey == null ? "" : publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey == null ? "" : publicKey.trim();
     }
 
     // Cập nhật trạng thái online/offline sau heartbeat hoặc gửi tin

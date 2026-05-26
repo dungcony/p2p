@@ -6,12 +6,18 @@ import dungcony.ds.models.PeerInfo;
 public class UserEntity {
     private final String userId;
     private final String displayName;
+    private final String publicKey;
     private final long createdAt;
     private final long updatedAt;
 
     public UserEntity(String userId, String displayName, long createdAt, long updatedAt) {
+        this(userId, displayName, null, createdAt, updatedAt);
+    }
+
+    public UserEntity(String userId, String displayName, String publicKey, long createdAt, long updatedAt) {
         this.userId = userId;
         this.displayName = displayName;
+        this.publicKey = publicKey;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -23,7 +29,7 @@ public class UserEntity {
         String displayName = peerInfo.getName() == null || peerInfo.getName().isBlank()
                 ? userId
                 : peerInfo.getName();
-        return new UserEntity(userId, displayName, now, now);
+        return new UserEntity(userId, displayName, peerInfo.getPublicKey(), now, now);
     }
 
     public String getUserId() {
@@ -32,6 +38,10 @@ public class UserEntity {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
     }
 
     public long getCreatedAt() {

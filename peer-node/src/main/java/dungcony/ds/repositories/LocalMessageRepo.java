@@ -162,13 +162,15 @@ public class LocalMessageRepo implements MessageRepository {
         try {
             String host = peerKey.substring(0, colonIndex);
             int port = Integer.parseInt(peerKey.substring(colonIndex + 1));
-            return new PeerInfo(
+            PeerInfo peerInfo = new PeerInfo(
                     record.conversationPeerId(),
                     record.conversationPeerName(),
                     host,
                     port,
                     false
             );
+            peerInfo.setPublicKey(record.conversationPeerPublicKey());
+            return peerInfo;
         } catch (NumberFormatException e) {
             log.warn("Đã bỏ qua khóa conversation peer không hợp lệ: {}", peerKey);
             return null;

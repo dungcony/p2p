@@ -9,6 +9,7 @@ import dungcony.ds.services.interfaces.group.GroupRegistry;
 import dungcony.ds.services.interfaces.messaging.InboundMessageService;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
+import dungcony.ds.services.interfaces.security.MessageEncryptionService;
 import dungcony.ds.utils.BroadcastConversation;
 import dungcony.ds.utils.GroupConverstation;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ public class InboundMessageImpl implements InboundMessageService {
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
     private final GroupRegistry groupManager;
+    private final MessageEncryptionService encryptionService;
     private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
@@ -33,12 +35,14 @@ public class InboundMessageImpl implements InboundMessageService {
                               PeerDirectoryService peerDirectoryService,
                               MessageHistoryService messageHistoryService,
                               GroupRegistry groupManager,
+                              MessageEncryptionService encryptionService,
                               Consumer<Message> messageNotifier,
                               Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
         this.peerDirectoryService = peerDirectoryService;
         this.messageHistoryService = messageHistoryService;
         this.groupManager = groupManager;
+        this.encryptionService = encryptionService;
         this.messageNotifier = messageNotifier;
         this.peerChangeNotifier = peerChangeNotifier;
     }
@@ -46,6 +50,7 @@ public class InboundMessageImpl implements InboundMessageService {
     // Lưu message chat, group chat hoặc broadcast nhận vào rồi notify UI
     @Override
     public void onInboundMessage(Message message) {
+        message = encryptionService.decrypt(message);
         message.setStatus(MessageStatus.SENT);
         PeerInfo sender = peerDirectoryService.mergeSenderFromKnownPeers(message);
         peerDirectoryService.put(sender);

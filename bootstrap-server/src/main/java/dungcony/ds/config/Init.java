@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -24,6 +25,7 @@ public class Init {
                     CREATE TABLE IF NOT EXISTS users (
                         user_id TEXT PRIMARY KEY,
                         display_name TEXT NOT NULL,
+                        public_key TEXT,
                         created_at INTEGER NOT NULL,
                         updated_at INTEGER NOT NULL
                     )
@@ -54,13 +56,35 @@ public class Init {
                         group_id TEXT,
                         content TEXT NOT NULL,
                         created_at INTEGER NOT NULL,
-                        delivered INTEGER NOT NULL DEFAULT 0
+                        delivered INTEGER NOT NULL DEFAULT 0,
+                        encrypted INTEGER NOT NULL DEFAULT 0,
+                        encryption_algorithm TEXT,
+                        encrypted_for TEXT
                     )
                     """);
+            ensureColumn(connection, "users", "public_key", "TEXT");
+            ensureColumn(connection, "offline_messages", "encrypted", "INTEGER NOT NULL DEFAULT 0");
+            ensureColumn(connection, "offline_messages", "encryption_algorithm", "TEXT");
+            ensureColumn(connection, "offline_messages", "encrypted_for", "TEXT");
             log.info("Schema SQLite bootstrap đã sẵn sàng.");
         } catch (SQLException e) {
             log.error("Không thể khởi tạo schema database bootstrap.", e);
             throw new IllegalStateException("Không thể khởi tạo database bootstrap", e);
         }
+    }
+
+    private void ensureColumn(Connection connection, String table, String column, String definition) throws SQLException {
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("PRAGMA table_info(" + table + ")")) {
+            while (resultSet.next()) {
+                if (column.equalsIgnoreCase(resultSet.getString("name"))) {
+                    return;
+                }
+            }
+        }
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
+        }
+        log.info("ÄÃ£ migrate SQLite column {}.{}", table, column);
     }
 }

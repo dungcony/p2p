@@ -2,6 +2,7 @@ package dungcony.ds.repositories;
 
 import dungcony.ds.app.PeerNode;
 import dungcony.ds.config.PeerProfile;
+import dungcony.ds.security.PeerKeyStore;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -171,6 +172,8 @@ public class PeerProfileRepository {
         profileProps.setProperty("peer.id", profile.getPeerId());
         profileProps.setProperty("peer.name", profile.getPeerName());
         profileProps.setProperty("peer.port", String.valueOf(profile.getPeerPort()));
+        profileProps.setProperty(PeerKeyStore.PUBLIC_KEY_PROPERTY, profile.getPublicKey());
+        profileProps.setProperty(PeerKeyStore.PRIVATE_KEY_PROPERTY, profile.getPrivateKey());
         try {
             Files.createDirectories(configPath.getParent());
             try (OutputStream out = Files.newOutputStream(configPath)) {
@@ -210,7 +213,9 @@ public class PeerProfileRepository {
         int peerPort = readInt(profileProps, "peer.port", PeerNode.DEFAULT_PORT);
         String bootstrapHost = readString(globalProps, "bootstrap.host", "localhost");
         int bootstrapPort = readInt(globalProps, "bootstrap.port", 9000);
-        return new PeerProfile(peerId, peerName, peerPort, bootstrapHost, bootstrapPort, dataRoot);
+        String publicKey = readString(profileProps, PeerKeyStore.PUBLIC_KEY_PROPERTY, "");
+        String privateKey = readString(profileProps, PeerKeyStore.PRIVATE_KEY_PROPERTY, "");
+        return new PeerProfile(peerId, peerName, peerPort, bootstrapHost, bootstrapPort, dataRoot, publicKey, privateKey);
     }
 
     // Tìm config có sẵn trong data root: ưu tiên folder UUID con, sau đó legacy

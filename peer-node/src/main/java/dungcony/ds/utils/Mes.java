@@ -26,7 +26,10 @@ public class Mes {
                 message.getGroupId(),
                 message.getContent(),
                 message.getTimestamp(),
-                false
+                false,
+                message.isEncrypted(),
+                message.getEncryptionAlgorithm(),
+                message.getEncryptedFor()
         );
     }
 
@@ -34,6 +37,7 @@ public class Mes {
         message.setSenderId(sender.getId());
         message.setSenderHost(sender.getHost());
         message.setSenderPort(sender.getPort());
+        message.setSenderPublicKey(sender.getPublicKey());
 
         message.setReceiverId(receiver.getId());
         message.setReceiverHost(receiver.getHost());
@@ -51,6 +55,7 @@ public class Mes {
         message.setSenderId(sender.getId());
         message.setSenderHost(sender.getHost());
         message.setSenderPort(sender.getPort());
+        message.setSenderPublicKey(sender.getPublicKey());
 
         message.setReceiverId(source.getSenderId());
         message.setReceiverHost(source.getSenderHost());
@@ -99,6 +104,7 @@ public class Mes {
         message.setSenderId(sender.getId());
         message.setSenderHost(sender.getHost());
         message.setSenderPort(sender.getPort());
+        message.setSenderPublicKey(sender.getPublicKey());
 
         message.setGroupId(groupId);
         message.setGroupName(groupName);

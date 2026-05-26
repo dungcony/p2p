@@ -9,9 +9,18 @@ public class OfflineMessageEntity {
     private final String content;
     private final long createdAt;
     private final boolean delivered;
+    private final boolean encrypted;
+    private final String encryptionAlgorithm;
+    private final String encryptedFor;
 
     public OfflineMessageEntity(String messageId, String senderId, String receiverId, String groupId,
                                 String content, long createdAt, boolean delivered) {
+        this(messageId, senderId, receiverId, groupId, content, createdAt, delivered, false, null, null);
+    }
+
+    public OfflineMessageEntity(String messageId, String senderId, String receiverId, String groupId,
+                                String content, long createdAt, boolean delivered,
+                                boolean encrypted, String encryptionAlgorithm, String encryptedFor) {
         this.messageId = messageId;
         this.senderId = senderId;
         this.receiverId = receiverId;
@@ -19,6 +28,9 @@ public class OfflineMessageEntity {
         this.content = content;
         this.createdAt = createdAt;
         this.delivered = delivered;
+        this.encrypted = encrypted;
+        this.encryptionAlgorithm = encryptionAlgorithm;
+        this.encryptedFor = encryptedFor;
     }
 
     public String getMessageId() {
@@ -47,5 +59,17 @@ public class OfflineMessageEntity {
 
     public boolean isDelivered() {
         return delivered;
+    }
+
+    public boolean isEncrypted() {
+        return encrypted;
+    }
+
+    public String getEncryptionAlgorithm() {
+        return encryptionAlgorithm;
+    }
+
+    public String getEncryptedFor() {
+        return encryptedFor;
     }
 }

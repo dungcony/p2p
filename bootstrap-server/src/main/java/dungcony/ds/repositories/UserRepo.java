@@ -23,16 +23,18 @@ public record UserRepo(Conn conn) {
     // Thêm mới hoặc cập nhật user trong bảng users.
     public void upsert(UserEntity userEntity, Connection connection) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
-                INSERT INTO users(user_id, display_name, created_at, updated_at)
-                VALUES(?, ?, ?, ?)
+                INSERT INTO users(user_id, display_name, public_key, created_at, updated_at)
+                VALUES(?, ?, ?, ?, ?)
                 ON CONFLICT(user_id) DO UPDATE SET
                     display_name = excluded.display_name,
+                    public_key = COALESCE(excluded.public_key, users.public_key),
                     updated_at = excluded.updated_at
                 """)) {
             statement.setString(1, userEntity.getUserId());
             statement.setString(2, userEntity.getDisplayName());
-            statement.setLong(3, userEntity.getCreatedAt());
-            statement.setLong(4, userEntity.getUpdatedAt());
+            statement.setString(3, userEntity.getPublicKey());
+            statement.setLong(4, userEntity.getCreatedAt());
+            statement.setLong(5, userEntity.getUpdatedAt());
             statement.executeUpdate();
         }
     }

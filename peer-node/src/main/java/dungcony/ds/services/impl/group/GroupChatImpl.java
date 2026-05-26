@@ -11,6 +11,7 @@ import dungcony.ds.services.interfaces.group.GroupRegistry;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
+import dungcony.ds.services.interfaces.security.MessageEncryptionService;
 import dungcony.ds.utils.GroupConverstation;
 import dungcony.ds.utils.Mes;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ public class GroupChatImpl implements GroupChatService {
     private final MessageHistoryService messageHistoryService;
     private final BootstrapGroupService bootstrapGroupService;
     private final GroupRegistry groupManager;
+    private final MessageEncryptionService encryptionService;
     private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
@@ -43,6 +45,7 @@ public class GroupChatImpl implements GroupChatService {
                          MessageHistoryService messageHistoryService,
                          BootstrapGroupService bootstrapGroupService,
                          GroupRegistry groupManager,
+                         MessageEncryptionService encryptionService,
                          Consumer<Message> messageNotifier,
                          Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
@@ -52,6 +55,7 @@ public class GroupChatImpl implements GroupChatService {
         this.messageHistoryService = messageHistoryService;
         this.bootstrapGroupService = bootstrapGroupService;
         this.groupManager = groupManager;
+        this.encryptionService = encryptionService;
         this.messageNotifier = messageNotifier;
         this.peerChangeNotifier = peerChangeNotifier;
     }
@@ -75,13 +79,16 @@ public class GroupChatImpl implements GroupChatService {
                 continue;
             }
             Message memberMessage = Message.groupChat(localPeer, target, groupId, group.getName(), content);
-            boolean sent = target.isOnline() && messageSender.send(target, memberMessage);
+            java.util.Optional<Message> outboundMessage = encryptionService.encryptForReceiver(memberMessage, target);
+            boolean sent = outboundMessage.isPresent()
+                    && target.isOnline()
+                    && messageSender.send(target, outboundMessage.get());
             target.setOnline(sent);
             member.setOnline(sent);
-            if (!sent) {
-                anyPending = storeGroupOfflineIfPossible(memberMessage, target) || anyPending;
-            } else {
+            if (sent) {
                 anyDelivered = true;
+            } else if (outboundMessage.isPresent()) {
+                anyPending = storeGroupOfflineIfPossible(outboundMessage.get(), target) || anyPending;
             }
         }
         if (anyDelivered) {

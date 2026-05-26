@@ -30,12 +30,16 @@ public class Message {
     private String senderId;
     private String senderHost;
     private int senderPort;
+    private String senderPublicKey;
     private String receiverId;
     private String receiverHost;
     private int receiverPort;
     private String groupId;
     private String groupName;
     private String content;
+    private boolean encrypted;
+    private String encryptionAlgorithm;
+    private String encryptedFor;
     private long timestamp;
     private MessageStatus status;
     private List<PeerInfo> peers;
@@ -100,6 +104,7 @@ public class Message {
         message.senderId = sender.getId();
         message.senderHost = sender.getHost();
         message.senderPort = sender.getPort();
+        message.senderPublicKey = sender.getPublicKey();
         message.timestamp = Instant.now().toEpochMilli();
         message.status = MessageStatus.SENT;
         return message;
@@ -113,6 +118,7 @@ public class Message {
         message.senderId = sender.getId();
         message.senderHost = sender.getHost();
         message.senderPort = sender.getPort();
+        message.senderPublicKey = sender.getPublicKey();
         message.receiverId = receiver.getId();
         message.receiverHost = receiver.getHost();
         message.receiverPort = receiver.getPort();
@@ -139,6 +145,7 @@ public class Message {
         message.senderId = sender.getId();
         message.senderHost = sender.getHost();
         message.senderPort = sender.getPort();
+        message.senderPublicKey = sender.getPublicKey();
         message.receiverId = receiver.getId();
         message.receiverHost = receiver.getHost();
         message.receiverPort = receiver.getPort();

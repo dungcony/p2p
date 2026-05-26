@@ -19,12 +19,16 @@ public record OfflineMessageRepo(Conn conn) {
         try (Connection connection = conn.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO offline_messages(
-                         message_id, sender_id, receiver_id, group_id, content, created_at, delivered
+                         message_id, sender_id, receiver_id, group_id, content, created_at, delivered,
+                         encrypted, encryption_algorithm, encrypted_for
                      )
-                     VALUES(?, ?, ?, ?, ?, ?, ?)
+                     VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                      ON CONFLICT(message_id) DO UPDATE SET
                          content = excluded.content,
-                         delivered = excluded.delivered
+                         delivered = excluded.delivered,
+                         encrypted = excluded.encrypted,
+                         encryption_algorithm = excluded.encryption_algorithm,
+                         encrypted_for = excluded.encrypted_for
                      """)) {
             statement.setString(1, message.getMessageId());
             statement.setString(2, message.getSenderId());
@@ -33,6 +37,9 @@ public record OfflineMessageRepo(Conn conn) {
             statement.setString(5, message.getContent());
             statement.setLong(6, message.getCreatedAt());
             statement.setInt(7, message.isDelivered() ? 1 : 0);
+            statement.setInt(8, message.isEncrypted() ? 1 : 0);
+            statement.setString(9, message.getEncryptionAlgorithm());
+            statement.setString(10, message.getEncryptedFor());
             statement.executeUpdate();
             log.info("Đã lưu tin nhắn offline id={}, receiver={}", message.getMessageId(), message.getReceiverId());
         } catch (SQLException e) {
@@ -45,7 +52,8 @@ public record OfflineMessageRepo(Conn conn) {
         List<OfflineMessageEntity> messages = new ArrayList<>();
         try (Connection connection = conn.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
-                     SELECT message_id, sender_id, receiver_id, group_id, content, created_at, delivered
+                     SELECT message_id, sender_id, receiver_id, group_id, content, created_at, delivered,
+                            encrypted, encryption_algorithm, encrypted_for
                      FROM offline_messages
                      WHERE receiver_id = ? AND delivered = 0
                      ORDER BY created_at ASC
@@ -60,7 +68,10 @@ public record OfflineMessageRepo(Conn conn) {
                             resultSet.getString("group_id"),
                             resultSet.getString("content"),
                             resultSet.getLong("created_at"),
-                            resultSet.getInt("delivered") == 1
+                            resultSet.getInt("delivered") == 1,
+                            resultSet.getInt("encrypted") == 1,
+                            resultSet.getString("encryption_algorithm"),
+                            resultSet.getString("encrypted_for")
                     ));
                 }
             }

@@ -9,6 +9,7 @@ import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.messaging.NetworkBroadcastService;
 import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
+import dungcony.ds.services.interfaces.security.MessageEncryptionService;
 import dungcony.ds.utils.BroadcastConversation;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +25,7 @@ public class NetworkBroadcastImpl implements NetworkBroadcastService {
     private final PeerBootstrapGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
+    private final MessageEncryptionService encryptionService;
     private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
@@ -33,6 +35,7 @@ public class NetworkBroadcastImpl implements NetworkBroadcastService {
                                 PeerBootstrapGateway bootstrapGateway,
                                 PeerDirectoryService peerDirectoryService,
                                 MessageHistoryService messageHistoryService,
+                                MessageEncryptionService encryptionService,
                                 Consumer<Message> messageNotifier,
                                 Runnable peerChangeNotifier) {
         this.localPeer = localPeer;
@@ -40,6 +43,7 @@ public class NetworkBroadcastImpl implements NetworkBroadcastService {
         this.bootstrapGateway = bootstrapGateway;
         this.peerDirectoryService = peerDirectoryService;
         this.messageHistoryService = messageHistoryService;
+        this.encryptionService = encryptionService;
         this.messageNotifier = messageNotifier;
         this.peerChangeNotifier = peerChangeNotifier;
     }
@@ -57,7 +61,8 @@ public class NetworkBroadcastImpl implements NetworkBroadcastService {
         log.info("Đang broadcast toàn mạng. sốPeerĐích={}", targets.size());
         for (PeerInfo target : targets) {
             Message message = Message.broadcast(localPeer, target, content);
-            boolean sent = messageSender.send(target, message);
+            java.util.Optional<Message> outboundMessage = encryptionService.encryptForReceiver(message, target);
+            boolean sent = outboundMessage.isPresent() && messageSender.send(target, outboundMessage.get());
             target.setOnline(sent);
             if (sent) {
                 delivered++;

@@ -8,6 +8,7 @@ import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.messaging.MessageRetryService;
 import dungcony.ds.services.interfaces.messaging.PeerMessageSender;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
+import dungcony.ds.services.interfaces.security.MessageEncryptionService;
 import dungcony.ds.utils.Mes;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,6 +22,7 @@ public class MessageRetryImpl implements MessageRetryService {
     private final OfflineMessageGateway bootstrapGateway;
     private final PeerDirectoryService peerDirectoryService;
     private final MessageHistoryService messageHistoryService;
+    private final MessageEncryptionService encryptionService;
     private final Consumer<Message> messageNotifier;
     private final Runnable peerChangeNotifier;
 
@@ -29,12 +31,14 @@ public class MessageRetryImpl implements MessageRetryService {
                             OfflineMessageGateway bootstrapGateway,
                             PeerDirectoryService peerDirectoryService,
                             MessageHistoryService messageHistoryService,
+                            MessageEncryptionService encryptionService,
                             Consumer<Message> messageNotifier,
                             Runnable peerChangeNotifier) {
         this.messageSender = messageSender;
         this.bootstrapGateway = bootstrapGateway;
         this.peerDirectoryService = peerDirectoryService;
         this.messageHistoryService = messageHistoryService;
+        this.encryptionService = encryptionService;
         this.messageNotifier = messageNotifier;
         this.peerChangeNotifier = peerChangeNotifier;
     }
@@ -64,11 +68,19 @@ public class MessageRetryImpl implements MessageRetryService {
         messageNotifier.accept(message);
 
         log.info("Đang retry tin nhắn. messageId={}, receiver={}", message.getId(), receiver.addressKey());
-        boolean sent = messageSender.send(receiver, message);
+        java.util.Optional<Message> outboundMessage = encryptionService.encryptForReceiver(message, receiver);
+        if (outboundMessage.isEmpty()) {
+            message.setStatus(MessageStatus.FAILED);
+            messageHistoryService.updateAndSave(receiver, message);
+            messageNotifier.accept(message);
+            peerChangeNotifier.run();
+            return false;
+        }
+        boolean sent = messageSender.send(receiver, outboundMessage.get());
         receiver.setOnline(sent);
         if (sent) {
             message.setStatus(MessageStatus.SENT);
-        } else if (storeDirectOfflineIfPossible(message)) {
+        } else if (storeDirectOfflineIfPossible(outboundMessage.get())) {
             message.setStatus(MessageStatus.PENDING);
         } else {
             message.setStatus(MessageStatus.FAILED);

@@ -28,6 +28,13 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
     @Override
     public void put(PeerInfo peerInfo) {
         if (peerInfo != null) {
+            PeerInfo existing = peers.get(peerInfo.addressKey());
+            if ((peerInfo.getPublicKey() == null || peerInfo.getPublicKey().isBlank())
+                    && existing != null
+                    && existing.getPublicKey() != null
+                    && !existing.getPublicKey().isBlank()) {
+                peerInfo.setPublicKey(existing.getPublicKey());
+            }
             removeSamePeerWithDifferentAddress(peerInfo);
             peers.put(peerInfo.addressKey(), peerInfo);
         }
@@ -55,7 +62,8 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
                     peerInfo.getName(),
                     peerInfo.getHost(),
                     peerInfo.getPort(),
-                    peerInfo.isOnline()
+                    peerInfo.isOnline(),
+                    peerInfo.getPublicKey()
             );
             put(normalized);
             merged++;
@@ -150,7 +158,10 @@ public class PeerDirectoryImpl implements PeerDirectoryService {
         String key = message.getSenderHost() + ":" + message.getSenderPort();
         PeerInfo existing = peers.get(key);
         String displayName = existing == null ? message.getSenderId() : existing.getName();
-        return new PeerInfo(message.getSenderId(), displayName, message.getSenderHost(), message.getSenderPort());
+        String publicKey = existing != null && existing.getPublicKey() != null && !existing.getPublicKey().isBlank()
+                ? existing.getPublicKey()
+                : message.getSenderPublicKey();
+        return new PeerInfo(message.getSenderId(), displayName, message.getSenderHost(), message.getSenderPort(), true, publicKey);
     }
 
     // Đồng bộ danh sách online bootstrap trả về, đánh dấu peer vắng mặt là offline

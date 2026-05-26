@@ -12,6 +12,7 @@ import dungcony.ds.services.interfaces.bootstrap.PeerBootstrapGateway;
 import dungcony.ds.services.interfaces.group.GroupRegistry;
 import dungcony.ds.services.interfaces.messaging.MessageHistoryService;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
+import dungcony.ds.services.interfaces.security.MessageEncryptionService;
 import dungcony.ds.utils.GroupConverstation;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,6 +29,7 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
     private final MessageHistoryService messageHistoryService;
     private final GroupRegistry groupManager;
     private final BootstrapGroupService bootstrapGroupService;
+    private final MessageEncryptionService encryptionService;
     private final Runnable peerChangeNotifier;
     private final Consumer<Message> messageNotifier;
 
@@ -37,6 +39,7 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
                              MessageHistoryService messageHistoryService,
                              GroupRegistry groupManager,
                              BootstrapGroupService bootstrapGroupService,
+                             MessageEncryptionService encryptionService,
                              Runnable peerChangeNotifier,
                              Consumer<Message> messageNotifier) {
         this.bootstrapGateway = bootstrapGateway;
@@ -45,6 +48,7 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
         this.messageHistoryService = messageHistoryService;
         this.groupManager = groupManager;
         this.bootstrapGroupService = bootstrapGroupService;
+        this.encryptionService = encryptionService;
         this.peerChangeNotifier = peerChangeNotifier;
         this.messageNotifier = messageNotifier;
     }
@@ -112,6 +116,10 @@ public class BootstrapSyncImpl implements BootstrapSyncService {
                     offlineMessage.createdAt(),
                     false
             );
+            message.setEncrypted(offlineMessage.encrypted());
+            message.setEncryptionAlgorithm(offlineMessage.encryptionAlgorithm());
+            message.setEncryptedFor(offlineMessage.encryptedFor());
+            message = encryptionService.decrypt(message);
             messageHistoryService.addAndSave(historyKey, conversationPeer, message);
             messageNotifier.accept(message);
             log.info("Đã nạp tin offline. messageId={}, senderId={}, historyKey={}",

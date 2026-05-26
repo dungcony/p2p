@@ -9,5 +9,17 @@ public record OfflineMessage(String messageId,
                              String groupId,
                              String content,
                              long createdAt,
-                             boolean delivered) {
+                             boolean delivered,
+                             boolean encrypted,
+                             String encryptionAlgorithm,
+                             String encryptedFor) {
+    public OfflineMessage(String messageId,
+                          String senderId,
+                          String receiverId,
+                          String groupId,
+                          String content,
+                          long createdAt,
+                          boolean delivered) {
+        this(messageId, senderId, receiverId, groupId, content, createdAt, delivered, false, null, null);
+    }
 }

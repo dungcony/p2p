@@ -9,6 +9,8 @@ import dungcony.ds.network.TCPClient;
 import dungcony.ds.network.TCPServer;
 import dungcony.ds.repositories.LocalGroupRepo;
 import dungcony.ds.repositories.LocalMessageRepo;
+import dungcony.ds.security.PeerKeyPair;
+import dungcony.ds.security.PeerKeyStore;
 import dungcony.ds.services.impl.bootstrap.BootstrapGroupImpl;
 import dungcony.ds.services.impl.bootstrap.BootstrapSyncImpl;
 import dungcony.ds.services.impl.chat.ChatImpl;
@@ -24,6 +26,7 @@ import dungcony.ds.services.impl.peer.NetworkAddressImpl;
 import dungcony.ds.services.impl.peer.PeerDirectoryImpl;
 import dungcony.ds.services.impl.peer.PeerDiscoverImpl;
 import dungcony.ds.services.impl.peer.PeerPresenceImpl;
+import dungcony.ds.services.impl.security.RsaMessageEncryptionService;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapGateway;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapGroupService;
 import dungcony.ds.services.interfaces.bootstrap.BootstrapSyncService;
@@ -40,6 +43,7 @@ import dungcony.ds.services.interfaces.peer.NetworkAddressService;
 import dungcony.ds.services.interfaces.peer.PeerDirectoryService;
 import dungcony.ds.services.interfaces.peer.PeerDiscoverService;
 import dungcony.ds.services.interfaces.peer.PeerPresenceService;
+import dungcony.ds.services.interfaces.security.MessageEncryptionService;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
@@ -57,7 +61,10 @@ public class PeerNodeFactory {
                                        Consumer<Message> messageNotifier,
                                        Runnable peerChangeNotifier) {
         NetworkAddressService networkAddressService = new NetworkAddressImpl();
+        PeerKeyPair localKeys = new PeerKeyStore().loadOrCreate(dataDir, peerId, peerName, port);
+        MessageEncryptionService encryptionService = new RsaMessageEncryptionService(localKeys.privateKey());
         PeerInfo localPeer = new PeerInfo(peerId, peerName, networkAddressService.resolveLocalHost(), port);
+        localPeer.setPublicKey(localKeys.publicKey());
         PeerMessageSender messageSender = new MessageSender(new TCPClient());
         BootstrapGateway bootstrapGateway = buildBootstrapGateway(bootstrapHost, bootstrapPort);
 
@@ -69,27 +76,27 @@ public class PeerNodeFactory {
 
         ChatService chatService = new ChatImpl(localPeer, messageSender, bootstrapGateway,
                 peerDirectoryService, messageHistoryService,
-                messageNotifier, peerChangeNotifier);
+                encryptionService, messageNotifier, peerChangeNotifier);
         PeerPresenceService peerPresenceService = new PeerPresenceImpl(localPeer, messageSender, bootstrapGateway,
                 peerDirectoryService, peerChangeNotifier);
         ConversationService conversationService = new ConversationImpl(peerDirectoryService, messageHistoryService);
         NetworkBroadcastService networkBroadcastService = new NetworkBroadcastImpl(localPeer, messageSender, bootstrapGateway,
-                peerDirectoryService, messageHistoryService, messageNotifier, peerChangeNotifier);
+                peerDirectoryService, messageHistoryService, encryptionService, messageNotifier, peerChangeNotifier);
         GroupChatService groupChatService = new GroupChatImpl(localPeer, messageSender, bootstrapGateway,
                 peerDirectoryService, messageHistoryService,
                 bootstrapGroupService, groupManager,
-                messageNotifier, peerChangeNotifier);
+                encryptionService, messageNotifier, peerChangeNotifier);
         PeerDiscoverService peerDiscoverService = new PeerDiscoverImpl(localPeer, messageSender,
                 peerDirectoryService, peerChangeNotifier);
         InboundMessageService inboundMessageService = new InboundMessageImpl(localPeer, peerDirectoryService,
                 messageHistoryService, groupManager,
-                messageNotifier, peerChangeNotifier);
+                encryptionService, messageNotifier, peerChangeNotifier);
         MessageRetryService messageRetryService = new MessageRetryImpl(messageSender, bootstrapGateway,
                 peerDirectoryService, messageHistoryService,
-                messageNotifier, peerChangeNotifier);
+                encryptionService, messageNotifier, peerChangeNotifier);
         BootstrapSyncService bootstrapSyncService = buildBootstrapSyncService(bootstrapGateway, localPeer,
                 peerDirectoryService, messageHistoryService,
-                groupManager, bootstrapGroupService,
+                groupManager, bootstrapGroupService, encryptionService,
                 peerChangeNotifier, messageNotifier);
 
         MessageRouterService messageRouterService = new MessageRouterImpl(localPeer, inboundMessageService, peerDiscoverService);
@@ -123,6 +130,7 @@ public class PeerNodeFactory {
                                                           MessageHistoryService messageHistoryService,
                                                           GroupManager groupManager,
                                                           BootstrapGroupService bootstrapGroupService,
+                                                          MessageEncryptionService encryptionService,
                                                           Runnable peerChangeNotifier,
                                                           Consumer<Message> messageNotifier) {
         if (bootstrapGateway == null) {
@@ -130,7 +138,7 @@ public class PeerNodeFactory {
         }
         return new BootstrapSyncImpl(bootstrapGateway, localPeer,
                 peerDirectoryService, messageHistoryService,
-                groupManager, bootstrapGroupService,
+                groupManager, bootstrapGroupService, encryptionService,
                 peerChangeNotifier, messageNotifier);
     }
 }

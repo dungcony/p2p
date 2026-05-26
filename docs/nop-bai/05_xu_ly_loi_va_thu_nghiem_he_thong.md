@@ -1,163 +1,153 @@
-# Xử lý lỗi và thử nghiệm hệ thống
+# Xử Lý Lỗi Và Thử Nghiệm Hệ Thống
 
-## 1. Mục tiêu
+Tài liệu này mô tả các lỗi chính trong hệ thống P2P Chat, cách code xử lý và các test dùng để chứng minh yêu cầu.
 
-Phần này trình bày cách hệ thống xử lý lỗi trong môi trường phân tán và các thử nghiệm đã/đề xuất thực hiện để đánh giá hoạt động của P2P Chat System.
+## 1. Nhóm Lỗi Chính
 
-Các nhóm lỗi chính:
+| Nhóm lỗi | Ví dụ |
+| --- | --- |
+| Lỗi kết nối peer | Peer đích tắt, port sai, timeout, không ACK. |
+| Lỗi bootstrap | Tracker chưa chạy, mất kết nối, không store offline được. |
+| Lỗi dữ liệu local | File JSON rỗng, record message lỗi, profile thiếu config. |
+| Lỗi trạng thái phân tán | Peer tắt đột ngột, danh sách online chưa refresh. |
+| Lỗi UI/luồng người dùng | Chưa có profile thật, chỉ có demo profile, gửi nhầm broadcast vào chat riêng. |
 
-- Lỗi kết nối TCP giữa peer.
-- Peer nhận offline hoặc tắt đột ngột.
-- Bootstrap server không khả dụng.
-- Message không nhận được ACK.
-- Dữ liệu local JSON hoặc SQLite gặp lỗi đọc/ghi.
-- Lỗi nhập liệu từ người dùng.
-- Lỗi đồng thời khi có nhiều kết nối cùng lúc.
+## 2. Xử Lý Lỗi Kết Nối Peer
 
-## 2. Cơ chế xử lý lỗi mạng
+### 2.1. Timeout socket
 
-### 2.1. Timeout khi kết nối peer-to-peer
+`TCPClient` dùng timeout để tránh treo luồng gửi:
 
-`TCPClient` đặt timeout cho mỗi lần gửi:
+| Timeout | Giá trị |
+| --- | --- |
+| Connect timeout | `2000 ms` |
+| Read timeout | `3000 ms` |
 
-| Loại timeout | Giá trị | Ý nghĩa |
-| --- | --- | --- |
-| Connect timeout | `2000 ms` | Không treo vô hạn khi peer đích không mở port hoặc mất mạng. |
-| Read timeout | `3000 ms` | Không treo vô hạn khi peer nhận không trả response. |
+Nếu connect/read lỗi, `TCPClient` trả `null`. Tầng trên không throw thẳng ra UI.
 
-Nếu có `IOException`, `TCPClient` trả `null` để tầng trên xử lý retry hoặc fallback.
+### 2.2. ACK và retry
 
-### 2.2. Retry và ACK
+`MessageSender` retry tối đa 3 lần. Một response chỉ được coi là thành công khi:
 
-`MessageSender` retry tối đa 3 lần. Một lần gửi được xem là thành công khi:
+```text
+response != null
+response.type == ACK
+response.id == request.id
+```
 
-- Có response.
-- Response có `type = ACK`.
-- Response có `id` trùng với message gốc.
-
-Nếu response sai type, sai id hoặc timeout, sender thử lại sau `300 ms`.
+Nếu không hợp lệ, sender đợi `300 ms` rồi retry.
 
 ### 2.3. Trạng thái message
 
-| Trạng thái | Khi nào xảy ra | Ý nghĩa với người dùng |
+| Status | Khi nào xuất hiện | Ý nghĩa |
 | --- | --- | --- |
-| `SENDING` | Đang retry thủ công message cũ. | Tin đang được gửi lại. |
-| `SENT` | Đã nhận ACK hợp lệ. | Tin đã được peer đích nhận ở tầng ứng dụng. |
-| `PENDING` | Gửi trực tiếp thất bại nhưng bootstrap lưu offline thành công. | Tin sẽ được giao khi receiver join lại. |
-| `FAILED` | Gửi trực tiếp thất bại và không lưu offline được. | Người dùng cần thử lại sau. |
+| `SENT` | Nhận ACK hợp lệ. | Peer đích đã xử lý message. |
+| `PENDING` | Gửi trực tiếp thất bại nhưng bootstrap lưu offline thành công. | Receiver sẽ nhận khi `JOIN` lại. |
+| `FAILED` | Không ACK và không store offline được. | Người dùng cần thử lại khi peer/bootstrap sẵn sàng. |
 
-## 3. Xử lý peer offline
+## 3. Xử Lý Peer Offline
 
-### 3.1. Offline có chủ động
+### 3.1. Peer tắt bình thường
 
-Khi peer stop bình thường:
+Khi đóng cửa sổ app:
 
 1. `PeerNode.stop()` được gọi.
-2. Peer gửi `LEAVE addressKey` lên bootstrap.
+2. Peer gửi `LEAVE <host:port>` lên bootstrap.
 3. Bootstrap xóa peer khỏi `PeerRegistry`.
-4. Peer dừng `TCPServer`.
+4. `TCPServer` của peer đóng socket.
 
-### 3.2. Offline đột ngột
+### 3.2. Peer tắt đột ngột
 
-Nếu peer bị tắt đột ngột và không kịp gửi `LEAVE`:
+Nếu peer không gửi `LEAVE`, bootstrap vẫn loại peer sau TTL:
 
-1. Bootstrap không nhận `JOIN` refresh từ peer đó nữa.
-2. `PeerRegistry` dùng TTL `15000 ms`.
-3. Khi `LIST` hoặc `JOIN` tiếp theo chạy, `evictExpiredPeers()` loại peer quá hạn.
+```text
+ONLINE_TTL_MS = 15000 ms
+```
 
-### 3.3. Gửi tin tới peer offline
+Peer khác refresh mỗi 5 giây bằng `JOIN`, nên UI sẽ dần cập nhật offline.
 
-Luồng xử lý:
+### 3.3. Gửi chat 1-1 tới peer offline
 
-1. Sender gửi trực tiếp qua TCP.
-2. Nếu connect/read timeout hoặc không nhận ACK, retry tối đa 3 lần.
-3. Nếu vẫn thất bại, sender gọi `STORE_OFFLINE` lên bootstrap.
-4. Nếu bootstrap trả `OK`, message local lưu trạng thái `PENDING`.
-5. Khi receiver `JOIN` lại, bootstrap trả offline message trong `JoinResponse`.
-6. Receiver lưu tin vào `messages.json` và notify UI.
+```mermaid
+flowchart TD
+    A["Sender gửi CHAT"] --> B{"Nhận ACK?"}
+    B -->|Có| C["Lưu SENT"]
+    B -->|Không sau retry| D{"Bootstrap khả dụng?"}
+    D -->|Có| E["STORE_OFFLINE"]
+    E --> F["Lưu PENDING"]
+    D -->|Không| G["Lưu FAILED"]
+```
 
-Nếu bootstrap cũng không khả dụng, message chuyển sang `FAILED`.
+Khi receiver online lại và `JOIN`, bootstrap trả offline messages trong `JoinResponse`.
 
-## 4. Xử lý bootstrap server không khả dụng
+### 3.4. Gửi group tới member offline
 
-Bootstrap không phải server chat trung tâm, nên peer vẫn có thể hoạt động một phần khi bootstrap lỗi.
+Group chat gửi tới từng member. Member nào nhận ACK thì coi là delivered. Member nào không ACK thì sender store offline theo `receiverId` nếu bootstrap khả dụng.
 
-| Chức năng | Khi bootstrap lỗi |
+### 3.5. Broadcast tới peer offline
+
+Broadcast `[Thế giới]` không store offline. Đây là quyết định thiết kế: broadcast là chat realtime toàn mạng, peer offline bỏ lỡ tin.
+
+## 4. Xử Lý Bootstrap Không Khả Dụng
+
+Bootstrap không phải chat server trung tâm, nên peer vẫn có thể hoạt động một phần:
+
+| Chức năng | Khi bootstrap tắt |
 | --- | --- |
-| Khởi động peer | Vẫn chạy được. |
-| Chat trực tiếp tới peer đã biết `host:port` | Vẫn dùng được nếu peer đích reachable. |
-| Discovery tự động | Không dùng được. |
-| Fallback discovery qua peer đã biết | Vẫn dùng được bằng `PEER_LIST_REQUEST`. |
-| Offline message | Không dùng được. |
+| TCP listener local | Vẫn chạy. |
+| Chat tới peer đã biết IP:port | Vẫn có thể chạy. |
+| Discovery tự động peer online | Không có dữ liệu mới. |
+| Fallback discovery qua peer đã biết | Vẫn có thể dùng. |
+| Store-and-forward | Không dùng được. |
 | Group metadata sync qua tracker | Không dùng được. |
-| Group chat tới member đã biết | Vẫn gửi trực tiếp được nếu member reachable. |
+| Broadcast | Chỉ gửi tới peer online đã biết trong runtime. |
 
-`BootstrapSyncImpl` xử lý trường hợp `REGISTER` hoặc `JOIN` thất bại bằng cách log warning và giữ peer chạy ở chế độ TCP trực tiếp.
+`BootstrapSyncImpl` log warning nếu `REGISTER/JOIN` thất bại và giữ peer chạy ở chế độ TCP trực tiếp.
 
-## 5. Xử lý lỗi dữ liệu local
+## 5. Xử Lý Dữ Liệu Local
 
 ### 5.1. Message history
 
 `LocalMessageRepo`:
 
-- Tạo thư mục và file `messages.json` nếu chưa tồn tại.
-- Dùng `synchronized` khi đọc/ghi.
-- Nếu đọc JSON lỗi, trả danh sách rỗng và ghi log.
-- Khi lưu message cùng `messageId`, cập nhật record cũ thay vì thêm bản trùng.
+- Tự tạo `messages.json` nếu chưa có.
+- Đọc file rỗng thành danh sách rỗng.
+- Bỏ qua record lỗi thay vì làm crash app.
+- Update message cùng id thay vì nhân đôi.
+- Lọc `BROADCAST` ra khỏi direct conversation.
+- Chỉ đọc broadcast ở conversation `__broadcast__`.
 
-### 5.2. Group local
+### 5.2. Profile
 
-`LocalGroupRepo`:
+`PeerProfileRepository`:
 
-- Tạo `groups.json` nếu chưa tồn tại.
-- Dùng `synchronized` khi đọc/ghi.
-- Nếu đọc lỗi, trả danh sách rỗng để ứng dụng không crash.
-- Khi ghi group, sort theo tên và `groupId` để file ổn định hơn.
+- Tách khỏi package `config` để đúng vai trò repository.
+- Tạo `peer.id` UUID tự động.
+- Tìm port trống, tránh trùng bootstrap.
+- Lưu bootstrap config dùng chung ở data root.
+- Lưu profile riêng theo folder `peer.id`.
 
-### 5.3. SQLite bootstrap
+`ProfileSelectionImpl`:
 
-Bootstrap dùng `Init` để khởi tạo schema khi server start. Các repository tách riêng cho user, group, member và offline message để giảm rủi ro lẫn logic.
+- Bỏ qua demo profile `alice`, `bob`, `carol` khi chạy không args.
+- Nếu có profile thật thì vào luôn.
+- Nếu chưa có profile thật thì mở dialog nhập tên.
 
-## 6. Xử lý lỗi nhập liệu
+## 6. Xử Lý Đồng Thời
 
-Các service kiểm tra input trước khi gửi:
-
-| Trường hợp | Cách xử lý |
+| Thành phần | Cách xử lý |
 | --- | --- |
-| Nội dung chat rỗng | `ChatImpl` từ chối gửi và trả `false`. |
-| Broadcast rỗng | `NetworkBroadcastImpl` trả `BroadcastResult(0, 0, 0)`. |
-| Địa chỉ peer rỗng | `PeerDirectoryImpl.resolvePeer()` trả `null`. |
-| Gửi tới chính mình | `ChatImpl` và `PeerPresenceImpl` từ chối. |
-| Port nhập sai trong `host:port` | Parser fallback về port local và log warning. |
-| Group không tồn tại | `GroupChatImpl` bỏ qua gửi và log warning. |
+| `TCPServer` | `Executors.newCachedThreadPool()` cho nhiều kết nối đến. |
+| `BootstrapServer` | Thread pool cho nhiều command đồng thời. |
+| Message listeners | `CopyOnWriteArrayList`. |
+| Peer listeners | `CopyOnWriteArrayList`. |
+| Message history memory | `ConcurrentHashMap` và synchronized list. |
+| JSON repository | Method `synchronized` khi đọc/ghi. |
+| Group membership sync | Chạy nền bằng `CompletableFuture`. |
 
-## 7. Xử lý đồng thời
+## 7. Test Tự Động
 
-| Vấn đề | Cơ chế |
-| --- | --- |
-| Nhiều peer kết nối đồng thời tới một peer | `TCPServer` dùng `ExecutorService.newCachedThreadPool()`. |
-| Nhiều peer gửi command tới bootstrap | `BootstrapServer` dùng thread pool riêng. |
-| Cập nhật danh bạ peer runtime | `ConcurrentHashMap` trong `PeerDirectoryImpl`. |
-| Cập nhật registry online bootstrap | `ConcurrentHashMap` trong `PeerRegistry`. |
-| Nhiều listener UI | `CopyOnWriteArrayList` trong `PeerNode`. |
-| Ghi file JSON local | Method repository dùng `synchronized`. |
-| Sync membership group không làm đứng UI | `GroupChatImpl` dùng `CompletableFuture.runAsync()`. |
-
-## 8. Kiểm thử tự động
-
-Project có test bằng JUnit 5. Chạy toàn bộ:
-
-```bat
-mvn test
-```
-
-Kết quả kiểm tra gần nhất trên môi trường hiện tại:
-
-| Thời điểm | Lệnh | Kết quả |
-| --- | --- | --- |
-| 25/05/2026 17:15:28 GMT+7 | `mvn test` | `BUILD SUCCESS`, 13 tests, 0 failures, 0 errors, 0 skipped. |
-
-### 8.1. Test bootstrap server
+### 7.1. Bootstrap server
 
 File:
 
@@ -165,12 +155,12 @@ File:
 bootstrap-server/src/test/java/dungcony/ds/models/BootstrapServerTest.java
 ```
 
-| Test | Mục tiêu |
+| Test | Nội dung |
 | --- | --- |
-| `joinListAndLeaveTrackOnlinePeers` | Kiểm tra `JOIN`, `LIST`, `LEAVE` cập nhật peer online đúng. |
-| `offlineMessagesAreDrainedOnFirstJoinOnly` | Kiểm tra offline message chỉ được trả ở lần `JOIN` đầu tiên rồi đánh dấu delivered. |
+| `joinListAndLeaveTrackOnlinePeers` | Kiểm tra `JOIN`, `LIST`, `LEAVE` cập nhật online peers. |
+| `offlineMessagesAreDrainedOnFirstJoinOnly` | Kiểm tra offline message chỉ trả một lần khi receiver `JOIN`. |
 
-### 8.2. Test peer node integration
+### 7.2. Peer integration
 
 File:
 
@@ -178,120 +168,109 @@ File:
 peer-node/src/test/java/dungcony/ds/peer/PeerNodeIntegrationTest.java
 ```
 
-| Test | Mục tiêu |
+| Test | Nội dung |
 | --- | --- |
-| `directMessageIsDeliveredWithAckThroughDiscoveredPeer` | Alice discover Bob qua bootstrap, gửi chat trực tiếp và nhận ACK. |
-| `failedDirectSendIsStoredOfflineAndDeliveredWhenReceiverJoinsAgain` | Bob offline, Alice gửi tin, bootstrap lưu offline, Bob join lại và nhận tin. |
-| `groupMessageIsBroadcastToAllOnlineMembers` | Alice tạo group và gửi message tới Bob, Carol. |
-| `networkBroadcastIsDeliveredToAllOnlinePeers` | Broadcast tới toàn bộ peer online và kiểm tra kết quả delivered/failed. |
+| `directMessageIsDeliveredWithAckThroughDiscoveredPeer` | Alice discover Bob qua bootstrap, gửi direct chat và nhận ACK. |
+| `failedDirectSendIsStoredOfflineAndDeliveredWhenReceiverJoinsAgain` | Bob offline, Alice gửi tin, bootstrap lưu, Bob join lại và nhận tin. |
+| `groupMessageIsBroadcastToAllOnlineMembers` | Group chat tới Bob và Carol online. |
+| `networkBroadcastIsDeliveredToAllOnlinePeers` | Broadcast `[Thế giới]` tới các peer online. |
 
-### 8.3. Test message history
+### 7.3. Profile, runtime option, local history
 
-File:
+| File | Test chính |
+| --- | --- |
+| `AppRuntimeOptionsTest` | Parse `--profile`, `--peer-name`, `--data-dir`, `--peer-port`. |
+| `PeerProfileRepositoryTest` | Tạo profile UUID, tìm theo tên, detect id tồn tại. |
+| `ProfileSelectionImplTest` | Bỏ qua demo profile, dùng profile thật nếu có. |
+| `MessageHistoryImplTest` | Không duplicate message cùng id, tách broadcast khỏi direct chat. |
 
-```text
-peer-node/src/test/java/dungcony/ds/services/MessageHistoryImplTest.java
+## 8. Lệnh Kiểm Thử
+
+Chạy toàn bộ:
+
+```bat
+mvn test
 ```
 
-| Test | Mục tiêu |
-| --- | --- |
-| `updatingSameMessageIdDoesNotDuplicateLocalHistory` | Khi cập nhật trạng thái cùng `messageId`, local history không bị nhân đôi record. |
+Chạy từng module:
 
-### 8.4. Test runtime option
-
-File:
-
-```text
-peer-node/src/test/java/dungcony/ds/AppRuntimeOptionsTest.java
+```bat
+mvn -pl bootstrap-server test
+mvn -pl peer-node test
 ```
 
-| Test | Mục tiêu |
+Chạy một nhóm test quan trọng:
+
+```bat
+mvn -pl peer-node "-Dtest=PeerNodeIntegrationTest,MessageHistoryImplTest" test
+```
+
+## 9. Checklist Đối Chiếu Yêu Cầu
+
+| Yêu cầu | Trạng thái | Bằng chứng |
+| --- | --- | --- |
+| Peer vừa gửi vừa nhận | Đạt | `PeerNode`, `TCPClient`, `TCPServer`. |
+| TCP socket | Đạt | `TCPClient`, `TCPServer`, `BootstrapServer`. |
+| Nhiều kết nối đồng thời | Đạt | Cached thread pool ở peer và bootstrap. |
+| Peer discovery | Đạt | Bootstrap `JOIN/LIST`, fallback `PEER_LIST_REQUEST`. |
+| Online/offline | Đạt | `PeerRegistry`, TTL, `LEAVE`, refresh `JOIN`. |
+| Chat 1-1 | Đạt | `ChatImpl`, test direct message. |
+| Chat nhóm | Đạt | `GroupChatImpl`, test group message. |
+| ACK/retry/timeout | Đạt | `MessageSender`, `TCPClient`. |
+| Store-and-forward | Đạt | `STORE_OFFLINE`, offline message test. |
+| Broadcast toàn mạng | Đạt | `[Thế giới]`, `NetworkBroadcastImpl`, broadcast test. |
+| Mã hóa tin nhắn | Chưa làm | Mục nâng cao khuyến khích, không nằm trong core hiện tại. |
+
+## 10. Kịch Bản Kiểm Thử Thủ Công
+
+### 10.1. Chat trực tiếp
+
+| Bước | Kết quả mong đợi |
 | --- | --- |
-| `resolvesInlineRuntimeOptions` | Parse `--data-dir=...` và `--peer-port=...`. |
-| `resolvesSeparatedRuntimeOptions` | Parse dạng `--data-dir value --port value`. |
-| `keepsPreviousValuesWhenLaterValuesAreInvalid` | Bỏ qua giá trị invalid và giữ giá trị hợp lệ trước đó. |
-| `missingDataDirValueDoesNotConsumeNextOption` | Không ăn nhầm option tiếp theo làm value của `--data-dir`. |
+| Chạy bootstrap | Tracker lắng nghe port `9000`. |
+| Chạy Alice và Bob | Hai peer thấy nhau online. |
+| Alice gửi Bob | Bob nhận tin, Alice lưu status `SENT`. |
 
-## 9. Kịch bản thử nghiệm thủ công
+### 10.2. Offline message
 
-### 9.1. Chat trực tiếp 1-1
+| Bước | Kết quả mong đợi |
+| --- | --- |
+| Chạy Alice, Bob, bootstrap | Bob online. |
+| Đóng Bob | Bob dần offline. |
+| Alice gửi Bob | Tin chuyển `PENDING` nếu bootstrap lưu được. |
+| Mở lại Bob cùng profile | Bob nhận offline message khi `JOIN`. |
 
-| Bước | Thao tác | Kết quả kỳ vọng |
-| --- | --- | --- |
-| 1 | Chạy bootstrap server | Server lắng nghe port `9000`. |
-| 2 | Chạy Alice port `5001` | Alice join bootstrap. |
-| 3 | Chạy Bob port `5002` | Bob join bootstrap. |
-| 4 | Alice gửi tin cho Bob | Bob nhận tin, Alice thấy trạng thái gửi thành công. |
-| 5 | Kiểm tra `messages.json` | Có record message của Alice/Bob. |
+### 10.3. Group
 
-### 9.2. Peer offline và store-and-forward
+| Bước | Kết quả mong đợi |
+| --- | --- |
+| Alice tạo nhóm với Bob, Carol | Group xuất hiện trong danh sách. |
+| Alice gửi nhóm | Bob và Carol nhận `GROUP_CHAT`. |
+| Tắt Carol rồi gửi tiếp | Bob nhận trực tiếp, Carol nhận offline nếu bootstrap còn chạy. |
 
-| Bước | Thao tác | Kết quả kỳ vọng |
-| --- | --- | --- |
-| 1 | Chạy Alice, Bob và bootstrap | Cả hai online. |
-| 2 | Tắt Bob | Bob không còn reachable qua TCP. |
-| 3 | Alice gửi tin cho Bob | Gửi trực tiếp retry rồi thất bại. |
-| 4 | Bootstrap còn chạy | Message được lưu offline, Alice lưu `PENDING`. |
-| 5 | Chạy lại Bob cùng `peerId` | Bob nhận offline message khi `JOIN`. |
+### 10.4. Broadcast
 
-### 9.3. Bootstrap server tắt
+| Bước | Kết quả mong đợi |
+| --- | --- |
+| Chọn `[Thế giới]` | Header hiển thị conversation broadcast. |
+| Gửi tin | Peer online nhận `BROADCAST`. |
+| Mở peer sau khi broadcast | Peer mới không nhận tin cũ. |
 
-| Bước | Thao tác | Kết quả kỳ vọng |
-| --- | --- | --- |
-| 1 | Tắt bootstrap | Peer không refresh được tracker. |
-| 2 | Chạy Alice và Bob bằng địa chỉ thủ công | Peer vẫn có thể chat trực tiếp nếu biết `host:port`. |
-| 3 | Gửi tin tới peer offline | Message chuyển `FAILED` vì không store offline được. |
+## 11. Hạn Chế Và Hướng Phát Triển
 
-### 9.4. Group chat
+Hạn chế hiện tại:
 
-| Bước | Thao tác | Kết quả kỳ vọng |
-| --- | --- | --- |
-| 1 | Chạy Alice, Bob, Carol | Cả ba online. |
-| 2 | Alice tạo group gồm Bob và Carol | Group xuất hiện trong UI, metadata lưu local và bootstrap. |
-| 3 | Alice gửi tin nhóm | Bob và Carol nhận `GROUP_CHAT`. |
-| 4 | Tắt Carol rồi gửi tiếp | Bob nhận trực tiếp, Carol nhận offline khi join lại nếu bootstrap còn chạy. |
+- Chưa mã hóa nội dung message.
+- Chưa có NAT traversal.
+- Bootstrap chưa có clustering/replication.
+- Offline delivery được drain khi receiver `JOIN`, chưa có ACK ngược về bootstrap.
+- Broadcast không có offline delivery.
 
-### 9.5. Broadcast toàn mạng
+Hướng phát triển:
 
-| Bước | Thao tác | Kết quả kỳ vọng |
-| --- | --- | --- |
-| 1 | Chạy ít nhất ba peer | Bootstrap trả danh sách online. |
-| 2 | Alice broadcast | Bob và Carol nhận `BROADCAST`. |
-| 3 | Tắt một peer và broadcast lại | `BroadcastResult.failed` tăng tương ứng. |
+- Mã hóa payload hoặc ký message.
+- Thêm nhiều bootstrap server dự phòng.
+- Thêm cơ chế reconnect và backoff rõ hơn.
+- Thêm test UI hoặc test end-to-end qua nhiều process thật.
+- Thêm xác nhận delivered/read cho offline message.
 
-## 10. Ma trận đánh giá yêu cầu
-
-| Yêu cầu đồ án | Cách kiểm chứng | Kết quả kỳ vọng |
-| --- | --- | --- |
-| Mỗi peer gửi và nhận đồng thời | Chạy hai peer, gửi tin qua lại cùng lúc | Không bị block UI; peer nhận được tin. |
-| Giao tiếp bằng TCP socket | Kiểm tra `TCPClient`, `TCPServer`, test integration | Message đi qua socket TCP. |
-| Xử lý nhiều kết nối | Chạy nhiều peer gửi tới một peer | Server accept bằng thread pool. |
-| Peer discovery | Chạy bootstrap, peer join | Peer mới thấy peer online. |
-| Chat trực tiếp | Test `directMessageIsDeliveredWithAckThroughDiscoveredPeer` | Message có ACK và `SENT`. |
-| Chat nhóm | Test `groupMessageIsBroadcastToAllOnlineMembers` | Tất cả member online nhận tin. |
-| Broadcast | Test `networkBroadcastIsDeliveredToAllOnlinePeers` | Delivered bằng số peer online. |
-| Store-and-forward | Test offline message | Receiver nhận lại khi join. |
-| Xử lý lỗi | Tắt peer/bootstrap trong lúc gửi | Message chuyển `PENDING` hoặc `FAILED`, app không crash. |
-
-## 11. Kết luận thử nghiệm
-
-Các test tự động hiện có bao phủ những luồng quan trọng nhất của hệ thống:
-
-- Bootstrap quản lý online/offline và offline message.
-- Peer discover nhau qua bootstrap.
-- Chat 1-1 có ACK.
-- Store-and-forward khi receiver offline.
-- Group chat tới nhiều member.
-- Broadcast toàn mạng.
-- Lưu history không bị trùng khi retry/cập nhật trạng thái.
-
-Hệ thống đáp ứng yêu cầu đồ án ở mức chức năng cốt lõi. Các hạn chế còn lại chủ yếu thuộc nhóm bảo mật, NAT traversal, tối ưu hiệu năng và khả năng chịu lỗi của bootstrap server.
-
-## 12. Hướng cải tiến kiểm thử
-
-- Thêm test bootstrap TTL để kiểm tra peer bị loại sau `ONLINE_TTL_MS`.
-- Thêm test bootstrap bị tắt giữa lúc peer đang refresh.
-- Thêm test JSON local bị hỏng để xác nhận app không crash.
-- Thêm test stress nhiều peer gửi đồng thời.
-- Thêm test group member offline nhận lại group message.
-- Thêm test giao diện bằng công cụ UI automation nếu cần nghiệm thu UI.

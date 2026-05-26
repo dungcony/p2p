@@ -1,6 +1,6 @@
 # Bootstrap Server
 
-`bootstrap-server` là tracker TCP của hệ thống P2P Chat. Module này không chuyển tiếp tin nhắn chat trực tiếp. Nhiệm vụ chính của nó là giúp peer tham gia mạng, khám phá peer online, lưu group metadata và lưu offline message để peer nhận lấy lại khi online.
+`bootstrap-server` là tracker TCP của hệ thống P2P Chat. Module này không chuyển tiếp tin nhắn chat online. Nhiệm vụ chính là giúp peer tham gia mạng, khám phá peer online, lưu group metadata và lưu offline message để peer nhận lấy lại khi online.
 
 ## Chạy Nhanh
 
@@ -22,11 +22,6 @@ Build jar:
 
 ```bat
 mvn -pl bootstrap-server -am -DskipTests package
-```
-
-Sau khi package, jar đã được shade dependency:
-
-```bat
 java -jar bootstrap-server/target/bootstrap-server-1.0-SNAPSHOT.jar
 ```
 
@@ -38,7 +33,7 @@ File mặc định:
 bootstrap-server/src/main/resources/config.properties
 ```
 
-Nội dung:
+Ví dụ:
 
 ```properties
 server.port=9000
@@ -47,7 +42,7 @@ database.path=bootstrap-server/src/main/resources/database/bootstrap-server.db
 
 Thứ tự ưu tiên cấu hình:
 
-| Giá trị | Port | Database |
+| Nguồn | Port | Database |
 | --- | --- | --- |
 | JVM system property | `-Dserver.port=9000` | `-Ddatabase.path=...` |
 | Environment variable | `BOOTSTRAP_SERVER_PORT` hoặc `PORT` | `BOOTSTRAP_DATABASE_PATH` |
@@ -78,12 +73,6 @@ docker run --rm -p 9100:9100 ^
   p2p-bootstrap-server
 ```
 
-Docker Compose từ root:
-
-```bat
-docker compose up --build bootstrap-server
-```
-
 ## TCP Protocol
 
 Mỗi request là một dòng text:
@@ -91,8 +80,6 @@ Mỗi request là một dòng text:
 ```text
 COMMAND [JSON_PAYLOAD]
 ```
-
-Các command chính:
 
 | Command | Mục đích | Response |
 | --- | --- | --- |
@@ -116,11 +103,9 @@ Bootstrap dùng SQLite để lưu:
 - Group members.
 - Offline messages.
 
-Danh sách peer online không lưu DB; nó nằm trong RAM của `PeerRegistry` và được cập nhật qua `JOIN`/`LEAVE`. Peer quá hạn heartbeat sẽ bị loại khỏi danh sách online runtime.
+Danh sách peer online không lưu DB; nó nằm trong RAM của `PeerRegistry` và được cập nhật qua `JOIN`/`LEAVE`. Peer quá hạn TTL sẽ bị loại khỏi danh sách online runtime.
 
 ## Kiến Trúc
-
-Package chính:
 
 | Package | Trách nhiệm |
 | --- | --- |
@@ -140,15 +125,8 @@ peer-node -> BootstrapClient -> BootstrapServer
 
 ## Test
 
-Chạy riêng module:
-
 ```bat
 mvn -pl bootstrap-server test
-```
-
-Chạy toàn bộ project:
-
-```bat
 mvn test
 ```
 

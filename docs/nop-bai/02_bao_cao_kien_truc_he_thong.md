@@ -1,268 +1,260 @@
-# Báo cáo kiến trúc hệ thống
+# Báo Cáo Kiến Trúc Hệ Thống
 
-## 1. Thông tin chung
+## 1. Tổng Quan
 
-| Mục | Nội dung |
-| --- | --- |
-| Tên hệ thống | P2P Chat System |
-| Mục tiêu | Xây dựng ứng dụng chat ngang hàng cho phép nhiều peer gửi/nhận tin nhắn trực tiếp qua TCP Socket. |
-| Công nghệ | Java 21, Swing, Maven, TCP Socket, Gson, SQLite |
-| Kiểu kiến trúc | Peer-to-peer có bootstrap/tracker hỗ trợ |
-| Module chính | `peer-node`, `bootstrap-server` |
-
-## 2. Mục tiêu thiết kế
-
-Hệ thống được thiết kế để thể hiện các đặc trưng cơ bản của hệ phân tán:
-
-- Mỗi peer là một tiến trình độc lập, có thể vừa gửi vừa nhận tin.
-- Giao tiếp giữa các peer diễn ra trực tiếp qua TCP Socket.
-- Bootstrap server chỉ hỗ trợ khám phá peer, trạng thái online/offline, group metadata và offline message; không đóng vai trò server chat trung tâm.
-- Hệ thống xử lý nhiều kết nối đồng thời bằng thread pool.
-- Tin nhắn có cơ chế ACK, retry, timeout và fallback store-and-forward.
-
-## 3. Kiến trúc tổng quan
+Hệ thống triển khai mô hình **peer-to-peer có bootstrap/tracker hỗ trợ**.
+Mỗi peer vừa là client gửi tin, vừa là server TCP nhận tin. Bootstrap server không phải server chat trung tâm; nó chỉ giúp peer tìm nhau, quản lý trạng thái online/offline, lưu metadata nhóm và lưu tin offline khi gửi trực tiếp thất bại.
 
 ```mermaid
 flowchart LR
-    subgraph PeerA["Peer Node A"]
-        UIA["Swing UI"]
-        FacadeA["PeerNode facade"]
-        ServicesA["Chat / Group / Discovery / Retry services"]
-        TCPClientA["TCPClient + MessageSender"]
-        TCPServerA["TCPServer + MessageReceiver"]
-        LocalA["messages.json / groups.json"]
-    end
+    A["Peer A<br/>Swing UI + PeerNode + TCPServer"]
+    B["Peer B<br/>Swing UI + PeerNode + TCPServer"]
+    C["Peer C<br/>Swing UI + PeerNode + TCPServer"]
+    BS["Bootstrap Server<br/>Tracker + SQLite"]
 
-    subgraph PeerB["Peer Node B"]
-        UIB["Swing UI"]
-        FacadeB["PeerNode facade"]
-        ServicesB["MessageRouter / Inbound services"]
-        TCPServerB["TCPServer + ConnectionHandler"]
-        LocalB["messages.json / groups.json"]
-    end
-
-    subgraph Bootstrap["Bootstrap Server"]
-        Tracker["BootstrapServer"]
-        Registry["PeerRegistry in RAM"]
-        SQLite["SQLite: users, groups, offline_messages"]
-    end
-
-    UIA --> FacadeA --> ServicesA --> TCPClientA
-    TCPClientA -- "TCP JSON message" --> TCPServerB --> ServicesB --> UIB
-    ServicesB --> LocalB
-    ServicesA --> LocalA
-    FacadeA -- "REGISTER / JOIN / LIST / STORE_OFFLINE" --> Tracker
-    FacadeB -- "REGISTER / JOIN / LIST" --> Tracker
-    Tracker --> Registry
-    Tracker --> SQLite
+    A <-->|"CHAT / GROUP_CHAT / BROADCAST<br/>TCP JSON + ACK"| B
+    A <-->|"TCP JSON + ACK"| C
+    B <-->|"TCP JSON + ACK"| C
+    A -. "REGISTER/JOIN/LIST/STORE_OFFLINE" .-> BS
+    B -. "REGISTER/JOIN/LIST" .-> BS
+    C -. "REGISTER/JOIN/LIST" .-> BS
 ```
 
-Trong mô hình này, `bootstrap-server` không đọc và chuyển tiếp mọi tin nhắn chat online. Khi peer A gửi tin cho peer B, payload chat đi trực tiếp từ socket của A tới socket của B. Bootstrap chỉ tham gia khi peer cần danh sách online, đồng bộ group hoặc lưu tin offline.
+## 2. Đối Chiếu Yêu Cầu
 
-## 4. Phân rã module
-
-### 4.1. Module `peer-node`
-
-`peer-node` là ứng dụng desktop Swing đại diện cho một peer. Mỗi instance có `peerId`, `peerName`, `host`, `port` và thư mục dữ liệu riêng.
-
-| Package / lớp | Vai trò |
+| Yêu cầu trong `require.md` | Thiết kế / code hiện tại |
 | --- | --- |
-| `dungcony.ds.App` | Entry point của peer application. |
-| `dungcony.ds.app.PeerNode` | Facade công khai cho UI gọi các thao tác chat, group, discovery, retry. |
-| `dungcony.ds.app.PeerNodeFactory` | Lắp ráp dependency graph cho một peer. |
-| `dungcony.ds.app.PeerNodeRuntime` | Quản lý vòng đời TCP server và vòng refresh bootstrap. |
-| `dungcony.ds.network.TCPServer` | Mở `ServerSocket`, accept nhiều kết nối đến. |
-| `dungcony.ds.network.ConnectionHandler` | Xử lý một kết nối TCP đến, đọc một dòng JSON và trả response. |
-| `dungcony.ds.network.TCPClient` | Kết nối tới peer khác, gửi message, chờ ACK/response. |
-| `dungcony.ds.network.MessageSender` | Bọc TCPClient với retry và kiểm tra ACK. |
-| `dungcony.ds.network.BootstrapClient` | Gửi command tới bootstrap server. |
-| `dungcony.ds.services.impl.chat.ChatImpl` | Gửi chat 1-1, lưu history, fallback offline. |
-| `dungcony.ds.services.impl.group.GroupChatImpl` | Tạo nhóm, gửi group chat, sync membership. |
-| `dungcony.ds.services.impl.peer.PeerDiscoverImpl` | Discovery fallback bằng `PEER_LIST_REQUEST`. |
-| `dungcony.ds.services.impl.messaging.MessageRouterImpl` | Phân loại message đến theo `MessageType`. |
-| `dungcony.ds.repositories.LocalMessageRepo` | Lưu lịch sử tin nhắn local bằng JSON. |
-| `dungcony.ds.repositories.LocalGroupRepo` | Lưu danh sách group local bằng JSON. |
+| Peer có thể tham gia mạng P2P | `App` tạo `PeerNode`, `PeerNodeRuntime` start TCP listener và `BootstrapSyncImpl` `REGISTER/JOIN`. |
+| Hệ thống cung cấp danh sách peer online | `BootstrapServer` trả `LIST`/`JOIN`, `PeerDirectoryImpl` sync vào danh bạ runtime. |
+| Chat 1-1 trực tiếp | `ChatImpl` gửi `MessageType.CHAT` qua `MessageSender` và `TCPClient`. |
+| Chat nhóm | `GroupChatImpl` gửi `GROUP_CHAT` tới từng member. |
+| Peer discovery | Bootstrap discovery + fallback `PEER_LIST_REQUEST`. |
+| Online/offline | Bootstrap cache peer online với TTL 15 giây; peer refresh mỗi 5 giây. |
+| ACK, retry, timeout | `TCPClient` có connect/read timeout; `MessageSender` retry 3 lần; ACK phải trùng message id. |
+| Xử lý nhiều kết nối | `TCPServer` và `BootstrapServer` dùng cached thread pool. |
+| Store-and-forward | `STORE_OFFLINE`, `OfflineMessageRepo`, drain khi receiver `JOIN`. |
+| Broadcast toàn mạng | Conversation `[Thế giới]`, type `BROADCAST`, gửi tới peer online. |
 
-### 4.2. Module `bootstrap-server`
+## 3. Module `peer-node`
 
-`bootstrap-server` là tracker độc lập, chạy trên một port TCP cố định, mặc định `9000`.
+`peer-node` là ứng dụng desktop Swing và cũng là một node P2P.
 
-| Package / lớp | Vai trò |
+### 3.1. Các lớp chính
+
+| Lớp / package | Trách nhiệm |
 | --- | --- |
-| `dungcony.ds.App` | Entry point chạy bootstrap server. |
-| `dungcony.ds.models.BootstrapServer` | Lắng nghe TCP command, phân loại và xử lý request. |
-| `dungcony.ds.models.PeerRegistry` | Quản lý peer online trong RAM, TTL, offline message, group metadata. |
-| `dungcony.ds.config.Conn` | Kết nối SQLite. |
-| `dungcony.ds.config.Init` | Khởi tạo schema database. |
-| `dungcony.ds.repositories.UserRepo` | Lưu/cập nhật user. |
-| `dungcony.ds.repositories.GroupRepo` | Lưu/cập nhật group. |
-| `dungcony.ds.repositories.GroupMemberRepo` | Lưu thành viên group. |
-| `dungcony.ds.repositories.OfflineMessageRepo` | Lưu và drain offline message. |
+| `dungcony.ds.App` | Entry point, parse runtime option, chọn/tạo profile, mở UI. |
+| `dungcony.ds.app.PeerNode` | Facade cho UI; gom các nghiệp vụ chat, group, broadcast, discovery. |
+| `PeerNodeFactory` | Tạo và inject các service/repository/network dependency. |
+| `PeerNodeRuntime` | Start/stop TCP server và vòng bootstrap sync. |
+| `network.TCPServer` | `ServerSocket` lắng nghe port local. |
+| `network.ConnectionHandler` | Xử lý một kết nối TCP đến. |
+| `network.TCPClient` | Gửi message tới peer khác. |
+| `network.MessageSender` | Retry và validate ACK. |
+| `services.impl.chat.ChatImpl` | Chat trực tiếp 1-1. |
+| `services.impl.group.GroupChatImpl` | Group chat, create group, add member, rename group. |
+| `services.impl.messaging.NetworkBroadcastImpl` | Broadcast `[Thế giới]`. |
+| `services.impl.messaging.InboundMessageImpl` | Lưu inbound message vào đúng conversation. |
+| `services.impl.bootstrap.BootstrapSyncImpl` | Đồng bộ bootstrap, nhận offline message. |
+| `repositories.LocalMessageRepo` | Lưu và đọc `messages.json`. |
+| `repositories.LocalGroupRepo` | Lưu và đọc `groups.json`. |
+| `repositories.PeerProfileRepository` | Đọc/ghi profile peer từ filesystem. |
 
-## 5. Luồng khởi động peer
+### 3.2. Facade `PeerNode`
 
-```mermaid
-sequenceDiagram
-    participant UI as Swing UI
-    participant Node as PeerNode
-    participant Runtime as PeerNodeRuntime
-    participant Server as TCPServer
-    participant Bootstrap as BootstrapServer
-
-    UI->>Node: tạo PeerNode(peerId, name, port, dataDir)
-    Node->>Runtime: start()
-    Runtime->>Server: start TCP listener trên daemon thread
-    Runtime->>Bootstrap: REGISTER localPeer
-    Runtime->>Bootstrap: JOIN localPeer
-    Bootstrap-->>Runtime: JoinResponse(onlinePeers, offlineMessages)
-    Runtime->>Node: sync peer directory, groups, offline messages
-    Node-->>UI: notify refresh danh sách peer
-```
-
-Sau khi start, peer có hai vòng hoạt động song song:
-
-- `TCPServer.listen()` nhận message từ peer khác.
-- `runBootstrapSyncLoop()` định kỳ `JOIN` lại bootstrap để refresh danh sách online, group và offline message.
-
-## 6. Luồng gửi tin nhắn 1-1
-
-```mermaid
-sequenceDiagram
-    participant AliceUI as Alice UI
-    participant Alice as Alice PeerNode
-    participant Sender as MessageSender
-    participant BobTCP as Bob TCPServer
-    participant Router as Bob MessageRouter
-    participant BobUI as Bob UI
-    participant Bootstrap as BootstrapServer
-
-    AliceUI->>Alice: sendMessage(content, bobAddress)
-    Alice->>Sender: send CHAT message
-    Sender->>BobTCP: TCP JSON payload
-    BobTCP->>Router: deserialize + route CHAT
-    Router->>BobUI: lưu history + notify UI
-    Router-->>Sender: ACK cùng message id
-    Sender-->>Alice: true nếu ACK hợp lệ
-    alt gửi trực tiếp thất bại
-        Sender-->>Alice: false sau retry
-        Alice->>Bootstrap: STORE_OFFLINE
-        Bootstrap-->>Alice: OK
-        Alice->>Alice: lưu message trạng thái PENDING
-    end
-```
-
-Trạng thái message phía sender:
-
-| Trạng thái | Ý nghĩa |
-| --- | --- |
-| `SENT` | Đã nhận ACK hợp lệ từ peer đích. |
-| `PENDING` | Gửi trực tiếp thất bại nhưng đã lưu offline message lên bootstrap. |
-| `FAILED` | Gửi trực tiếp thất bại và không lưu được fallback. |
-| `SENDING` | Đang retry thủ công một message cũ. |
-
-## 7. Luồng chat nhóm
-
-Group chat không dùng server trung tâm để fan-out. Peer gửi tự lặp qua từng thành viên:
-
-1. UI gọi `PeerNode.sendGroupMessage(groupId, content)`.
-2. `GroupChatImpl` lấy group từ `GroupManager`.
-3. Với mỗi member khác local peer:
-   - Resolve địa chỉ member mới nhất từ `PeerDirectoryService`.
-   - Nếu member online, gửi `GROUP_CHAT` qua TCP trực tiếp.
-   - Nếu gửi thất bại, lưu offline message qua bootstrap theo `receiverId`.
-4. Lưu một bản message tổng vào history group local.
-5. Notify UI cập nhật màn hình chat.
-
-Group metadata được đồng bộ bằng hai đường:
-
-- Bootstrap: `CREATE_GROUP`, `ADD_GROUP_MEMBER`, `LIST_GROUPS`, `LIST_GROUP_MEMBERS`.
-- Peer-to-peer: `GROUP_MEMBERS_SYNC` gửi snapshot membership trực tiếp tới các member reachable.
-
-## 8. Luồng broadcast toàn mạng
-
-Broadcast toàn mạng được xử lý bởi `NetworkBroadcastImpl`:
-
-1. Lấy danh sách peer online từ bootstrap bằng `LIST`.
-2. Merge với danh bạ peer runtime.
-3. Loại bỏ local peer, peer offline, peer thiếu host/port.
-4. Gửi message `BROADCAST` tới từng peer bằng TCP trực tiếp.
-5. Trả về `BroadcastResult(totalTargets, delivered, failed)`.
-
-## 9. Lưu trữ dữ liệu
-
-### 9.1. Lưu trữ tại peer
-
-Mỗi profile peer có thư mục dữ liệu riêng:
+UI không gọi trực tiếp socket hoặc repository. UI gọi `PeerNode`, sau đó `PeerNode` ủy quyền:
 
 ```text
-<data-dir>/
-  config.properties
-  messages.json
-  groups.json
+UI -> PeerNode -> ChatService / GroupChatService / NetworkBroadcastService
+              -> PeerDirectoryService / ConversationService / BootstrapSyncService
+              -> MessageSender / repositories
 ```
+
+Cách này giữ UI tách khỏi network/persistence và giúp test nghiệp vụ dễ hơn.
+
+## 4. Module `bootstrap-server`
+
+`bootstrap-server` là tracker TCP độc lập.
+
+| Lớp / package | Trách nhiệm |
+| --- | --- |
+| `models.BootstrapServer` | Nhận command TCP một dòng text và dispatch. |
+| `models.PeerRegistry` | Cache peer online trong RAM, TTL, offline message, group metadata. |
+| `repositories.UserRepo` | Lưu user đã đăng ký. |
+| `repositories.GroupRepo` | Lưu group metadata. |
+| `repositories.GroupMemberRepo` | Lưu member group theo `userId`. |
+| `repositories.OfflineMessageRepo` | Lưu tin offline và đánh dấu delivered. |
+| `config.Conn`, `config.Init` | Kết nối SQLite và khởi tạo schema. |
+
+Bootstrap lưu online peer trong RAM để trạng thái online thay đổi nhanh. SQLite dùng cho dữ liệu cần tồn tại qua vòng đời process: user, group, member, offline message.
+
+## 5. Luồng Khởi Động
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant App
+    participant Repo as PeerProfileRepository
+    participant Node as PeerNode
+    participant Runtime as PeerNodeRuntime
+    participant TCP as TCPServer
+    participant BS as BootstrapServer
+
+    U->>App: run.bat / run-peer.bat
+    App->>Repo: load profile theo CLI hoặc UI
+    alt Không có args
+        Repo-->>App: profile thật đầu tiên, bỏ qua alice/bob/carol
+        App-->>U: nếu chưa có profile thật thì hỏi tên bằng dialog
+    end
+    App->>Repo: save profile
+    App->>Node: new PeerNode(...)
+    Node->>Runtime: start()
+    Runtime->>TCP: start listener thread
+    Runtime->>BS: REGISTER localPeer
+    Runtime->>BS: JOIN localPeer
+    BS-->>Runtime: JoinResponse(onlinePeers, offlineMessages)
+```
+
+Điểm chốt: user không phải nhập tên ở terminal. Terminal chỉ dùng để chạy script. Profile thật được dùng lại tự động; profile demo chỉ phục vụ test/demo.
+
+## 6. Luồng Chat Trực Tiếp
+
+```mermaid
+sequenceDiagram
+    participant A as Alice UI
+    participant AN as Alice PeerNode
+    participant AS as MessageSender
+    participant BTCP as Bob TCPServer
+    participant BR as Bob MessageRouter
+    participant BH as Bob LocalMessageRepo
+    participant BS as Bootstrap
+
+    A->>AN: sendMessage(content, bobAddress)
+    AN->>AS: send CHAT
+    AS->>BTCP: JSON Message(CHAT)
+    BTCP->>BR: route
+    BR->>BH: save message
+    BR-->>AS: ACK same id
+    alt ACK hợp lệ
+        AN->>AN: save local status SENT
+    else Timeout/retry hết
+        AN->>BS: STORE_OFFLINE
+        AN->>AN: status PENDING hoặc FAILED
+    end
+```
+
+Message status:
+
+| Status | Ý nghĩa |
+| --- | --- |
+| `SENT` | Đã nhận ACK hợp lệ. |
+| `PENDING` | Gửi trực tiếp thất bại nhưng bootstrap đã lưu offline. |
+| `FAILED` | Gửi trực tiếp thất bại và không store offline được. |
+
+## 7. Luồng Chat Nhóm
+
+Group không gửi qua một server trung tâm. Khi Alice gửi nhóm:
+
+1. `GroupChatImpl` lấy group local.
+2. Với từng member, resolve `peer.id` sang IP:port mới nhất trong `PeerDirectory`.
+3. Gửi một message `GROUP_CHAT` riêng tới từng member.
+4. Member nào không gửi trực tiếp được thì store offline theo `receiverId`.
+5. Local history nhóm lưu dưới conversation ảo `group:<groupId>`.
+
+Membership nhóm được đồng bộ bằng hai kênh:
+
+- Bootstrap lưu metadata group và member id.
+- Peer gửi `GROUP_MEMBERS_SYNC` trực tiếp để các peer reachable cập nhật nhanh.
+
+## 8. Luồng Broadcast Toàn Mạng
+
+UI hiển thị broadcast như một conversation riêng `[Thế giới]`.
+
+```mermaid
+flowchart TD
+    A["User chọn [Thế giới]"] --> B["SendMessageBox gọi PeerNode.broadcastToNetwork"]
+    B --> C["Lấy peer online từ bootstrap + peer directory"]
+    C --> D["Loại self, offline, thiếu host/port"]
+    D --> E["Gửi BROADCAST tới từng peer online"]
+    E --> F["Lưu history __broadcast__"]
+```
+
+Broadcast là realtime best-effort:
+
+- Peer online nhận qua TCP và trả ACK.
+- Peer offline không nhận lại sau này.
+- Broadcast không xuất hiện trong chat riêng.
+- Local history lưu bằng `BroadcastConversation.ID = "__broadcast__"`.
+
+## 9. Peer Discovery Và Địa Chỉ IP:port
+
+ACK/gửi TCP luôn cần IP:port. Hệ thống không chỉ dựa vào `peer.id` khi gửi:
+
+- `peer.id` là định danh ổn định để nhận diện user/profile.
+- `host:port` là địa chỉ runtime để mở socket.
+- Bootstrap trả `PeerInfo(id, name, host, port, online)`.
+- Group member lưu theo id; khi gửi sẽ resolve id sang `PeerInfo` mới nhất từ danh bạ.
+
+Khi bootstrap không khả dụng, peer vẫn có thể dùng địa chỉ đã biết hoặc hỏi peer đã biết bằng `PEER_LIST_REQUEST`.
+
+## 10. Lưu Trữ
+
+### 10.1. Peer local
 
 | File | Nội dung |
 | --- | --- |
-| `config.properties` | Thông tin định danh profile như `peer.id`, `peer.name`, `peer.port`. |
-| `messages.json` | Lịch sử message theo conversation, bao gồm message id, type, content, timestamp, status. |
-| `groups.json` | Group mà peer tham gia và danh sách member đã biết. |
+| `data/config.properties` | `bootstrap.host`, `bootstrap.port` dùng chung. |
+| `data/<profile>/config.properties` | `peer.id`, `peer.name`, `peer.port`. |
+| `data/<profile>/messages.json` | Direct, group, broadcast history. |
+| `data/<profile>/groups.json` | Group local cache. |
 
-Repository JSON dùng `synchronized` để tránh ghi/đọc đồng thời gây hỏng file trong cùng một process.
+### 10.2. Bootstrap SQLite
 
-### 9.2. Lưu trữ tại bootstrap
-
-Bootstrap server dùng SQLite:
-
-| Bảng logic | Nội dung |
+| Bảng | Nội dung |
 | --- | --- |
-| Users | User/peer đã đăng ký. |
-| Groups | Metadata group. |
-| Group Members | Quan hệ group - user. |
-| Offline Messages | Tin nhắn chờ giao khi receiver offline. |
+| `users` | User/peer đã đăng ký. |
+| `groups` | Group metadata. |
+| `group_members` | Member group theo `userId`. |
+| `offline_messages` | Tin chờ giao khi receiver offline. |
 
-Danh sách peer online không lưu DB. Nó nằm trong `ConcurrentHashMap` của `PeerRegistry` và được cập nhật bằng `JOIN`/`LEAVE`.
+## 11. Xử Lý Đồng Thời
 
-## 10. Đồng thời và phân tán
-
-| Vấn đề | Cách triển khai |
+| Nơi phát sinh đồng thời | Cách xử lý |
 | --- | --- |
-| Peer vừa gửi vừa nhận | Mỗi peer chạy `TCPServer` nền và dùng `TCPClient` khi gửi. |
-| Nhiều kết nối đến | `TCPServer` và `BootstrapServer` dùng `Executors.newCachedThreadPool()`. |
-| Danh bạ peer runtime | `PeerDirectoryImpl` dùng `ConcurrentHashMap`. |
-| Listener UI | `PeerNode` dùng `CopyOnWriteArrayList` cho listener. |
-| Cập nhật UI Swing | Event được dispatch qua `SwingEventDispatcher`. |
-| Dữ liệu local JSON | Repository local đồng bộ bằng `synchronized`. |
+| Nhiều peer kết nối vào một peer | `TCPServer` accept và submit `ConnectionHandler` vào cached thread pool. |
+| Nhiều peer gọi bootstrap | `BootstrapServer` dùng cached thread pool. |
+| UI listener | `PeerNode` dùng `CopyOnWriteArrayList`. |
+| Message history memory | `ConcurrentHashMap` + synchronized list. |
+| File JSON local | Repository method `synchronized`. |
+| Group membership sync | `CompletableFuture.runAsync`. |
 
-## 11. Quyết định thiết kế chính
+## 12. Quyết Định Thiết Kế
 
-### 11.1. Bootstrap chỉ là tracker, không phải chat relay
+### 12.1. Bootstrap không relay chat online
 
-Hệ thống giữ tính P2P bằng cách gửi chat online trực tiếp giữa peer. Bootstrap không phải điểm trung chuyển chính, nhờ đó nếu bootstrap tạm mất, peer vẫn có thể gửi trực tiếp tới địa chỉ đã biết.
+Điều này giữ đúng tinh thần P2P: chat online đi trực tiếp giữa peer. Bootstrap chỉ hỗ trợ discovery và fallback offline.
 
-### 11.2. Mỗi message có `id` ổn định
+### 12.2. Dùng `peer.id` cho định danh, IP:port cho kết nối
 
-`id` được dùng để kiểm tra ACK và tránh nhân đôi khi cập nhật trạng thái message trong local history.
+`peer.id` ổn định qua các lần chạy, còn IP:port có thể đổi. Vì vậy danh bạ runtime luôn cần `PeerInfo` đầy đủ khi gửi message/ACK.
 
-### 11.3. Store-and-forward cho trường hợp offline
+### 12.3. Broadcast tách khỏi chat riêng
 
-Khi gửi trực tiếp thất bại, sender cố gắng lưu message lên bootstrap. Receiver nhận lại các tin này trong lần `JOIN` tiếp theo.
+Broadcast `[Thế giới]` là một luồng riêng. Nếu để broadcast rơi vào chat riêng sẽ gây hiểu nhầm giữa tin 1-1 và tin toàn mạng, nên history được tách bằng conversation ảo `__broadcast__`.
 
-### 11.4. Tách service theo trách nhiệm
+### 12.4. Profile người dùng không nhập ở terminal
 
-`PeerNode` chỉ là facade; logic được tách thành các service như `ChatImpl`, `GroupChatImpl`, `PeerDiscoverImpl`, `MessageRetryImpl`. Cách này giúp UI không phụ thuộc trực tiếp vào socket hoặc persistence.
+Terminal chỉ dùng chạy script. App tự quyết định profile:
 
-## 12. Hạn chế hiện tại
+- Có profile thật thì dùng lại.
+- Chưa có thì mở dialog nhập tên.
+- Demo profile không được chọn làm profile thật mặc định.
 
-- Chưa triển khai mã hóa đầu cuối cho nội dung tin nhắn.
-- Chưa có xác thực mạnh cho peer hoặc bootstrap command.
-- Chưa hỗ trợ NAT traversal; peer cần reachable qua host/port.
-- Bootstrap server là một điểm phụ thuộc cho discovery tự động và offline message.
-- Offline message được đánh dấu delivered khi receiver `JOIN`; chưa có xác nhận delivery cuối cùng từ UI receiver về bootstrap.
+## 13. Hạn Chế
 
-## 13. Hướng phát triển
+- Chưa có mã hóa payload.
+- Chưa hỗ trợ NAT traversal.
+- Bootstrap vẫn là điểm phụ thuộc cho discovery tự động và offline message.
+- Broadcast không store offline.
+- Offline message được drain khi receiver `JOIN`, chưa cần receiver ACK lại bootstrap.
 
-- Bổ sung mã hóa end-to-end cho payload chat.
-- Thêm chữ ký hoặc token để xác thực peer.
-- Hỗ trợ nhiều bootstrap server hoặc cơ chế tracker dự phòng.
-- Thêm cơ chế delivery receipt nhiều trạng thái: sent, delivered, read.
-- Tối ưu lưu trữ local bằng embedded database thay vì JSON khi dữ liệu lớn.

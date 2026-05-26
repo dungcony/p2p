@@ -1,6 +1,6 @@
 # Mục Lục Báo Cáo
 
-Đây là bộ tài liệu nộp bài cho đồ án **P2P Chat System**. Nội dung đã được chốt theo `docs/require.md` và theo trạng thái code hiện tại.
+Đây là bộ tài liệu nộp bài cho đồ án **P2P Chat System**. Nội dung được viết theo `docs/require.md` và trạng thái code hiện tại của project.
 
 ## 1. Thông Tin Project
 
@@ -14,28 +14,35 @@
 | Module chính | `peer-node`, `bootstrap-server` |
 | Lưu trữ peer | JSON local theo profile |
 | Lưu trữ tracker | SQLite |
+| Dữ liệu runtime | `runtime-data/` |
 
-## 2. Cấu Trúc Tài Liệu
+## 2. Năm Phần Báo Cáo Chính
 
 | STT | File | Nội dung |
 | --- | --- | --- |
-| 1 | [01_huong_dan_chay.md](01_huong_dan_chay.md) | Cách build, chạy bootstrap, chạy peer, chạy demo, dữ liệu local và kịch bản kiểm thử thủ công. |
-| 2 | [02_bao_cao_kien_truc_he_thong.md](02_bao_cao_kien_truc_he_thong.md) | Kiến trúc tổng quan, module, luồng runtime, luồng chat, lưu trữ và quyết định thiết kế. |
-| 3 | [03_giao_thuc_trao_doi_thong_diep.md](03_giao_thuc_trao_doi_thong_diep.md) | Giao thức TCP giữa peer, giao thức command với bootstrap, ACK, retry và message schema. |
-| 4 | [04_co_che_peer_discovery.md](04_co_che_peer_discovery.md) | Cơ chế khám phá peer, online/offline, fallback discovery và cách resolve địa chỉ IP:port. |
-| 5 | [05_xu_ly_loi_va_thu_nghiem_he_thong.md](05_xu_ly_loi_va_thu_nghiem_he_thong.md) | Xử lý lỗi, store-and-forward, kiểm thử tự động, checklist đối chiếu yêu cầu. |
-| 6 | [../design.md](../design.md) | Bản thiết kế chốt theo yêu cầu và code hiện tại. |
+| 1 | [01_huong_dan_chay.md](01_huong_dan_chay.md) | Cách build, chạy bootstrap, chạy peer, chạy demo, tham số CLI, dữ liệu runtime và kịch bản kiểm thử thủ công. |
+| 2 | [02_bao_cao_kien_truc_he_thong.md](02_bao_cao_kien_truc_he_thong.md) | Kiến trúc tổng quan, module, luồng runtime, luồng chat, group, broadcast, mã hóa và lưu trữ. |
+| 3 | [03_giao_thuc_trao_doi_thong_diep.md](03_giao_thuc_trao_doi_thong_diep.md) | Giao thức TCP peer-to-peer, giao thức command với bootstrap, ACK, retry, schema message và mã hóa payload. |
+| 4 | [04_co_che_peer_discovery.md](04_co_che_peer_discovery.md) | Cơ chế khám phá peer, online/offline, fallback discovery, resolve `peer.id` sang IP:port và public key. |
+| 5 | [05_xu_ly_loi_va_thu_nghiem_he_thong.md](05_xu_ly_loi_va_thu_nghiem_he_thong.md) | Xử lý lỗi, store-and-forward, kiểm thử tự động, checklist đối chiếu yêu cầu và hạn chế. |
+
+Tài liệu tham khảo thêm:
+
+- [../require.md](../require.md): đề bài/yêu cầu gốc.
+- [../design.md](../design.md): bản thiết kế chốt trong quá trình phát triển.
+- [../../README.md](../../README.md): README tổng quan ở thư mục gốc project.
 
 ## 3. Cấu Trúc Source
 
 ```text
 p2p/
 ├── bootstrap-server/          # Tracker TCP, SQLite, offline message, group metadata
-├── peer-node/                 # Swing app, PeerNode, TCP client/server, local JSON
+├── peer-node/                 # Swing app, PeerNode facade, TCP client/server, local JSON
 ├── docs/
 │   ├── require.md             # Đề bài / yêu cầu
 │   ├── design.md              # Thiết kế chốt
-│   └── nop-bai/               # Bộ báo cáo nộp bài
+│   └── nop-bai/               # Bộ báo cáo nộp bài gồm 5 phần chính
+├── runtime-data/              # Dữ liệu runtime local, không nộp kèm git
 ├── run-bootstrap.bat          # Chạy tracker
 ├── run-peer.bat               # Chạy một peer
 └── run-all-peers.bat          # Chạy bootstrap + Alice/Bob/Carol demo
@@ -44,15 +51,10 @@ p2p/
 ## 4. Luồng Chạy Nhanh
 
 ```bat
+mvn test
 run-bootstrap.bat
 run-peer.bat
 ```
-
-Khi chạy `run-peer.bat` không tham số:
-
-- Nếu đã có profile người dùng thật, app vào thẳng màn chat.
-- Nếu chỉ có profile demo `alice`, `bob`, `carol` hoặc chưa có profile, app mở dialog nhập tên.
-- Người dùng không phải nhập tên trong terminal.
 
 Chạy demo ba peer:
 
@@ -60,11 +62,29 @@ Chạy demo ba peer:
 run-all-peers.bat
 ```
 
-## 5. Các Điểm Cần Nhấn Mạnh Khi Báo Cáo
+`run-all-peers.bat` ưu tiên dùng lại profile `alice`, `bob`, `carol` nếu đã có trong `runtime-data/peer-node`. Nếu máy sạch chưa có profile demo, script tạo/chạy theo tên `Alice`, `Bob`, `Carol` với port `5001`, `5002`, `5003`.
 
-- Mỗi peer vừa là client gửi tin, vừa là server TCP nhận tin.
-- Bootstrap không phải chat server trung tâm; nó chỉ là tracker và nơi lưu tin offline khi gửi trực tiếp thất bại.
-- Chat 1-1 và group chat có ACK, retry, timeout.
-- Broadcast toàn mạng nằm trong conversation `[Thế giới]`; chỉ peer online nhận, không lưu offline.
-- Group member được lưu theo `peer.id`, còn việc ACK/gửi TCP dùng IP:port runtime lấy từ discovery.
-- Hệ thống có test tự động cho bootstrap, chat trực tiếp, offline message, group, broadcast, profile và local history.
+## 5. Yêu cầu đã thực hiện
+
+| Yêu cầu | Trạng thái | Bằng chứng chính |
+| --- | --- | --- |
+| Peer vừa gửi vừa nhận | Đạt | `peer-node` có `TCPClient` và `TCPServer` trong mỗi process peer. |
+| Bootstrap/tracker | Đạt | Module `bootstrap-server`, command `REGISTER`, `JOIN`, `LEAVE`, `LIST`. |
+| Peer discovery | Đạt | Bootstrap discovery và fallback `PEER_LIST_REQUEST`. |
+| Danh sách online/offline | Đạt | `PeerRegistry` TTL, peer refresh `JOIN` định kỳ. |
+| Chat 1-1 trực tiếp | Đạt | `ChatImpl` gửi `MessageType.CHAT` qua TCP peer-to-peer. |
+| Chat nhóm | Đạt | `GroupChatImpl` gửi `GROUP_CHAT` tới từng member. |
+| ACK/retry/timeout | Đạt | `MessageSender`, `TCPClient`. |
+| Xử lý nhiều kết nối | Đạt | Peer và bootstrap dùng thread pool. |
+| Broadcast toàn mạng | Đạt | Conversation `[Thế giới]`, `NetworkBroadcastImpl`. |
+| Store-and-forward | Đạt | `STORE_OFFLINE`, `OfflineMessageRepo`, drain khi receiver `JOIN`. |
+| Mã hóa tin nhắn | Đạt | RSA-OAEP SHA-256, public/private key theo profile. |
+
+## 6. Điểm cần chú ý
+
+- Bootstrap không phải chat server trung tâm. Tin online vẫn đi trực tiếp giữa các peer.
+- `peer.id` là định danh ổn định; IP:port là địa chỉ runtime dùng để mở socket.
+- Group member lưu theo `peer.id`, khi gửi sẽ resolve sang IP:port mới nhất từ discovery.
+- Direct/group message có ACK, retry, timeout và fallback offline.
+- Broadcast `[Thế giới]` là realtime, chỉ peer online nhận và không lưu offline.
+- Dữ liệu runtime đã tách khỏi `src/main/resources`, nằm trong `runtime-data/` và bị `.gitignore`.

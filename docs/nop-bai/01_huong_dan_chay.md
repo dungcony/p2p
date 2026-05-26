@@ -1,39 +1,52 @@
 # Hướng Dẫn Chạy Hệ Thống
 
-Tài liệu này hướng dẫn build và chạy hệ thống P2P Chat theo luồng hiện tại.
+Tài liệu này mô tả cách build, chạy và kiểm thử thủ công hệ thống P2P Chat.
 
 ## 1. Yêu Cầu Môi Trường
 
 | Thành phần | Yêu cầu |
 | --- | --- |
 | JDK | Java 21 |
-| Build tool | Maven 3.9+ |
-| Hệ điều hành kiểm thử | Windows |
-| Port mặc định bootstrap | `9000` |
-| Port peer mặc định | Bắt đầu từ `5001`, tự chọn port trống khi tạo profile mới |
+| Maven | 3.9+ |
+| Hệ điều hành đã kiểm thử | Windows |
+| Port bootstrap mặc định | `9000` |
+| Port peer demo | `5001`, `5002`, `5003` |
 
-Kiểm tra môi trường:
+Kiểm tra:
 
 ```bat
 java -version
 mvn -version
 ```
 
-## 2. Build Project
+## 2. Build Và Test
 
 Từ thư mục gốc project:
 
 ```bat
-mvn clean test
+mvn test
 ```
 
-Nếu chỉ muốn chuẩn bị dependency của `bootstrap-server` cho `peer-node`:
+Nếu chỉ muốn compile/package nhanh:
+
+```bat
+mvn -DskipTests package
+```
+
+Chạy test từng module:
+
+```bat
+mvn -pl bootstrap-server test
+mvn -pl peer-node test
+```
+
+`peer-node` phụ thuộc một số class model/DTO của `bootstrap-server`, vì vậy `run-peer.bat` tự chuẩn bị artifact bằng:
 
 ```bat
 mvn -pl bootstrap-server -am -DskipTests install
 ```
 
-`run-peer.bat` đã tự chạy bước này trước khi mở app peer.
+Bước này chỉ phục vụ Maven dependency resolution, không khởi động tracker.
 
 ## 3. Chạy Bootstrap Server
 
@@ -43,19 +56,17 @@ Mở terminal thứ nhất:
 run-bootstrap.bat
 ```
 
-Script này chạy:
+Script chạy module `bootstrap-server` ở port `9000`.
 
-```bat
-mvn -pl bootstrap-server exec:java -Dexec.mainClass="dungcony.ds.App" -Dexec.args="9000"
-```
+Bootstrap server hỗ trợ:
 
-Bootstrap server là tracker. Nó hỗ trợ:
+| Nhóm | Command chính |
+| --- | --- |
+| Peer lifecycle | `REGISTER`, `JOIN`, `LEAVE`, `LIST` |
+| Offline message | `STORE_OFFLINE` |
+| Group metadata | `CREATE_GROUP`, `ADD_GROUP_MEMBER`, `LIST_GROUPS`, `LIST_GROUP_MEMBERS` |
 
-- `REGISTER`, `JOIN`, `LEAVE`, `LIST` cho peer discovery và online/offline.
-- `STORE_OFFLINE` cho tin nhắn offline.
-- `CREATE_GROUP`, `ADD_GROUP_MEMBER`, `LIST_GROUPS`, `LIST_GROUP_MEMBERS` cho metadata nhóm.
-
-Bootstrap không chuyển tiếp tin chat online giữa peer.
+Bootstrap không relay tin online. Khi hai peer đều online, tin chat được gửi trực tiếp qua TCP giữa peer với peer.
 
 ## 4. Chạy Một Peer
 
@@ -65,20 +76,12 @@ Mở terminal khác:
 run-peer.bat
 ```
 
-Khi không có tham số, app mở UI chọn/tạo profile:
+Khi không truyền tham số:
 
-- Có profile người dùng thật: vào thẳng màn chat.
-- Chưa có profile: mở dialog nhập tên peer.
-- `peer.id` là UUID nội bộ, người dùng không nhập.
-- `peer.port` được tự chọn tránh trùng bootstrap và tránh port đang bận.
-
-Chạy profile demo:
-
-```bat
-run-peer.bat --profile=alice
-run-peer.bat --profile=bob
-run-peer.bat --profile=carol
-```
+- Nếu đã có profile người dùng thật, app vào thẳng màn chat.
+- Nếu chưa có profile thật, app mở dialog nhập tên hiển thị.
+- `peer.id` là UUID nội bộ, người dùng không cần nhập.
+- `peer.port` được tự chọn để tránh trùng bootstrap và tránh port đang bận.
 
 Chạy hoặc tạo profile theo tên:
 
@@ -88,67 +91,94 @@ run-peer.bat --peer-name=Dung
 
 Nếu đã có profile tên `Dung`, app dùng lại profile đó. Nếu chưa có, app tạo profile mới.
 
-## 5. Chạy Demo Nhanh
-
-Chạy bootstrap và ba peer demo trong các cửa sổ riêng:
+Chạy profile cụ thể:
 
 ```bat
-run-all-peers.bat
+run-peer.bat --profile=alice
 ```
 
-Demo tạo:
+Override port:
 
-| Peer | Profile | Port thường dùng |
-| --- | --- | --- |
-| Alice | `alice` | `5001` |
-| Bob | `bob` | `5002` |
-| Carol | `carol` | `5003` |
+```bat
+run-peer.bat --peer-name=Alice --peer-port=5001
+```
 
-Các port có thể thay đổi nếu port đang bị chiếm hoặc nếu truyền `--peer-port`.
-
-## 6. Tham Số CLI Của Peer
-
-| Tham số | Ví dụ | Ý nghĩa |
-| --- | --- | --- |
-| `--profile` | `--profile=<id>` | Nạp profile theo folder/id trong data root. |
-| `--peer-name` | `--peer-name=Dung` | Tìm profile theo tên hoặc tạo mới. |
-| `--peer-port` / `--port` | `--peer-port=5010` | Override port lắng nghe của peer. |
-| `--data-dir` | `--data-dir=tmp/demo-data` | Thư mục gốc chứa profiles và dữ liệu local. |
-
-Ví dụ chạy hai peer riêng trong data root tạm:
+Đổi data root tạm để demo sạch:
 
 ```bat
 run-peer.bat --data-dir=tmp/demo --peer-name=Alice --peer-port=5101
 run-peer.bat --data-dir=tmp/demo --peer-name=Bob --peer-port=5102
 ```
 
-## 7. Dữ Liệu Local
+## 5. Chạy Demo Ba Peer
 
-Mặc định:
+Chạy bootstrap và ba peer trong các cửa sổ riêng:
 
-```text
-runtime-data/peer-node/
+```bat
+run-all-peers.bat
 ```
 
-Cấu trúc:
+Script mở:
+
+| Cửa sổ | Cách chọn profile |
+| --- | --- |
+| Bootstrap | `run-bootstrap.bat` |
+| Alice | Dùng `--profile=alice` nếu có, nếu không dùng `--peer-name=Alice --peer-port=5001`. |
+| Bob | Dùng `--profile=bob` nếu có, nếu không dùng `--peer-name=Bob --peer-port=5002`. |
+| Carol | Dùng `--profile=carol` nếu có, nếu không dùng `--peer-name=Carol --peer-port=5003`. |
+
+Cách này giữ được dữ liệu demo cũ nếu máy đã có `runtime-data/peer-node/alice|bob|carol`, đồng thời vẫn chạy được trên máy sạch.
+
+## 6. Tham Số CLI Của Peer
+
+| Tham số | Ví dụ | Ý nghĩa |
+| --- | --- | --- |
+| `--profile` | `--profile=alice` | Nạp profile theo folder/id trong data root. |
+| `--peer-name` | `--peer-name=Dung` | Tìm profile theo tên hoặc tạo mới. |
+| `--peer-port` / `--port` | `--peer-port=5010` | Override port lắng nghe của peer. |
+| `--data-dir` | `--data-dir=tmp/demo-data` | Thư mục gốc chứa profiles và dữ liệu local. |
+
+Nếu gọi Maven trực tiếp, phải đặt tham số của app trong `-Dexec.args`. Không truyền `--peer-port` trực tiếp cho Maven.
+
+Đúng:
+
+```bat
+mvn -pl peer-node -DskipTests compile exec:java -Dexec.mainClass=dungcony.ds.App "-Dexec.args=--peer-name=Alice --peer-port=5001"
+```
+
+Sai:
+
+```bat
+mvn -pl peer-node exec:java -Dexec.mainClass=dungcony.ds.App --peer-port=5001
+```
+
+Lệnh sai làm Maven báo `Unrecognized option: --peer-port=5001` vì Maven hiểu nhầm đó là option của Maven.
+
+## 7. Dữ Liệu Runtime
+
+Dữ liệu chạy thật không lưu trong `src/main/resources`. Mặc định:
 
 ```text
-runtime-data/peer-node/
-├── config.properties          # bootstrap.host, bootstrap.port dùng chung
-└── <peer-id-or-profile-id>/
-    ├── config.properties
-    ├── messages.json
-    └── groups.json
+runtime-data/
+├── peer-node/
+│   ├── config.properties
+│   └── <profile-id>/
+│       ├── config.properties
+│       ├── messages.json
+│       └── groups.json
+└── bootstrap-server/
+    └── bootstrap-server.db
 ```
 
 | File | Vai trò |
 | --- | --- |
-| `config.properties` ở data root | Cấu hình bootstrap dùng chung. |
-| `profile/config.properties` | Định danh peer và port lắng nghe. |
-| `messages.json` | Lịch sử direct, group, broadcast và trạng thái gửi. |
-| `groups.json` | Group local mà peer đang biết. |
+| `runtime-data/peer-node/config.properties` | Cấu hình bootstrap dùng chung cho peer-node. |
+| `runtime-data/peer-node/<profile>/config.properties` | `peer.id`, `peer.name`, `peer.port`, public key, private key. |
+| `runtime-data/peer-node/<profile>/messages.json` | Lịch sử direct, group, broadcast và trạng thái gửi. |
+| `runtime-data/peer-node/<profile>/groups.json` | Group local cache của profile. |
+| `runtime-data/bootstrap-server/bootstrap-server.db` | SQLite database của tracker. |
 
-Bootstrap dùng SQLite theo cấu hình module `bootstrap-server` để lưu users, groups, group members và offline messages.
+`runtime-data/` nằm trong `.gitignore` để không nộp kèm history chat, private key và database runtime. Code vẫn có nhánh migrate dữ liệu cũ nếu thư mục legacy `peer-node/src/main/resources/data` còn tồn tại trên máy cũ, nhưng repo sạch không cần dùng thư mục đó nữa.
 
 ## 8. Kịch Bản Kiểm Thử Thủ Công
 
@@ -157,12 +187,12 @@ Bootstrap dùng SQLite theo cấu hình module `bootstrap-server` để lưu use
 1. Chạy `run-bootstrap.bat`.
 2. Mở Alice và Bob.
 3. Đợi hai peer thấy nhau online.
-4. Alice chọn Bob, gửi tin.
-5. Bob nhận tin, Alice thấy tin ở trạng thái `Đã gửi`.
+4. Alice chọn Bob và gửi tin.
+5. Bob nhận tin, Alice lưu message ở trạng thái `SENT`.
 
-### 8.2. Peer Offline Và Store-And-Forward
+### 8.2. Store-And-Forward Khi Peer Offline
 
-1. Chạy Alice và Bob cùng bootstrap.
+1. Chạy Alice, Bob và bootstrap.
 2. Đóng Bob.
 3. Alice gửi tin cho Bob.
 4. Nếu bootstrap còn chạy, tin của Alice chuyển `PENDING`.
@@ -173,54 +203,32 @@ Bootstrap dùng SQLite theo cấu hình module `bootstrap-server` để lưu use
 1. Chạy ít nhất ba peer.
 2. Alice tạo nhóm với Bob và Carol.
 3. Alice gửi tin trong nhóm.
-4. Bob và Carol nhận `GROUP_CHAT` trực tiếp.
-5. Nếu một member offline, tin nhóm có thể được lưu offline qua bootstrap theo `receiverId`.
+4. Bob và Carol nhận `GROUP_CHAT` trực tiếp nếu online.
+5. Member offline có thể nhận lại tin nhóm qua bootstrap khi online lại.
 
 ### 8.4. Broadcast `[Thế giới]`
 
 1. Chạy ít nhất ba peer.
 2. Alice chọn conversation `[Thế giới]`.
-3. Alice gửi tin như chat thường.
-4. Các peer online nhận `BROADCAST`.
-5. Peer offline không nhận lại broadcast khi online sau đó.
+3. Alice gửi tin.
+4. Peer online nhận `BROADCAST`.
+5. Peer offline không nhận lại broadcast sau khi online, vì broadcast là realtime.
 
-## 9. Test Tự Động
+### 8.5. Mã Hóa Payload
 
-Chạy toàn bộ test:
+1. Chạy hai peer đã đăng ký với bootstrap.
+2. Gửi direct/group/broadcast message.
+3. Sender mã hóa content bằng public key của receiver.
+4. Receiver giải mã bằng private key trong profile local rồi lưu vào history.
+5. Offline message lưu trên bootstrap vẫn giữ metadata `encrypted`, `encryptionAlgorithm`, `encryptedFor`.
 
-```bat
-mvn test
-```
-
-Chạy test peer-node:
-
-```bat
-mvn -pl peer-node test
-```
-
-Chạy test bootstrap:
-
-```bat
-mvn -pl bootstrap-server test
-```
-
-Các test quan trọng:
-
-| Test | Ý nghĩa |
-| --- | --- |
-| `directMessageIsDeliveredWithAckThroughDiscoveredPeer` | Chat 1-1 qua discovery và ACK. |
-| `failedDirectSendIsStoredOfflineAndDeliveredWhenReceiverJoinsAgain` | Store-and-forward khi receiver offline. |
-| `groupMessageIsBroadcastToAllOnlineMembers` | Group chat tới các member online. |
-| `networkBroadcastIsDeliveredToAllOnlinePeers` | Broadcast `[Thế giới]` tới peer online. |
-| `broadcastHistoryIsSeparateFromDirectConversations` | Broadcast không lẫn vào chat riêng. |
-| `ignoresDemoProfilesAndCreatesEditableUserProfile` | Không dùng demo profile làm profile người dùng thật. |
-
-## 10. Lỗi Thường Gặp
+## 9. Lỗi Thường Gặp
 
 | Hiện tượng | Nguyên nhân thường gặp | Cách xử lý |
 | --- | --- | --- |
-| Peer không thấy peer khác | Bootstrap chưa chạy hoặc chưa refresh | Chạy `run-bootstrap.bat`, đợi khoảng 5 giây. |
-| Không mở được port peer | Port trong profile đang bị process khác dùng | Dùng `--peer-port` khác hoặc tạo profile mới. |
-| Tin chuyển `FAILED` | Peer đích offline và bootstrap không lưu được offline | Chạy lại bootstrap/peer nhận rồi thử lại. |
+| Maven báo `Unrecognized option: --peer-port` | Truyền arg peer trực tiếp cho Maven | Dùng `run-peer.bat` hoặc đặt trong `"-Dexec.args=..."`. |
+| Peer không thấy peer khác | Bootstrap chưa chạy hoặc peer chưa refresh | Chạy `run-bootstrap.bat`, đợi vài giây. |
+| Không mở được port peer | Port đang bị process khác dùng | Dùng `--peer-port` khác hoặc tạo profile mới. |
+| Tin chuyển `FAILED` | Không ACK và không store offline được | Kiểm tra peer đích, bootstrap và public key receiver. |
 | Tin chuyển `PENDING` | Gửi trực tiếp thất bại nhưng bootstrap đã lưu offline | Mở lại receiver cùng `peer.id`. |
-| Broadcast không tới peer offline | Thiết kế broadcast chỉ gửi realtime | Đây là hành vi đúng của `[Thế giới]`. |
+| Broadcast không tới peer offline | Thiết kế broadcast chỉ realtime | Đây là hành vi đúng của `[Thế giới]`. |

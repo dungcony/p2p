@@ -1,6 +1,6 @@
 # Cơ Chế Peer Discovery
 
-Peer discovery là cơ chế giúp peer mới tìm được peer khác trong mạng và có đủ địa chỉ IP:port để mở TCP socket trực tiếp.
+Peer discovery là cơ chế giúp peer mới tìm được peer khác trong mạng và có đủ thông tin để mở TCP socket trực tiếp.
 
 Hệ thống dùng hai lớp discovery:
 
@@ -9,20 +9,21 @@ Hệ thống dùng hai lớp discovery:
 
 ## 1. Vì Sao Cần Discovery
 
-Trong P2P chat, message online không đi qua server trung tâm. Sender phải biết địa chỉ network của receiver:
+Trong P2P chat, message online không đi qua server trung tâm. Sender phải biết đủ ba loại thông tin của receiver:
 
 ```text
-peer.id  -> định danh ổn định
-host:port -> địa chỉ runtime để mở socket và nhận ACK
+peer.id    -> định danh ổn định của profile/user
+host:port  -> địa chỉ runtime để mở TCP socket
+publicKey  -> khóa công khai để mã hóa payload
 ```
 
-Vì vậy chỉ lưu `peer.id` là không đủ để gửi tin. `peer.id` dùng để nhận diện người dùng/profile; IP:port lấy từ bootstrap hoặc danh bạ runtime.
+Vì vậy chỉ lưu `peer.id` là không đủ để gửi tin. `peer.id` dùng để nhận diện người dùng/profile, còn IP:port và public key được lấy từ bootstrap hoặc danh bạ runtime.
 
 ## 2. Discovery Qua Bootstrap
 
 Bootstrap server đóng vai trò tracker:
 
-- Nhận `REGISTER` để lưu user.
+- Nhận `REGISTER` để lưu user và public key.
 - Nhận `JOIN` để đánh dấu peer online.
 - Trả danh sách peer online trong `JoinResponse`.
 - Nhận `LEAVE` để xóa peer khỏi registry.
@@ -38,19 +39,19 @@ sequenceDiagram
 
     P->>Sync: start()
     Sync->>Client: register(localPeer)
-    Client->>BS: REGISTER PeerInfo
+    Client->>BS: REGISTER PeerInfo(id, host, port, publicKey)
     BS->>Registry: save user
     BS-->>Client: OK
     Sync->>Client: join(localPeer)
     Client->>BS: JOIN PeerInfo
     BS->>Registry: cache online + drain offline
     BS-->>Client: JoinResponse(onlinePeers, offlineMessages)
-    Sync->>P: merge peers + save offline messages
+    Sync->>P: merge peers + groups + offline messages
 ```
 
 ## 3. Vòng Đời Online/Offline
 
-### 3.1. Khi peer start
+### 3.1. Khi Peer Start
 
 `PeerNodeRuntime.start()` làm hai việc:
 
@@ -66,15 +67,13 @@ sequenceDiagram
 5. Nhận offline messages.
 6. Notify UI refresh danh sách chat.
 
-### 3.2. Khi peer đang chạy
+### 3.2. Khi Peer Đang Chạy
 
-`PeerNode-Bootstrap` lặp mỗi `5000 ms`:
+Peer refresh bootstrap mỗi 5 giây:
 
 ```text
 JOIN localPeer -> nhận danh sách online mới -> sync vào PeerDirectory
 ```
-
-Bootstrap giữ TTL online:
 
 | Giá trị | Mặc định |
 | --- | --- |
@@ -83,7 +82,7 @@ Bootstrap giữ TTL online:
 
 Nếu peer tắt đột ngột và không gửi `LEAVE`, bootstrap sẽ loại peer đó khỏi danh sách online sau TTL.
 
-### 3.3. Khi peer đóng app
+### 3.3. Khi Peer Đóng App
 
 `PeerNode.stop()`:
 
@@ -95,7 +94,7 @@ Nếu peer tắt đột ngột và không gửi `LEAVE`, bootstrap sẽ loại p
 
 `PeerDirectoryService` là danh bạ runtime trong peer-node.
 
-Nó lưu các peer từ nhiều nguồn:
+Nó lưu peer từ nhiều nguồn:
 
 | Nguồn | Ví dụ |
 | --- | --- |
@@ -103,15 +102,15 @@ Nó lưu các peer từ nhiều nguồn:
 | Message inbound | Sender của `CHAT`, `GROUP_CHAT`, `BROADCAST`, `HEARTBEAT`. |
 | Local history | Peer đã từng có direct chat. |
 | Fallback discovery | Peer list từ `PEER_LIST_RESPONSE`. |
-| Người dùng nhập địa chỉ thủ công | Trang "Chat trực tiếp". |
+| Người dùng nhập địa chỉ thủ công | Trang chat trực tiếp nếu có địa chỉ IP:port. |
 
 Danh bạ này giúp hệ thống resolve:
 
 ```text
-peer.id -> PeerInfo(id, name, host, port, online)
+peer.id -> PeerInfo(id, name, host, port, online, publicKey)
 ```
 
-Khi gửi group, member được lưu theo id, nhưng `GroupChatImpl` gọi `findKnownPeerById()` để lấy IP:port mới nhất.
+Khi gửi group, member được lưu theo id, nhưng `GroupChatImpl` gọi `findKnownPeerById()` để lấy IP:port và public key mới nhất.
 
 ## 5. Discovery Fallback Qua Peer Đã Biết
 
@@ -142,6 +141,8 @@ Khi peer refresh bootstrap:
 
 Khi tạo/thêm member/đổi tên group, peer còn gửi `GROUP_MEMBERS_SYNC` trực tiếp tới member reachable để cập nhật nhanh mà không phải chờ vòng refresh.
 
+Điểm bảo vệ dữ liệu local: nếu bootstrap trả danh sách group rỗng trong khi local `groups.json` vẫn có group, peer giữ group local và publish lại lên bootstrap. Nhờ vậy bootstrap rỗng hoặc database mới không làm mất group đã lưu ở peer.
+
 ## 7. Discovery Cho Broadcast `[Thế giới]`
 
 `NetworkBroadcastImpl` lấy target như sau:
@@ -154,31 +155,47 @@ Khi tạo/thêm member/đổi tên group, peer còn gửi `GROUP_MEMBERS_SYNC` t
    - peer offline,
    - peer thiếu host/port,
    - peer trùng id/address.
-5. Gửi `BROADCAST` tới target còn lại.
+5. Với từng target, mã hóa payload bằng public key của target.
+6. Gửi `BROADCAST` trực tiếp.
 
-Broadcast không cần group membership và không lưu offline. Đây là luồng realtime "ai đang online thì nhận".
+Broadcast không cần group membership và không lưu offline. Đây là luồng realtime: ai đang online thì nhận.
 
-## 8. UI Và Trạng Thái Online
+## 8. Discovery Và Mã Hóa
+
+Discovery không chỉ phục vụ IP:port, mà còn phục vụ public key.
+
+| Trường hợp | Hành vi |
+| --- | --- |
+| Receiver có public key hợp lệ | Sender mã hóa content rồi gửi. |
+| Receiver thiếu public key | Direct message bị đánh dấu `FAILED`, group/broadcast target đó thất bại. |
+| Bootstrap lưu offline message | Bootstrap lưu ciphertext, không giải mã. |
+| Receiver online lại | Receiver dùng private key local để giải mã offline message. |
+
+Vì vậy `REGISTER/JOIN/LIST` cần bảo toàn `publicKey` trong `PeerInfo`.
+
+## 9. UI Và Trạng Thái Online
 
 Chat list hiển thị:
 
 - `[Thế giới]` cho broadcast.
 - `[Nhóm] <name>` cho group.
-- Peer trực tiếp với chấm online/offline.
+- Peer trực tiếp với trạng thái online/offline.
 
 Trạng thái online chủ yếu lấy từ bootstrap/danh bạ runtime. Khi bootstrap mất kết nối, peer vẫn có thể chat trực tiếp tới địa chỉ đã biết, nhưng trạng thái online tự động có thể không chính xác bằng khi tracker hoạt động.
 
-## 9. Trường Hợp Lỗi
+## 10. Trường Hợp Lỗi
 
 | Tình huống | Hành vi |
 | --- | --- |
-| Bootstrap chưa chạy | Peer vẫn mở TCP listener, nhưng không có discovery tự động/offline store. |
+| Bootstrap chưa chạy | Peer vẫn mở TCP listener, nhưng không có discovery tự động/offline store mới. |
 | Peer không gửi `LEAVE` | Bootstrap loại peer sau TTL. |
 | Peer đổi port | Lần `JOIN` mới cập nhật `PeerInfo` trên bootstrap. |
 | Group member chỉ có id, chưa có địa chỉ | Không thể gửi trực tiếp cho member đó cho tới khi discovery được IP:port. |
+| Peer thiếu public key | Không gửi plaintext; target được coi là thất bại. |
+| Bootstrap group rỗng nhưng local còn group | Giữ local group và publish lại. |
 | Peer offline trong broadcast | Bỏ qua, không store offline. |
 
-## 10. Đánh Giá
+## 11. Đánh Giá
 
 Cơ chế discovery đáp ứng yêu cầu:
 
@@ -186,5 +203,5 @@ Cơ chế discovery đáp ứng yêu cầu:
 - Danh sách peer online được cập nhật định kỳ.
 - Mỗi peer vẫn tự giao tiếp trực tiếp bằng TCP sau khi có IP:port.
 - Có fallback peer-to-peer khi bootstrap không khả dụng.
-- Group sử dụng `peer.id` ổn định nhưng vẫn resolve sang IP:port tại thời điểm gửi.
-
+- Group dùng `peer.id` ổn định nhưng resolve sang IP:port tại thời điểm gửi.
+- Public key đi cùng discovery để hỗ trợ mã hóa payload.

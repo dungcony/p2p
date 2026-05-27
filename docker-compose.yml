@@ -1,0 +1,18 @@
+services:
+  bootstrap-server:
+    build:
+      context: .
+      dockerfile: bootstrap-server/Dockerfile
+    image: p2p-bootstrap-server:latest
+    container_name: p2p-bootstrap-server
+    environment:
+      BOOTSTRAP_SERVER_PORT: "9000"
+      BOOTSTRAP_DATABASE_PATH: /data/bootstrap-server.db
+    ports:
+      - "${BOOTSTRAP_SERVER_PORT:-9000}:9000"
+    volumes:
+      - bootstrap-server-data:/data
+    restart: unless-stopped
+
+volumes:
+  bootstrap-server-data:

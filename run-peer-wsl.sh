@@ -5,6 +5,52 @@ set -euo pipefail
 # Defaults are kept separate from Windows so the two peers do not reuse one profile.
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
+if [[ "${P2P_SKIP_GUI_LIB_CHECK:-0}" != "1" ]]; then
+    REQUIRED_GUI_LIBS=(libXext.so.6)
+    MISSING_GUI_LIBS=()
+    for lib in "${REQUIRED_GUI_LIBS[@]}"; do
+        if ! ldconfig -p 2>/dev/null | grep -q "$lib"; then
+            MISSING_GUI_LIBS+=("$lib")
+        fi
+    done
+    if ((${#MISSING_GUI_LIBS[@]} > 0)); then
+        echo "[ERROR] Missing WSL GUI library: ${MISSING_GUI_LIBS[*]}"
+        echo "[INFO] This Swing app needs X11/WSLg libraries inside the WSL distro."
+        if command -v apt >/dev/null 2>&1; then
+            echo "[FIX] sudo apt update && sudo apt install -y libxext6 libxi6 libxrender1 libxtst6 libxrandr2 libfontconfig1"
+        elif command -v pacman >/dev/null 2>&1; then
+            echo "[FIX] sudo pacman -S --needed libxext libxi libxrender libxtst libxrandr fontconfig"
+        elif command -v dnf >/dev/null 2>&1; then
+            echo "[FIX] sudo dnf install libXext libXi libXrender libXtst libXrandr fontconfig"
+        else
+            echo "[FIX] Install the package that provides libXext.so.6 for your distro."
+        fi
+        exit 1
+    fi
+fi
+
+if [[ "${P2P_SKIP_FONT_CHECK:-0}" != "1" ]]; then
+    if ! command -v fc-match >/dev/null 2>&1; then
+        echo "[ERROR] fontconfig command fc-match was not found."
+        echo "[FIX] sudo pacman -S --needed fontconfig ttf-dejavu noto-fonts"
+        exit 1
+    fi
+    if [[ -z "$(fc-match -f '%{file}' sans-serif 2>/dev/null)" ]]; then
+        echo "[ERROR] No usable system font found for Java Swing."
+        echo "[INFO] Fontconfig is installed, but the WSL distro has no font package available."
+        if command -v pacman >/dev/null 2>&1; then
+            echo "[FIX] sudo pacman -S --needed ttf-dejavu noto-fonts && fc-cache -fv"
+        elif command -v apt >/dev/null 2>&1; then
+            echo "[FIX] sudo apt update && sudo apt install -y fonts-dejavu fonts-noto-core && fc-cache -fv"
+        elif command -v dnf >/dev/null 2>&1; then
+            echo "[FIX] sudo dnf install dejavu-sans-fonts google-noto-sans-fonts && fc-cache -fv"
+        else
+            echo "[FIX] Install a TrueType font package, then run fc-cache -fv."
+        fi
+        exit 1
+    fi
+fi
+
 DEFAULT_DATA_ROOT="${P2P_WSL_DATA_DIR:-runtime-data/peer-node-wsl}"
 BOOTSTRAP_PORT_VALUE="${BOOTSTRAP_PORT:-${BOOTSTRAP_SERVER_PORT:-9000}}"
 BOOTSTRAP_HOST_VALUE="${BOOTSTRAP_HOST:-}"

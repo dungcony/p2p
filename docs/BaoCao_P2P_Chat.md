@@ -896,3 +896,45 @@ Hướng phát triển:
 - Đóng gói ứng dụng thành file chạy độc lập hoặc Docker image cho bootstrap.
 
 Tổng kết lại, đề tài đã xây dựng được một hệ thống chat P2P hoàn chỉnh ở mức demo học thuật, thể hiện rõ các thành phần quan trọng của hệ phân tán: peer discovery, truyền thông trực tiếp giữa các node, xử lý lỗi, đồng bộ trạng thái, lưu trữ phân tán cục bộ và bảo vệ nội dung tin nhắn.
+
+## CHƯƠNG 5: TÀI LIỆU THAM KHẢO
+
+[1] W. Eddy, “Transmission Control Protocol (TCP),” *RFC 9293*, Internet Engineering Task Force, Aug. 2022. [Online]. Available: <https://www.rfc-editor.org/rfc/rfc9293.html>. [Accessed: May 27, 2026].
+
+[2] I. Stoica, R. Morris, D. Karger, M. F. Kaashoek, and H. Balakrishnan, “Chord: A scalable peer-to-peer lookup service for internet applications,” in *Proc. ACM SIGCOMM*, 2001, pp. 149-160. [Online]. Available: <https://pdos.csail.mit.edu/papers/chord:sigcomm01/chord_sigcomm.pdf>. [Accessed: May 27, 2026].
+
+[3] A. S. Tanenbaum and M. van Steen, *Distributed Systems: Principles and Paradigms*, 2nd ed. Upper Saddle River, NJ, USA: Prentice Hall, 2007.
+
+[4] G. Coulouris, J. Dollimore, T. Kindberg, and G. Blair, *Distributed Systems: Concepts and Design*, 5th ed. Boston, MA, USA: Addison-Wesley, 2011.
+
+[5] Oracle, “Class Socket - Java SE 21 & JDK 21 API Specification,” *Oracle Java Documentation*. [Online]. Available: <https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/Socket.html>. [Accessed: May 27, 2026].
+
+[6] Oracle, “Class ServerSocket - Java SE 21 & JDK 21 API Specification,” *Oracle Java Documentation*. [Online]. Available: <https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/ServerSocket.html>. [Accessed: May 27, 2026].
+
+[7] Oracle, “Trail: Creating a GUI With Swing,” *Oracle Java Tutorials*. [Online]. Available: <https://docs.oracle.com/javase/tutorial/uiswing/>. [Accessed: May 27, 2026].
+
+[8] Apache Maven Project, “Maven documentation,” *Apache Software Foundation*. [Online]. Available: <https://maven.apache.org/guides/index.html>. [Accessed: May 27, 2026].
+
+[9] JUnit Team, “JUnit 5 user guide,” *JUnit*. [Online]. Available: <https://junit.org/junit5/docs/current/user-guide/>. [Accessed: May 27, 2026].
+
+[10] Google, “Gson: A Java serialization/deserialization library,” *GitHub Repository*. [Online]. Available: <https://github.com/google/gson>. [Accessed: May 27, 2026].
+
+[11] SQLite, “SQLite documentation,” *SQLite*. [Online]. Available: <https://www.sqlite.org/docs.html>. [Accessed: May 27, 2026].
+
+[12] Xerial, “SQLite JDBC driver,” *GitHub Repository*. [Online]. Available: <https://github.com/xerial/sqlite-jdbc>. [Accessed: May 27, 2026].
+
+[13] Project Lombok, “Project Lombok,” *Project Lombok Documentation*. [Online]. Available: <https://projectlombok.org/>. [Accessed: May 27, 2026].
+
+[14] Oracle, “Class Cipher - Java SE 21 & JDK 21 API Specification,” *Oracle Java Documentation*. [Online]. Available: <https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html>. [Accessed: May 27, 2026].
+
+[15] Oracle, “Java cryptography architecture (JCA) reference guide,” *Oracle Java Documentation*. [Online]. Available: <https://docs.oracle.com/en/java/javase/21/security/java-cryptography-architecture-jca-reference-guide.html>. [Accessed: May 27, 2026].
+
+[16] K. Moriarty, B. Kaliski, J. Jonsson, and A. Rusch, “PKCS #1: RSA cryptography specifications version 2.2,” *RFC 8017*, Internet Engineering Task Force, Nov. 2016. [Online]. Available: <https://datatracker.ietf.org/doc/html/rfc8017>. [Accessed: May 27, 2026].
+
+[17] Nhóm thực hiện, “P2P Chat System README,” tài liệu nội bộ đồ án, 2026.
+
+[18] Nhóm thực hiện, “P2P Chat System requirements,” tài liệu nội bộ đồ án, 2026.
+
+[19] Nhóm thực hiện, “P2P Chat System design document,” tài liệu nội bộ đồ án, 2026.
+
+[20] Nhóm thực hiện, “P2P Chat System source code,” mã nguồn nội bộ đồ án, 2026.
